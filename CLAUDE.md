@@ -15,28 +15,30 @@ PersonalParakeet is a real-time dictation system using NVIDIA Parakeet-TDT 1.1B 
 ### Direct NeMo Integration (Working System)
 ```bash
 # Install dependencies
+pip install -r requirements.txt
+# or manually:
 pip install sounddevice numpy nemo-toolkit torch keyboard
 
 # Run complete working dictation system
-python updated-project/dictation_simple_fixed.py
+python run_dictation.py
 
 # Test core components individually
-python test_audio_minimal.py                    # Windows audio capture
-python updated-project/test_local_agreement.py  # LocalAgreement logic
-python updated-project/test_keyboard_output.py  # Keyboard output
+python tests/test_audio_minimal.py      # Windows audio capture
+python tests/test_local_agreement.py    # LocalAgreement logic
+python tests/test_keyboard_output.py    # Keyboard output
 ```
 
 ### Development and Testing
 ```bash
 # Test Windows audio capture (critical for system functionality)
-python test_audio_minimal.py
+python tests/test_audio_minimal.py
 
 # GPU monitoring (essential for performance)
 nvidia-smi
 watch -n 1 nvidia-smi
 
 # Test LocalAgreement buffer system (core innovation)
-python updated-project/test_local_agreement.py
+python tests/test_local_agreement.py
 
 # Manual testing only (DO NOT run automatically)
 # System requires interactive testing with real microphone input
@@ -53,13 +55,13 @@ The system uses direct integration with NVIDIA NeMo framework for real-time dict
 - **LocalAgreement buffering** - Core innovation preventing text rewrites
 
 ### Core Implementation Files
-The project contains proven working implementations:
+The project is now properly structured with a clean package organization:
 
-- **`updated-project/dictation_simple_fixed.py`**: Complete working system (203 lines) - **CURRENTLY WORKING**
-- **`ESSENTIAL_LocalAgreement_Code.py`**: LocalAgreement buffer implementation (318 lines) - core differentiator
-- **`ESSENTIAL_RTX_Config.py`**: Dual RTX 5090/3090 GPU optimization (228 lines)
-- **`ESSENTIAL_Audio_Integration.py`**: Audio capture and processing (264 lines)
-- **`test_audio_minimal.py`**: Windows audio debugging script (**WORKING**)
+- **`run_dictation.py`**: Main entry point - starts the complete working system
+- **`personalparakeet/dictation.py`**: Main dictation system - **CURRENTLY WORKING**
+- **`personalparakeet/local_agreement.py`**: LocalAgreement buffer implementation - core differentiator
+- **`personalparakeet/cuda_fix.py`**: RTX 5090 CUDA compatibility fix
+- **`tests/test_audio_minimal.py`**: Windows audio debugging script (**WORKING**)
 
 ## Key Configuration
 
@@ -103,14 +105,14 @@ AUDIO_CHANNELS=1         # Mono audio processing
 ## Implementation Status
 
 The core system is **WORKING** with proven functionality:
-- **`updated-project/dictation_simple_fixed.py`**: Complete working dictation system
-- **`ESSENTIAL_LocalAgreement_Code.py`**: Core LocalAgreement implementation (ready for integration)
-- **`ESSENTIAL_RTX_Config.py`**: GPU optimization strategies (ready for integration)
-- **`ESSENTIAL_Audio_Integration.py`**: Audio pipeline foundation (ready for integration)
+- **`personalparakeet/dictation.py`**: Complete working dictation system
+- **`personalparakeet/local_agreement.py`**: Core LocalAgreement implementation (integrated)
+- **`personalparakeet/cuda_fix.py`**: RTX 5090 CUDA compatibility (integrated)
+- **`run_dictation.py`**: Ready-to-use entry point
 
 ## Testing Notes
 
-- **`test_audio_minimal.py` is WORKING** - Windows audio compatibility confirmed
+- **`tests/test_audio_minimal.py` is WORKING** - Windows audio compatibility confirmed
 - **Manual testing preferred** - System requires interactive testing with real microphone input
 - **GPU monitoring essential** - Use `nvidia-smi` and `watch -n 1 nvidia-smi` for performance monitoring
 - **Test on Windows immediately** - Every change must work on target platform

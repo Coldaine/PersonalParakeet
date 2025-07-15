@@ -4,7 +4,11 @@ Test LocalAgreement algorithm to understand why it's not working
 with streaming audio chunks
 """
 
-from ESSENTIAL_LocalAgreement_Code import TranscriptionProcessor
+import sys
+import os
+sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
+
+from personalparakeet.local_agreement import TranscriptionProcessor
 
 def test_streaming_scenario():
     """Simulate what happens with streaming audio chunks"""

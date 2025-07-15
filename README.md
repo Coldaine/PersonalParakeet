@@ -53,14 +53,20 @@ pip install sounddevice numpy nemo-toolkit torch keyboard
 
 ### Basic Usage
 ```bash
-# Test audio capture (critical first step)
-python test_audio_minimal.py
+# Install dependencies
+pip install -r requirements.txt
 
-# Run working dictation system
-python updated-project/dictation_simple_fixed.py
+# Test audio capture (critical first step)
+python tests/test_audio_minimal.py
+
+# Run the dictation system
+python run_dictation.py
+
+# Or run as a module
+python -m personalparakeet.dictation
 
 # Test LocalAgreement logic
-python updated-project/test_local_agreement.py
+python tests/test_local_agreement.py
 ```
 
 ### Hardware Requirements
@@ -113,35 +119,40 @@ python updated-project/test_local_agreement.py
 ### Testing Strategy
 ```bash
 # Audio hardware testing
-python test_audio_minimal.py
+python tests/test_audio_minimal.py
 
 # LocalAgreement algorithm testing  
-python updated-project/test_local_agreement.py
+python tests/test_local_agreement.py
 
 # Keyboard output testing
-python updated-project/test_keyboard_output.py
+python tests/test_keyboard_output.py
 
 # End-to-end system testing
-python updated-project/dictation_simple_fixed.py
+python run_dictation.py
 ```
 
-## Files Overview
+## Project Structure
 
-### Documentation
-- `CURRENT_STATUS.md` - Latest project status and working functionality
-- `SCOPE_CREEP_LESSONS.md` - Lessons learned from previous complexity
-- `IMPLEMENTATION_ROADMAP.md` - Development strategy and timeline
-- `CLAUDE.md` - Claude Code assistant guidance
-
-### Implementation
-- `updated-project/dictation_simple_fixed.py` - Complete working system
-- `ESSENTIAL_LocalAgreement_Code.py` - Core innovation implementation
-- `ESSENTIAL_RTX_Config.py` - GPU optimization strategies
-- `ESSENTIAL_Audio_Integration.py` - Audio pipeline foundation
-
-### Testing
-- `test_audio_minimal.py` - Windows audio debugging (✅ Working!)
-- `updated-project/test_*.py` - Component testing scripts
+```
+PersonalParakeet/
+├── personalparakeet/           # Main package
+│   ├── __init__.py
+│   ├── dictation.py           # Main dictation system
+│   ├── local_agreement.py     # LocalAgreement buffering
+│   └── cuda_fix.py            # RTX 5090 CUDA compatibility
+├── tests/                     # Test suite
+│   ├── test_audio_minimal.py  # Windows audio test (✅ Working!)
+│   ├── test_local_agreement.py
+│   └── test_keyboard_output.py
+├── docs/                      # Documentation
+│   ├── CURRENT_STATUS.md      # Latest project status
+│   ├── SCOPE_CREEP_LESSONS.md # Development lessons learned
+│   └── LLM_REFINEMENT_EXAMPLES.md
+├── run_dictation.py          # Main entry point
+├── requirements.txt          # Python dependencies
+├── README.md                 # This file
+└── CLAUDE.md                # Claude Code assistant guidance
+```
 
 ## Next Steps
 

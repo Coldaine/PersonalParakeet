@@ -12,7 +12,7 @@ from queue import Queue, Empty
 import sys
 
 # Import your LocalAgreement logic
-from ESSENTIAL_LocalAgreement_Code import TranscriptionProcessor
+from .local_agreement import TranscriptionProcessor
 
 class SimpleDictation:
     def __init__(self):
