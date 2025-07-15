@@ -530,3 +530,225 @@ python dictation_simple.py
 - **Logging**: Structured logs for troubleshooting and performance monitoring
 
 This design uses direct NeMo integration to implement the core LocalAgreement innovation and real-time dictation experience that makes PersonalParakeet unique.
+
+## Configuration System Design
+
+### Configuration Profiles Architecture
+
+The configuration system implements a profile-based approach with four pre-tuned profiles optimized for different usage scenarios. Each profile balances the trade-offs between accuracy, responsiveness, and stability.
+
+#### Profile Definitions
+
+```python
+@dataclass
+class ConfigurationProfile:
+    """Pre-defined configuration profile for specific use cases"""
+    name: str
+    description: str
+    agreement_threshold: int        # 1-5: consecutive agreements needed
+    chunk_duration: float          # 0.3-2.0s: audio chunk size
+    max_pending_words: int         # 5-30: buffer size
+    word_timeout: float            # 2.0-7.0s: force commit timeout
+    position_tolerance: int        # 1-3: word position flexibility
+    audio_level_threshold: float   # 0.001-0.1: minimum audio level
+
+# Pre-defined profiles
+FAST_CONVERSATION = ConfigurationProfile(
+    name="Fast Conversation Mode",
+    description="Optimized for quick responses in conversational settings",
+    agreement_threshold=1,      # Immediate commitment
+    chunk_duration=0.3,         # Short chunks for speed
+    max_pending_words=8,        # Small buffer
+    word_timeout=2.0,           # Quick timeout
+    position_tolerance=3,       # Flexible matching
+    audio_level_threshold=0.005 # Moderate sensitivity
+)
+
+BALANCED_MODE = ConfigurationProfile(
+    name="Balanced Mode",
+    description="Balanced accuracy and responsiveness for general use",
+    agreement_threshold=2,      # Standard stability
+    chunk_duration=1.0,         # Standard chunks
+    max_pending_words=15,       # Moderate buffer
+    word_timeout=4.0,           # Balanced timeout
+    position_tolerance=2,       # Standard flexibility
+    audio_level_threshold=0.01  # Default sensitivity
+)
+
+ACCURATE_DOCUMENT = ConfigurationProfile(
+    name="Accurate Document Mode", 
+    description="Maximizes accuracy for formal document dictation",
+    agreement_threshold=3,      # High stability requirement
+    chunk_duration=2.0,         # Long chunks for context
+    max_pending_words=30,       # Large buffer
+    word_timeout=7.0,           # Extended timeout
+    position_tolerance=1,       # Strict matching
+    audio_level_threshold=0.02  # Reduced sensitivity
+)
+
+LOW_LATENCY = ConfigurationProfile(
+    name="Low-Latency Mode",
+    description="Minimizes delay for real-time applications",
+    agreement_threshold=1,      # Immediate commitment
+    chunk_duration=0.5,         # Balanced for low latency
+    max_pending_words=5,        # Minimal buffer
+    word_timeout=2.5,           # Quick timeout
+    position_tolerance=2,       # Moderate flexibility
+    audio_level_threshold=0.001 # High sensitivity
+)
+```
+
+#### Configuration Manager
+
+```python
+class ConfigurationManager:
+    """Manages configuration profiles and runtime settings"""
+    
+    def __init__(self):
+        self.profiles: Dict[str, ConfigurationProfile] = {
+            "fast_conversation": FAST_CONVERSATION,
+            "balanced": BALANCED_MODE,
+            "accurate_document": ACCURATE_DOCUMENT,
+            "low_latency": LOW_LATENCY
+        }
+        self.active_profile: str = "balanced"
+        self.custom_profiles: Dict[str, ConfigurationProfile] = {}
+        self.config_file_path: Path = Path.home() / ".personalparakeet" / "config.toml"
+    
+    # Profile Management
+    def load_profile(self, profile_name: str) -> ConfigurationProfile
+    def save_custom_profile(self, name: str, profile: ConfigurationProfile) -> None
+    def delete_custom_profile(self, name: str) -> bool
+    def list_available_profiles(self) -> List[str]
+    
+    # Configuration Application
+    def apply_profile(self, profile_name: str) -> None
+    def get_active_configuration(self) -> ConfigurationProfile
+    def update_parameter(self, param: str, value: Any) -> None
+    
+    # Validation
+    def validate_configuration(self, config: ConfigurationProfile) -> List[str]
+    def validate_parameter(self, param: str, value: Any) -> bool
+    
+    # Persistence
+    def load_from_file(self) -> None
+    def save_to_file(self) -> None
+    def export_profile(self, profile_name: str, file_path: Path) -> None
+    def import_profile(self, file_path: Path) -> ConfigurationProfile
+```
+
+#### Configuration Integration Points
+
+```python
+class SimpleDictation:
+    """Enhanced with configuration support"""
+    
+    def __init__(self, config_manager: ConfigurationManager):
+        self.config_manager = config_manager
+        self.config = config_manager.get_active_configuration()
+        
+        # Apply configuration to components
+        self.chunk_duration = self.config.chunk_duration
+        self.chunk_size = int(self.sample_rate * self.chunk_duration)
+        
+        # Initialize processor with config
+        self.processor = TranscriptionProcessor(
+            agreement_threshold=self.config.agreement_threshold,
+            max_pending_words=self.config.max_pending_words,
+            word_timeout_seconds=self.config.word_timeout,
+            position_tolerance=self.config.position_tolerance
+        )
+        
+        # Audio level threshold
+        self.audio_level_threshold = self.config.audio_level_threshold
+    
+    def switch_profile(self, profile_name: str) -> None:
+        """Switch configuration profile at runtime"""
+        self.config_manager.apply_profile(profile_name)
+        self.config = self.config_manager.get_active_configuration()
+        self._apply_configuration_changes()
+    
+    def _apply_configuration_changes(self) -> None:
+        """Apply configuration changes without restart"""
+        # Update chunk processing
+        self.chunk_duration = self.config.chunk_duration
+        self.chunk_size = int(self.sample_rate * self.chunk_duration)
+        
+        # Update processor settings
+        self.processor.set_agreement_threshold(self.config.agreement_threshold)
+        self.processor.set_max_pending_words(self.config.max_pending_words)
+        self.processor.set_timeout_seconds(self.config.word_timeout)
+        self.processor.set_position_tolerance(self.config.position_tolerance)
+        
+        # Update audio threshold
+        self.audio_level_threshold = self.config.audio_level_threshold
+```
+
+#### Configuration UI Integration
+
+```python
+class ConfigurationUI:
+    """Visual configuration interface"""
+    
+    def __init__(self, config_manager: ConfigurationManager):
+        self.config_manager = config_manager
+        self.profile_selector: ProfileSelector
+        self.parameter_sliders: Dict[str, ParameterSlider]
+        self.trade_off_visualizer: TradeOffVisualizer
+    
+    def show_profile_selector(self) -> None:
+        """Display profile selection dropdown"""
+        profiles = self.config_manager.list_available_profiles()
+        # Show UI with profile options
+    
+    def show_parameter_controls(self) -> None:
+        """Display individual parameter sliders"""
+        config = self.config_manager.get_active_configuration()
+        # Create sliders for each parameter with validation
+    
+    def visualize_trade_offs(self) -> None:
+        """Show accuracy vs responsiveness visualization"""
+        # Display radar chart or similar showing:
+        # - Accuracy score (based on agreement_threshold, chunk_duration)
+        # - Responsiveness score (based on word_timeout, max_pending_words)
+        # - Stability score (based on position_tolerance)
+        # - Sensitivity score (based on audio_level_threshold)
+```
+
+#### Configuration File Format
+
+```toml
+[active_profile]
+name = "balanced"
+
+[profiles.custom.meeting_notes]
+description = "Optimized for meeting transcription"
+agreement_threshold = 2
+chunk_duration = 1.5
+max_pending_words = 20
+word_timeout = 5.0
+position_tolerance = 2
+audio_level_threshold = 0.008
+
+[parameter_ranges]
+agreement_threshold = { min = 1, max = 5 }
+chunk_duration = { min = 0.3, max = 2.0 }
+max_pending_words = { min = 5, max = 30 }
+word_timeout = { min = 2.0, max = 7.0 }
+position_tolerance = { min = 1, max = 3 }
+audio_level_threshold = { min = 0.001, max = 0.1 }
+
+[ui_preferences]
+show_trade_off_visualization = true
+auto_save_custom_profiles = true
+profile_quick_switch_hotkeys = true
+```
+
+### Configuration System Benefits
+
+1. **User-Friendly**: Pre-tuned profiles eliminate guesswork for common scenarios
+2. **Flexible**: Custom profiles allow power users to fine-tune for specific needs
+3. **Runtime Switching**: Change profiles without restarting the application
+4. **Visual Feedback**: Trade-off visualization helps users understand impact of changes
+5. **Validation**: Parameter ranges prevent invalid configurations
+6. **Persistence**: Settings preserved across sessions with TOML storage

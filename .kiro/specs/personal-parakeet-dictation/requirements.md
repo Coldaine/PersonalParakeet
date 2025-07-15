@@ -224,3 +224,64 @@ Audio: 44.1kHz capture → 16kHz processing pipeline
 Configuration: TOML-based with live reload capabilities
 UI: Transparent overlay with system tray fallback
 Deployment: Single executable with embedded dependencies
+
+## Configuration System Requirements
+
+### Requirement 15: Advanced Configuration System
+**User Story**: As a user, I want a flexible configuration system with pre-defined profiles, so that I can easily switch between different usage scenarios and fine-tune the system for my specific needs.
+
+#### Acceptance Criteria
+
+WHEN the system loads configuration THEN it SHALL support the following configurable parameters with specified ranges:
+- Agreement threshold: 1-5 (number of consecutive agreements required before committing text)
+- Chunk duration: 0.3-2.0 seconds (audio processing chunk size)
+- Max pending words: 5-30 (maximum words held in pending buffer)
+- Word timeout: 2.0-7.0 seconds (time before forcing pending words to commit)
+- Position tolerance: 1-3 (word position flexibility for agreement matching)
+- Audio level threshold: 0.001-0.1 (minimum audio level to process)
+
+WHEN a user selects a configuration profile THEN the system SHALL apply pre-tuned settings for that profile:
+- Fast Conversation Mode: Optimized for quick responses in conversational settings
+- Balanced Mode (default): Balanced accuracy and responsiveness for general use
+- Accurate Document Mode: Maximizes accuracy for formal document dictation
+- Low-Latency Mode: Minimizes delay for real-time applications
+
+WHEN Fast Conversation Mode is selected THEN the system SHALL configure:
+- Agreement threshold: 1 (commit text after single agreement)
+- Chunk duration: 0.3s (short chunks for quick processing)
+- Max pending words: 8 (limited buffer for fast output)
+- Word timeout: 2.0s (quick timeout for responsiveness)
+- Position tolerance: 3 (flexible matching for conversation flow)
+- Audio level threshold: 0.005 (moderate sensitivity)
+
+WHEN Balanced Mode is selected THEN the system SHALL configure:
+- Agreement threshold: 2 (default stability requirement)
+- Chunk duration: 1.0s (standard chunk size)
+- Max pending words: 15 (moderate buffer size)
+- Word timeout: 4.0s (balanced timeout)
+- Position tolerance: 2 (standard matching flexibility)
+- Audio level threshold: 0.01 (default sensitivity)
+
+WHEN Accurate Document Mode is selected THEN the system SHALL configure:
+- Agreement threshold: 3 (high stability requirement)
+- Chunk duration: 2.0s (longer chunks for context)
+- Max pending words: 30 (large buffer for accuracy)
+- Word timeout: 7.0s (extended timeout for careful dictation)
+- Position tolerance: 1 (strict position matching)
+- Audio level threshold: 0.02 (reduced sensitivity to avoid false triggers)
+
+WHEN Low-Latency Mode is selected THEN the system SHALL configure:
+- Agreement threshold: 1 (immediate commitment)
+- Chunk duration: 0.5s (balanced for low latency)
+- Max pending words: 5 (minimal buffer)
+- Word timeout: 2.5s (quick timeout)
+- Position tolerance: 2 (moderate flexibility)
+- Audio level threshold: 0.001 (high sensitivity for quick response)
+
+WHEN configuration values are modified THEN the system SHALL validate them within allowed ranges and provide clear error messages for invalid values
+
+WHEN switching between profiles THEN the system SHALL apply changes immediately without requiring restart
+
+WHEN custom configuration is created THEN the system SHALL allow saving it as a new profile with a user-defined name
+
+WHEN configuration changes are made THEN the system SHALL provide visual feedback showing the impact on accuracy vs responsiveness trade-offs
