@@ -11,6 +11,7 @@ import sys
 import time
 from personalparakeet.dictation_enhanced import EnhancedDictationSystem
 from personalparakeet.config import InjectionConfig
+from personalparakeet.config_manager import get_config_manager
 from personalparakeet.logger import setup_logger
 from personalparakeet.constants import LogEmoji
 
@@ -42,16 +43,18 @@ def main():
                        help="Force specific strategy order (e.g., ui_automation clipboard)")
     
     # Configuration options
-    parser.add_argument("--key-delay", type=float, default=0.01,
-                       help="Delay between keystrokes (default: 0.01)")
-    parser.add_argument("--focus-delay", type=float, default=0.05,
-                       help="Focus acquisition delay (default: 0.05)")
-    parser.add_argument("--clipboard-delay", type=float, default=0.1,
-                       help="Clipboard paste delay (default: 0.1)")
+    parser.add_argument("--config", "-c", type=str,
+                       help="Path to configuration file")
+    parser.add_argument("--key-delay", type=float,
+                       help="Delay between keystrokes (overrides config)")
+    parser.add_argument("--focus-delay", type=float,
+                       help="Focus acquisition delay (overrides config)")
+    parser.add_argument("--clipboard-delay", type=float,
+                       help="Clipboard paste delay (overrides config)")
     
     # Monitoring options
-    parser.add_argument("--stats-interval", type=int, default=30,
-                       help="Statistics reporting interval in seconds (default: 30)")
+    parser.add_argument("--stats-interval", type=int,
+                       help="Statistics reporting interval in seconds (overrides config)")
     parser.add_argument("--verbose", "-v", action="store_true",
                        help="Enable verbose logging")
     
@@ -66,24 +69,41 @@ def main():
             print(f"{LogEmoji.ERROR} Could not import audio device manager: {e}")
         return
     
-    # Create custom configuration
-    config = InjectionConfig(
-        default_key_delay=args.key_delay,
-        focus_acquisition_delay=args.focus_delay,
-        clipboard_paste_delay=args.clipboard_delay
-    )
+    # Load configuration
+    config_manager = get_config_manager(args.config)
+    full_config = config_manager.get_config()
+    
+    # Apply command-line overrides
+    if args.key_delay is not None:
+        full_config.injection.default_key_delay = args.key_delay
+    if args.focus_delay is not None:
+        full_config.injection.focus_acquisition_delay = args.focus_delay
+    if args.clipboard_delay is not None:
+        full_config.injection.clipboard_paste_delay = args.clipboard_delay
+    if args.stats_interval is not None:
+        full_config.stats_report_interval = args.stats_interval
+    if args.device is not None:
+        full_config.audio_device_index = args.device
+    if args.verbose:
+        full_config.enable_debug_logging = True
+    
+    config = full_config.injection
     
     print(f"{LogEmoji.INFO} Starting Enhanced PersonalParakeet Dictation System")
     print("=" * 60)
-    print(f"Audio device: {args.device if args.device else 'Default'}")
-    print(f"Key delay: {args.key_delay}s")
-    print(f"Focus delay: {args.focus_delay}s")
-    print(f"Clipboard delay: {args.clipboard_delay}s")
+    print(f"Config file: {config_manager.config_path or 'Default'}")
+    print(f"Audio device: {full_config.audio_device_index or 'Default'}")
+    print(f"Key delay: {config.default_key_delay}s")
+    print(f"Focus delay: {config.focus_acquisition_delay}s")
+    print(f"Clipboard delay: {config.clipboard_paste_delay}s")
+    print(f"Model: {full_config.model_name}")
+    print(f"Hotkey: {full_config.toggle_hotkey}")
     
     # Create enhanced dictation system
     try:
         system = EnhancedDictationSystem(
-            device_index=args.device,
+            model_name=full_config.model_name,
+            device_index=full_config.audio_device_index,
             config=config
         )
         

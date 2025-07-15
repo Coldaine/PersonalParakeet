@@ -46,13 +46,20 @@ class EnhancedTextInjectionManager:
         self._init_performance_tracking()
     
     def _init_app_detector(self):
-        """Initialize application detector"""
+        """Initialize enhanced application detector"""
         try:
-            from .application_detection import ApplicationDetector
-            self.app_detector = ApplicationDetector()
-            logger.info(f"{LogEmoji.SUCCESS} Application detector initialized")
+            from .application_detection_enhanced import get_application_detector
+            self.app_detector = get_application_detector()
+            logger.info(f"{LogEmoji.SUCCESS} Enhanced application detector initialized")
         except ImportError as e:
-            logger.warning(f"{LogEmoji.WARNING} Application detection not available: {e}")
+            logger.warning(f"{LogEmoji.WARNING} Enhanced application detection not available: {e}")
+            # Fallback to basic detector
+            try:
+                from .application_detection import ApplicationDetector
+                self.app_detector = ApplicationDetector()
+                logger.info(f"{LogEmoji.SUCCESS} Basic application detector initialized")
+            except ImportError:
+                logger.warning(f"{LogEmoji.WARNING} Application detection not available")
     
     def _init_strategies(self):
         """Initialize platform-specific injection strategies"""
@@ -137,6 +144,18 @@ class EnhancedTextInjectionManager:
         # Get optimized strategy order
         strategy_order = self._get_optimized_strategy_order(app_info)
         
+        # Apply application-specific timing if available
+        if app_info and hasattr(self.app_detector, 'get_application_profile'):
+            try:
+                profile = self.app_detector.get_application_profile(app_info)
+                if profile:
+                    # Update timing configuration for this injection
+                    self.config.default_key_delay = profile.key_delay
+                    self.config.focus_acquisition_delay = profile.focus_delay
+                    logger.debug(f"{LogEmoji.INFO} Using profile timing for {app_info.name}: key_delay={profile.key_delay}")
+            except Exception as e:
+                logger.debug(f"{LogEmoji.WARNING} Failed to apply profile timing: {e}")
+        
         # Try each strategy with retry logic
         for strategy_name in strategy_order:
             if strategy_name not in self.strategies:
@@ -190,22 +209,35 @@ class EnhancedTextInjectionManager:
         """Get optimized Windows strategy order"""
         base_order = ['ui_automation', 'keyboard', 'clipboard', 'send_input']
         
-        # Application-specific optimizations
-        if app_info:
+        # Enhanced application-specific optimizations
+        if app_info and hasattr(self.app_detector, 'get_application_profile'):
+            try:
+                profile = self.app_detector.get_application_profile(app_info)
+                if profile and profile.preferred_strategies:
+                    base_order = profile.preferred_strategies
+                    logger.debug(f"{LogEmoji.INFO} Using profile strategies for {app_info.name}: {base_order}")
+            except Exception as e:
+                logger.debug(f"{LogEmoji.WARNING} Failed to get application profile: {e}")
+        
+        # Fallback to type-based optimizations
+        if app_info and not hasattr(self.app_detector, 'get_application_profile'):
             app_optimizations = {
                 'EDITOR': ['clipboard', 'ui_automation', 'keyboard', 'send_input'],
                 'IDE': ['clipboard', 'ui_automation', 'keyboard', 'send_input'],
                 'TERMINAL': ['keyboard', 'send_input', 'ui_automation'],
                 'BROWSER': ['keyboard', 'ui_automation', 'send_input'],
-                'OFFICE': ['ui_automation', 'clipboard', 'keyboard', 'send_input']
+                'OFFICE': ['ui_automation', 'clipboard', 'keyboard', 'send_input'],
+                'CHAT': ['keyboard', 'clipboard', 'ui_automation', 'send_input']
             }
             
             app_type = getattr(app_info, 'app_type', None)
             if app_type and hasattr(app_type, 'name'):
                 base_order = app_optimizations.get(app_type.name, base_order)
         
-        # Performance-based reordering
-        return self._reorder_by_performance(base_order)
+        # Performance-based reordering (unless disabled)
+        if self.config.enable_performance_optimization:
+            return self._reorder_by_performance(base_order)
+        return base_order
     
     def _get_linux_optimized_order(self, app_info: Optional[any]) -> List[str]:
         """Get optimized Linux strategy order"""
