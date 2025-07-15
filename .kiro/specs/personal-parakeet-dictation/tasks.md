@@ -70,8 +70,13 @@ PersonalParakeet has a **PROVEN WORKING CORE SYSTEM** ✅. The main components (
     - _Requirements: 4.2, 4.3, 4.4_
 
   - [ ] 4.3 Implement Windows text injection
-    - Primary: keyboard.write() for direct injection
-    - Secondary: Win32 SendInput for complex scenarios
+    - Primary: UI Automation API for smart injection (most reliable)
+      - Initialize IUIAutomation COM object
+      - Get focused element via GetFocusedElement()
+      - Try TextPattern for rich text controls
+      - Try ValuePattern for simple text inputs
+    - Secondary: keyboard.write() for direct injection
+    - Tertiary: Win32 SendInput for complex scenarios
     - Clipboard: win32clipboard + Ctrl+V for editors
     - Fallback: Character-by-character typing
     - _Requirements: 4.5, 4.7_

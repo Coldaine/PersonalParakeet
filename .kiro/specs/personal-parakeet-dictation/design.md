@@ -235,12 +235,33 @@ class PlatformAwareTextInjectionEngine:
         return self.overlay_strategy(text)
 
 class WindowsInjector:
-    """Windows-specific text injection implementation"""
+    """Windows-specific text injection implementation with UI Automation"""
     def __init__(self):
         import keyboard  # Windows keyboard library
         self.keyboard = keyboard
+        self.uia = None
+        self._init_ui_automation()
         
+    def _init_ui_automation(self):
+        """Initialize Windows UI Automation for smart injection"""
+        try:
+            import comtypes.client
+            from comtypes import automation
+            # Create UI Automation instance
+            self.uia = comtypes.client.CreateObject(
+                "{ff48dba4-60ef-4201-aa87-54103eef594e}",
+                interface=automation.IUIAutomation
+            )
+        except:
+            # UI Automation not available, will fallback to keyboard
+            self.uia = None
+    
     async def inject(self, text: str, strategy: InjectionStrategy) -> bool:
+        # Try UI Automation first (most reliable)
+        if self.uia and self._inject_via_ui_automation(text):
+            return True
+            
+        # Fallback to strategy-based injection
         if strategy == InjectionStrategy.PASTE:
             return self._inject_via_clipboard(text)
         elif strategy == InjectionStrategy.TYPE:
@@ -248,23 +269,73 @@ class WindowsInjector:
         else:
             return self._inject_direct(text)
     
+    def _inject_via_ui_automation(self, text: str) -> bool:
+        """Smart text injection using UI Automation (like Win+H)"""
+        try:
+            # Get the currently focused element
+            focused = self.uia.GetFocusedElement()
+            
+            # Try to get text pattern (most reliable for text fields)
+            UIA_TextPatternId = 10014
+            UIA_ValuePatternId = 10002
+            
+            # First try TextPattern (for rich text controls)
+            try:
+                text_pattern = focused.GetCurrentPattern(UIA_TextPatternId)
+                if text_pattern:
+                    # Insert text at current position
+                    text_pattern.DocumentRange.InsertText(text + " ")
+                    return True
+            except:
+                pass
+            
+            # Try ValuePattern (for simple text inputs)
+            try:
+                value_pattern = focused.GetCurrentPattern(UIA_ValuePatternId)
+                if value_pattern:
+                    # Get current value and append
+                    current = value_pattern.CurrentValue
+                    value_pattern.SetValue(current + text + " ")
+                    return True
+            except:
+                pass
+                
+        except Exception as e:
+            # UI Automation failed, will use fallback
+            pass
+        
+        return False
+    
     def _inject_direct(self, text: str) -> bool:
-        """Direct keyboard.write() - fastest for Windows"""
+        """Direct keyboard.write() - fallback method"""
         try:
             self.keyboard.write(text + " ")
             return True
         except:
             return False
     
+    def _inject_via_typing(self, text: str) -> bool:
+        """Character-by-character typing for compatibility"""
+        try:
+            for char in text + " ":
+                self.keyboard.press_and_release(char)
+                time.sleep(0.01)  # Small delay for compatibility
+            return True
+        except:
+            return False
+    
     def _inject_via_clipboard(self, text: str) -> bool:
         """Clipboard paste for editors"""
-        import win32clipboard
-        win32clipboard.OpenClipboard()
-        win32clipboard.EmptyClipboard()
-        win32clipboard.SetClipboardText(text)
-        win32clipboard.CloseClipboard()
-        self.keyboard.press_and_release('ctrl+v')
-        return True
+        try:
+            import win32clipboard
+            win32clipboard.OpenClipboard()
+            win32clipboard.EmptyClipboard()
+            win32clipboard.SetClipboardText(text)
+            win32clipboard.CloseClipboard()
+            self.keyboard.press_and_release('ctrl+v')
+            return True
+        except:
+            return False
 
 class KDEPlasmaInjector:
     """KDE Plasma-specific text injection (X11/Wayland)"""

@@ -72,9 +72,11 @@ Acceptance Criteria
 
 WHEN new text is committed THEN the system SHALL detect the current platform (Windows/Linux) and use platform-specific injection methods
 WHEN running on Windows THEN the system SHALL use:
-  - keyboard.write() for direct text injection as primary method
+  - UI Automation API for smart text injection as primary method (most reliable)
+  - Direct text pattern insertion for elements supporting IUIAutomationTextPattern
+  - keyboard.write() for simple text injection as secondary method
   - Win32 API SendInput for complex scenarios requiring precise control
-  - Clipboard automation with Ctrl+V simulation as fallback for editors
+  - Clipboard automation with Ctrl+V simulation for editors
   - WinRT accessibility APIs for UWP applications
 WHEN running on Linux with KDE Plasma THEN the system SHALL use:
   - XTEST extension via python-xlib for X11 sessions (primary method)
