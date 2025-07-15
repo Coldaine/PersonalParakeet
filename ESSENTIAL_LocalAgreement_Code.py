@@ -274,7 +274,11 @@ class TranscriptionProcessor:
         if self.on_state_update:
             self.on_state_update(state)
             
+        # Debug: Show what we're checking for callback
+        print(f"🔍 DEBUG: newly_committed='{state.newly_committed}', callback_set={self.on_committed_text is not None}")
+        
         if state.newly_committed and self.on_committed_text:
+            print(f"🔥 TRIGGERING CALLBACK with: '{state.newly_committed}'")
             self.on_committed_text(state.newly_committed)
         
         # Visual feedback (optional)
