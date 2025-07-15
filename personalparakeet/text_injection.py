@@ -268,6 +268,14 @@ class TextInjectionManager:
                     LinuxClipboardStrategy
                 )
                 
+                # For KDE, use the optimized simple injector
+                if self.platform_info.desktop_env == DesktopEnvironment.KDE:
+                    try:
+                        from .kde_injection import KDESimpleInjector
+                        self.strategies['kde_simple'] = KDESimpleInjector()
+                    except ImportError:
+                        pass
+                
                 if self.platform_info.session_type == SessionType.X11:
                     self.strategies['xtest'] = LinuxXTestStrategy()
                     self.strategies['xdotool'] = LinuxXdotoolStrategy()
@@ -339,6 +347,13 @@ class TextInjectionManager:
             return ['ui_automation', 'keyboard', 'clipboard', 'basic_keyboard']
             
         elif self.platform_info.platform == Platform.LINUX:
+            # KDE Plasma gets special treatment
+            if self.platform_info.desktop_env == DesktopEnvironment.KDE:
+                if app_info and app_info.app_type in (ApplicationType.EDITOR, ApplicationType.IDE):
+                    return ['clipboard', 'kde_simple', 'xtest', 'xdotool', 'basic_keyboard']
+                return ['kde_simple', 'xtest', 'xdotool', 'clipboard', 'basic_keyboard']
+            
+            # Other Linux environments
             if self.platform_info.session_type == SessionType.X11:
                 if app_info and app_info.app_type in (ApplicationType.EDITOR, ApplicationType.IDE):
                     return ['clipboard', 'xtest', 'xdotool', 'basic_keyboard']
