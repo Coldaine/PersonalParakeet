@@ -34,7 +34,7 @@ class AudioDeviceManager:
         return devices
     
     @staticmethod
-    def logger.info_input_devices():
+    def print_input_devices():
         """Print a formatted list of input devices"""
         logger.info("\n🎤 Available Audio Input Devices:")
         logger.info("=" * 60)
@@ -137,7 +137,7 @@ class AudioDeviceManager:
         Returns:
             Selected device index or None if cancelled
         """
-        AudioDeviceManager.logger.info_input_devices()
+        AudioDeviceManager.print_input_devices()
         
         devices = AudioDeviceManager.list_input_devices()
         if not devices:
@@ -182,7 +182,7 @@ if __name__ == "__main__":
     logger.info("🧪 Testing Audio Device Manager")
     
     # List devices
-    AudioDeviceManager.logger.info_input_devices()
+    AudioDeviceManager.print_input_devices()
     
     # Test device search
     logger.info("\n🔍 Testing device search:")

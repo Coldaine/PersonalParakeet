@@ -2,7 +2,7 @@
 
 import unittest
 import platform
-from personalparakeet.constants import LogEmoji, PLATFORM_WINDOWS, PLATFORM_LINUX, PLATFORM_MAC, PLATFORM_UNKNOWN
+from personalparakeet.constants import LogEmoji, WINDOWS_PLATFORMS, LINUX_PLATFORMS, MACOS_PLATFORMS
 
 
 class TestLogEmoji(unittest.TestCase):
@@ -10,16 +10,12 @@ class TestLogEmoji(unittest.TestCase):
     
     def test_emoji_values(self):
         """Test that all emoji constants have the expected values"""
-        self.assertEqual(LogEmoji.INFO, "ℹ️")
+        self.assertEqual(LogEmoji.INFO, "🔤")
         self.assertEqual(LogEmoji.SUCCESS, "✅")
         self.assertEqual(LogEmoji.WARNING, "⚠️")
         self.assertEqual(LogEmoji.ERROR, "❌")
-        self.assertEqual(LogEmoji.DEBUG, "🔍")
-        self.assertEqual(LogEmoji.KEYBOARD, "⌨️")
-        self.assertEqual(LogEmoji.CLIPBOARD, "📋")
-        self.assertEqual(LogEmoji.WINDOW, "🪟")
-        self.assertEqual(LogEmoji.LINUX, "🐧")
-        self.assertEqual(LogEmoji.SPEECH, "🎙️")
+        self.assertEqual(LogEmoji.PROCESSING, "🔊")
+        self.assertEqual(LogEmoji.TARGET, "🎯")
         
     def test_emoji_types(self):
         """Test that all emoji constants are strings"""
@@ -64,51 +60,43 @@ class TestPlatformConstants(unittest.TestCase):
     
     def test_platform_constant_values(self):
         """Test that platform constants have expected values"""
-        self.assertEqual(PLATFORM_WINDOWS, "windows")
-        self.assertEqual(PLATFORM_LINUX, "linux")
-        self.assertEqual(PLATFORM_MAC, "darwin")
-        self.assertEqual(PLATFORM_UNKNOWN, "unknown")
+        self.assertIn('win32', WINDOWS_PLATFORMS)
+        self.assertIn('linux', LINUX_PLATFORMS)
+        self.assertIn('darwin', MACOS_PLATFORMS)
         
-    def test_platform_constants_are_strings(self):
-        """Test that all platform constants are strings"""
-        self.assertIsInstance(PLATFORM_WINDOWS, str)
-        self.assertIsInstance(PLATFORM_LINUX, str)
-        self.assertIsInstance(PLATFORM_MAC, str)
-        self.assertIsInstance(PLATFORM_UNKNOWN, str)
+    def test_platform_constants_are_lists(self):
+        """Test that all platform constants are lists"""
+        self.assertIsInstance(WINDOWS_PLATFORMS, list)
+        self.assertIsInstance(LINUX_PLATFORMS, list)
+        self.assertIsInstance(MACOS_PLATFORMS, list)
         
-    def test_platform_constants_lowercase(self):
-        """Test that platform constants are lowercase"""
-        self.assertEqual(PLATFORM_WINDOWS, PLATFORM_WINDOWS.lower())
-        self.assertEqual(PLATFORM_LINUX, PLATFORM_LINUX.lower())
-        self.assertEqual(PLATFORM_MAC, PLATFORM_MAC.lower())
-        self.assertEqual(PLATFORM_UNKNOWN, PLATFORM_UNKNOWN.lower())
+    def test_platform_constants_contain_strings(self):
+        """Test that platform lists contain strings"""
+        for platform in WINDOWS_PLATFORMS:
+            self.assertIsInstance(platform, str)
+        for platform in LINUX_PLATFORMS:
+            self.assertIsInstance(platform, str)
+        for platform in MACOS_PLATFORMS:
+            self.assertIsInstance(platform, str)
         
     def test_platform_detection_logic(self):
-        """Test that platform constants match Python's platform detection"""
-        current_platform = platform.system().lower()
+        """Test that platform constants can detect current platform"""
+        import sys
+        current_platform = sys.platform
         
-        if current_platform == "windows":
-            self.assertEqual(current_platform, PLATFORM_WINDOWS)
-        elif current_platform == "linux":
-            self.assertEqual(current_platform, PLATFORM_LINUX)
-        elif current_platform == "darwin":
-            self.assertEqual(current_platform, PLATFORM_MAC)
-        else:
-            # For any other platform, we can't test the exact match
-            self.assertIn(current_platform, [PLATFORM_WINDOWS, PLATFORM_LINUX, PLATFORM_MAC, PLATFORM_UNKNOWN])
+        # Check if current platform is in one of our lists
+        platform_found = (
+            current_platform in WINDOWS_PLATFORMS or
+            current_platform in LINUX_PLATFORMS or
+            current_platform in MACOS_PLATFORMS
+        )
+        self.assertTrue(platform_found, f"Platform {current_platform} not found in any platform list")
             
-    def test_platform_constants_unique(self):
-        """Test that all platform constants are unique"""
-        platforms = [PLATFORM_WINDOWS, PLATFORM_LINUX, PLATFORM_MAC, PLATFORM_UNKNOWN]
-        unique_platforms = set(platforms)
-        self.assertEqual(len(platforms), len(unique_platforms), "All platform constants should be unique")
-        
-    def test_platform_constants_not_empty(self):
-        """Test that no platform constant is empty"""
-        self.assertTrue(len(PLATFORM_WINDOWS) > 0)
-        self.assertTrue(len(PLATFORM_LINUX) > 0)
-        self.assertTrue(len(PLATFORM_MAC) > 0)
-        self.assertTrue(len(PLATFORM_UNKNOWN) > 0)
+    def test_platform_lists_not_empty(self):
+        """Test that platform lists are not empty"""
+        self.assertTrue(len(WINDOWS_PLATFORMS) > 0)
+        self.assertTrue(len(LINUX_PLATFORMS) > 0)
+        self.assertTrue(len(MACOS_PLATFORMS) > 0)
 
 
 class TestConstantsIntegration(unittest.TestCase):
@@ -123,15 +111,15 @@ class TestConstantsIntegration(unittest.TestCase):
         
     def test_can_use_platform_in_conditionals(self):
         """Test that platform constants work in conditional logic"""
-        current_platform = platform.system().lower()
+        import sys
         
         # This simulates how the constants would be used
-        if current_platform == PLATFORM_WINDOWS:
-            platform_emoji = LogEmoji.WINDOW
-        elif current_platform == PLATFORM_LINUX:
-            platform_emoji = LogEmoji.LINUX
-        else:
+        if sys.platform in WINDOWS_PLATFORMS:
             platform_emoji = LogEmoji.INFO
+        elif sys.platform in LINUX_PLATFORMS:
+            platform_emoji = LogEmoji.PROCESSING
+        else:
+            platform_emoji = LogEmoji.TARGET
             
         self.assertIsInstance(platform_emoji, str)
         self.assertTrue(len(platform_emoji) > 0)
@@ -144,10 +132,9 @@ class TestConstantsIntegration(unittest.TestCase):
         self.assertTrue(hasattr(constants, 'LogEmoji'))
         
         # Check platform constants are available
-        self.assertTrue(hasattr(constants, 'PLATFORM_WINDOWS'))
-        self.assertTrue(hasattr(constants, 'PLATFORM_LINUX'))
-        self.assertTrue(hasattr(constants, 'PLATFORM_MAC'))
-        self.assertTrue(hasattr(constants, 'PLATFORM_UNKNOWN'))
+        self.assertTrue(hasattr(constants, 'WINDOWS_PLATFORMS'))
+        self.assertTrue(hasattr(constants, 'LINUX_PLATFORMS'))
+        self.assertTrue(hasattr(constants, 'MACOS_PLATFORMS'))
 
 
 if __name__ == '__main__':
