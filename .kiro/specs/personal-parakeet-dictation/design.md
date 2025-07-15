@@ -166,14 +166,38 @@ class VADResult:
     timestamp: float
 ```
 
-### Text Injection Engine
+### Platform-Aware Text Injection Engine
 
 ```python
-class TextInjectionEngine:
+class PlatformAwareTextInjectionEngine:
     def __init__(self):
+        self.platform = self._detect_platform()
         self.application_detector: ApplicationDetector
         self.injection_strategies: Dict[ApplicationType, InjectionStrategy]
         self.fallback_overlay: OverlayDisplay
+        
+        # Platform-specific injectors
+        self.windows_injector: Optional[WindowsInjector] = None
+        self.kde_injector: Optional[KDEPlasmaInjector] = None
+        self.gnome_injector: Optional[GNOMEInjector] = None
+        self._initialize_platform_injector()
+    
+    # Platform Detection
+    def _detect_platform(self) -> PlatformInfo:
+        """Detect OS and desktop environment"""
+        platform_info = PlatformInfo()
+        platform_info.os = platform.system()
+        
+        if platform_info.os == "Linux":
+            # Detect desktop environment
+            desktop = os.environ.get('XDG_CURRENT_DESKTOP', '').lower()
+            if 'kde' in desktop:
+                platform_info.desktop_env = 'KDE'
+                platform_info.session_type = os.environ.get('XDG_SESSION_TYPE', 'x11')
+            elif 'gnome' in desktop:
+                platform_info.desktop_env = 'GNOME'
+                platform_info.session_type = os.environ.get('XDG_SESSION_TYPE', 'x11')
+        return platform_info
     
     # Application Detection
     def get_active_application(self) -> ApplicationInfo
@@ -181,30 +205,240 @@ class TextInjectionEngine:
     def classify_application_type(self, process_name: str, window_title: str) -> ApplicationType
     
     # Text Injection
-    async def inject_text(self, text: str, strategy: InjectionStrategy) -> bool
-    def track_injection_state(self, text: str) -> None
+    async def inject_text(self, text: str, strategy: Optional[InjectionStrategy] = None) -> bool:
+        """Main injection method with platform-aware routing"""
+        if not strategy:
+            app_info = self.get_active_application()
+            strategy = self.detect_injection_strategy(app_info)
+        
+        try:
+            if self.platform.os == "Windows":
+                return await self.windows_injector.inject(text, strategy)
+            elif self.platform.os == "Linux":
+                if self.platform.desktop_env == "KDE":
+                    return await self.kde_injector.inject(text, strategy)
+                elif self.platform.desktop_env == "GNOME":
+                    return await self.gnome_injector.inject(text, strategy)
+        except Exception as e:
+            logger.error(f"Injection failed: {e}")
+            return await self._fallback_injection(text)
     
-    # Strategies
-    def paste_strategy(self, text: str) -> bool  # For editors
-    def type_strategy(self, text: str) -> bool   # For browsers
-    def overlay_strategy(self, text: str) -> bool # Fallback
+    async def _fallback_injection(self, text: str) -> bool:
+        """Try alternative methods when primary fails"""
+        methods = self._get_fallback_methods()
+        for method in methods:
+            try:
+                if await method(text):
+                    return True
+            except:
+                continue
+        return self.overlay_strategy(text)
+
+class WindowsInjector:
+    """Windows-specific text injection implementation"""
+    def __init__(self):
+        import keyboard  # Windows keyboard library
+        self.keyboard = keyboard
+        
+    async def inject(self, text: str, strategy: InjectionStrategy) -> bool:
+        if strategy == InjectionStrategy.PASTE:
+            return self._inject_via_clipboard(text)
+        elif strategy == InjectionStrategy.TYPE:
+            return self._inject_via_typing(text)
+        else:
+            return self._inject_direct(text)
+    
+    def _inject_direct(self, text: str) -> bool:
+        """Direct keyboard.write() - fastest for Windows"""
+        try:
+            self.keyboard.write(text + " ")
+            return True
+        except:
+            return False
+    
+    def _inject_via_clipboard(self, text: str) -> bool:
+        """Clipboard paste for editors"""
+        import win32clipboard
+        win32clipboard.OpenClipboard()
+        win32clipboard.EmptyClipboard()
+        win32clipboard.SetClipboardText(text)
+        win32clipboard.CloseClipboard()
+        self.keyboard.press_and_release('ctrl+v')
+        return True
+
+class KDEPlasmaInjector:
+    """KDE Plasma-specific text injection (X11/Wayland)"""
+    def __init__(self):
+        self.display = None
+        self.session_bus = None
+        self._init_x11()
+        self._init_dbus()
+        
+    def _init_x11(self):
+        """Initialize X11 for XTEST injection"""
+        try:
+            from Xlib import display, X
+            from Xlib.ext import xtest
+            self.display = display.Display()
+            self.xtest = xtest
+            self.X = X
+        except:
+            pass
+    
+    def _init_dbus(self):
+        """Initialize D-Bus for KDE integration"""
+        try:
+            import dbus
+            self.session_bus = dbus.SessionBus()
+        except:
+            pass
+    
+    async def inject(self, text: str, strategy: InjectionStrategy) -> bool:
+        # Get active application
+        app_class = self._get_active_window_class()
+        
+        # KDE-specific optimizations
+        if app_class == 'konsole' and self.session_bus:
+            return self._inject_konsole_dbus(text)
+        elif app_class in ['kate', 'kwrite'] and strategy == InjectionStrategy.PASTE:
+            return self._inject_via_clipboard(text)
+        else:
+            # Default to XTEST
+            return self._inject_xtest(text)
+    
+    def _inject_xtest(self, text: str) -> bool:
+        """Most reliable method for KDE X11"""
+        if not self.display:
+            return False
+            
+        for char in text:
+            keycode = self.display.keysym_to_keycode(ord(char))
+            self.xtest.fake_input(self.display, self.X.KeyPress, keycode)
+            self.xtest.fake_input(self.display, self.X.KeyRelease, keycode)
+        self.display.sync()
+        return True
+    
+    def _inject_konsole_dbus(self, text: str) -> bool:
+        """Direct D-Bus injection for Konsole"""
+        try:
+            subprocess.run([
+                'qdbus', 'org.kde.konsole', '/konsole/MainWindow_1',
+                'org.kde.konsole.Window.sendText', text
+            ])
+            return True
+        except:
+            return False
+
+class GNOMEInjector:
+    """GNOME-specific text injection (Wayland/X11)"""
+    def __init__(self):
+        self.at_spi = None
+        self._init_at_spi()
+        
+    def _init_at_spi(self):
+        """Initialize AT-SPI for accessibility-based injection"""
+        try:
+            import pyatspi
+            self.at_spi = pyatspi
+        except:
+            pass
+    
+    async def inject(self, text: str, strategy: InjectionStrategy) -> bool:
+        # Try AT-SPI first for Wayland compatibility
+        if self.at_spi and self._inject_at_spi(text):
+            return True
+        
+        # Fallback to xdotool for X11
+        return self._inject_xdotool(text)
+    
+    def _inject_at_spi(self, text: str) -> bool:
+        """Use AT-SPI accessibility framework"""
+        try:
+            # Get focused object
+            registry = self.at_spi.Registry()
+            desktop = registry.getDesktop(0)
+            focused = self._find_focused_text_object(desktop)
+            
+            if focused:
+                focused.set_text_contents(text)
+                return True
+        except:
+            pass
+        return False
 
 class ApplicationDetector:
     def __init__(self):
-        self.editor_patterns: List[str] = ["code", "notepad", "sublime", "vim", "emacs"]
+        self.platform = platform.system()
+        self.editor_patterns: List[str] = ["code", "notepad", "sublime", "vim", "emacs", "kate", "kwrite"]
         self.browser_patterns: List[str] = ["chrome", "firefox", "edge", "safari"]
-        self.terminal_patterns: List[str] = ["cmd", "powershell", "terminal", "bash"]
+        self.terminal_patterns: List[str] = ["cmd", "powershell", "terminal", "bash", "konsole", "gnome-terminal"]
     
-    def detect_active_window(self) -> ApplicationInfo
+    def detect_active_window(self) -> ApplicationInfo:
+        """Platform-aware active window detection"""
+        if self.platform == "Windows":
+            return self._detect_windows()
+        elif self.platform == "Linux":
+            return self._detect_linux()
+        return ApplicationInfo(process_name="unknown", window_title="")
+    
+    def _detect_windows(self) -> ApplicationInfo:
+        """Windows-specific window detection"""
+        import win32gui
+        import win32process
+        
+        hwnd = win32gui.GetForegroundWindow()
+        window_title = win32gui.GetWindowText(hwnd)
+        _, pid = win32process.GetWindowThreadProcessId(hwnd)
+        process_name = self._get_process_name_windows(pid)
+        
+        return ApplicationInfo(
+            process_name=process_name,
+            window_title=window_title,
+            platform="Windows"
+        )
+    
+    def _detect_linux(self) -> ApplicationInfo:
+        """Linux window detection using xdotool"""
+        try:
+            # Get active window ID
+            window_id = subprocess.check_output(['xdotool', 'getactivewindow']).decode().strip()
+            
+            # Get window class
+            window_class = subprocess.check_output([
+                'xdotool', 'getwindowclassname', window_id
+            ]).decode().strip()
+            
+            # Get window title
+            window_title = subprocess.check_output([
+                'xdotool', 'getwindowname', window_id
+            ]).decode().strip()
+            
+            return ApplicationInfo(
+                process_name=window_class.lower(),
+                window_title=window_title,
+                platform="Linux"
+            )
+        except:
+            return ApplicationInfo(process_name="unknown", window_title="")
+    
     def classify_by_process_name(self, process_name: str) -> ApplicationType
     def classify_by_window_title(self, window_title: str) -> ApplicationType
     def get_injection_capabilities(self, app_info: ApplicationInfo) -> InjectionCapabilities
 
 @dataclass
+class PlatformInfo:
+    os: str = ""  # Windows, Linux, Darwin
+    desktop_env: str = ""  # KDE, GNOME, etc
+    session_type: str = ""  # x11, wayland
+    
+@dataclass
 class InjectionCapabilities:
     supports_paste: bool
     supports_typing: bool
     supports_clipboard: bool
+    supports_xtest: bool  # Linux X11
+    supports_dbus: bool   # Linux KDE
+    supports_at_spi: bool # Linux accessibility
     requires_focus: bool
     injection_delay_ms: int
 ```

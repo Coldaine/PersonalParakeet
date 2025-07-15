@@ -66,15 +66,35 @@ WHEN silence is detected for >2 seconds THEN the system SHALL automatically comm
 WHEN prefix agreement threshold is configurable THEN users SHALL be able to tune sensitivity (1-5 range)
 WHEN utterances exceed 10 seconds THEN the system SHALL process them in overlapping chunks while maintaining agreement tracking
 
-Requirement 4: Intelligent Text Injection
-User Story: As a user, I want transcribed text to appear intelligently in my active application, so that I can dictate efficiently into any program with optimal speed and compatibility.
+Requirement 4: Platform-Aware Intelligent Text Injection
+User Story: As a user, I want transcribed text to appear intelligently in my active application with platform-optimized injection methods, so that I can dictate efficiently into any program with optimal speed and compatibility across Windows and Linux.
 Acceptance Criteria
 
-WHEN new text is committed THEN the system SHALL inject it into the currently active application window
-WHEN the active application is a code editor (VS Code, Notepad++) THEN the system SHALL use clipboard paste for maximum speed
-WHEN the active application is a browser or form field THEN the system SHALL use keyboard typing simulation for compatibility
-WHEN the active application is unknown THEN the system SHALL default to typing simulation as safest option
-IF text injection fails THEN the system SHALL display the text in a fallback transparent overlay window
+WHEN new text is committed THEN the system SHALL detect the current platform (Windows/Linux) and use platform-specific injection methods
+WHEN running on Windows THEN the system SHALL use:
+  - keyboard.write() for direct text injection as primary method
+  - Win32 API SendInput for complex scenarios requiring precise control
+  - Clipboard automation with Ctrl+V simulation as fallback for editors
+  - WinRT accessibility APIs for UWP applications
+WHEN running on Linux with KDE Plasma THEN the system SHALL use:
+  - XTEST extension via python-xlib for X11 sessions (primary method)
+  - xdotool for simple text injection with --clearmodifiers flag
+  - D-Bus integration for KDE-specific applications (Konsole, Kate)
+  - Clipboard with xclip for code editors when appropriate
+WHEN running on Linux with GNOME THEN the system SHALL use:
+  - AT-SPI accessibility framework for Wayland compatibility
+  - XTEST for X11 sessions as fallback
+  - IBus input method framework for complex text
+WHEN the active application is detected THEN the system SHALL optimize injection method:
+  - Code editors (VS Code, Kate, Sublime): Clipboard paste for speed
+  - Browsers (Chrome, Firefox): Character-by-character typing for compatibility
+  - Terminals (Konsole, GNOME Terminal): Direct injection via app-specific APIs
+  - Unknown applications: Conservative character typing
+WHEN platform detection occurs THEN the system SHALL cache platform information to avoid repeated checks
+IF text injection fails THEN the system SHALL:
+  - Attempt alternative injection methods in order of compatibility
+  - Display text in fallback overlay as last resort
+  - Log failure details for debugging
 WHEN text is injected THEN the system SHALL track injection state to prevent duplication
 WHEN application context changes THEN the system SHALL adapt injection method dynamically
 

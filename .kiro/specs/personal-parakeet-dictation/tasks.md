@@ -54,18 +54,56 @@ PersonalParakeet has a **PROVEN WORKING CORE SYSTEM** ✅. The main components (
 
 ## Enhancement Tasks (Build on Working System)
 
-- [ ] 5. Implement intelligent text injection strategies
-  - [ ] 4.1 Create application detection system
-    - Detect active window and process name
+- [ ] 5. Implement platform-aware intelligent text injection strategies
+  - [ ] 4.1 Create platform detection system
+    - Detect operating system (Windows, Linux, macOS)
+    - Detect desktop environment (KDE, GNOME, Windows Desktop)
+    - Detect session type (X11, Wayland)
+    - Cache platform information for performance
+    - _Requirements: 4.1_
+
+  - [ ] 4.2 Create application detection system
+    - Platform-specific active window detection
+    - Windows: Win32 API for process/window info
+    - Linux: xdotool/D-Bus for window detection
     - Classify applications (EDITOR, BROWSER, TERMINAL, UNKNOWN)
-    - Implement application-specific injection strategies
     - _Requirements: 4.2, 4.3, 4.4_
 
-  - [ ] 4.2 Add injection strategy selection
-    - Use clipboard paste for code editors (faster)
-    - Use keyboard typing for browsers (more compatible)
-    - Implement fallback overlay for unknown applications
+  - [ ] 4.3 Implement Windows text injection
+    - Primary: keyboard.write() for direct injection
+    - Secondary: Win32 SendInput for complex scenarios
+    - Clipboard: win32clipboard + Ctrl+V for editors
+    - Fallback: Character-by-character typing
     - _Requirements: 4.5, 4.7_
+
+  - [ ] 4.4 Implement Linux KDE text injection
+    - Primary: XTEST via python-xlib for X11
+    - Secondary: xdotool with --clearmodifiers
+    - KDE apps: D-Bus integration (Konsole, Kate)
+    - Clipboard: xclip for code editors
+    - _Requirements: 4.5, 4.7_
+
+  - [ ] 4.5 Implement Linux GNOME text injection
+    - Primary: AT-SPI for Wayland compatibility
+    - Secondary: XTEST for X11 sessions
+    - IBus: Complex text input method
+    - Fallback: xdotool or wtype
+    - _Requirements: 4.5, 4.7_
+
+  - [ ] 4.6 Add injection strategy selection
+    - Auto-detect optimal method per platform/app
+    - Code editors: Prefer clipboard paste
+    - Browsers: Character-by-character typing
+    - Terminals: Platform-specific APIs
+    - Unknown apps: Conservative typing
+    - _Requirements: 4.5, 4.7_
+
+  - [ ] 4.7 Implement fallback strategies
+    - Primary method failure detection
+    - Automatic fallback to secondary methods
+    - Last resort: Overlay display
+    - Error logging and diagnostics
+    - _Requirements: 4.6_
 
 - [ ] 6. Add advanced Voice Activity Detection
   - [ ] 5.1 Create dual VAD system (Silero + WebRTC)
