@@ -17,6 +17,7 @@ import argparse
 from .local_agreement import TranscriptionProcessor
 from .audio_devices import AudioDeviceManager
 from .config import ConfigurationManager, ConfigurationProfile
+from .text_injection import TextInjectionManager
 
 class SimpleDictation:
     def __init__(self, device_index=None, device_name=None, agreement_threshold=1, chunk_duration=1.0, config_manager=None):
@@ -83,6 +84,10 @@ class SimpleDictation:
         # Track injection failures for fallback display
         self.injection_failures = 0
         self.use_fallback_display = False
+        
+        # Initialize text injection manager
+        self.text_injector = TextInjectionManager()
+        self.text_injector.set_fallback_display(self._display_fallback_text)
     
     def _select_audio_device(self, device_index=None, device_name=None):
         """Select and validate audio input device"""
@@ -125,51 +130,19 @@ class SimpleDictation:
         return selected
         
     def output_text(self, text):
-        """Output committed text via keyboard with thread safety"""
+        """Output committed text using the new text injection system"""
         print(f"📝 OUTPUT CALLBACK TRIGGERED: '{text}'")
         
-        # Check if we're on the main thread
-        import threading
-        current_thread = threading.current_thread()
-        is_main_thread = current_thread is threading.main_thread()
+        # Use the new text injection manager
+        success = self.text_injector.inject_text(text)
         
-        if not is_main_thread:
-            print(f"⚠️  Running in thread: {current_thread.name}")
-        
-        try:
-            # Add small delay to ensure focus remains on target window
-            time.sleep(0.05)
-            
-            # Try keyboard.write with better error handling
-            keyboard.write(text + " ")  # Add space after each word/phrase
-            print(f"✅ Successfully wrote text: '{text}'")
-            
-        except AttributeError as e:
-            print(f"❌ Keyboard module error (likely threading issue): {e}")
-            # Try alternative method using keyboard.press and release
-            try:
-                for char in text + " ":
-                    keyboard.press_and_release(char)
-                    time.sleep(0.01)  # Small delay between keystrokes
-                print(f"✅ Successfully wrote text using press_and_release")
-            except Exception as fallback_error:
-                print(f"❌ Fallback method also failed: {fallback_error}")
-                
-        except Exception as e:
-            print(f"❌ Failed to write text: {type(e).__name__}: {e}")
-            # Log additional debug info
-            print(f"   Text length: {len(text)}")
-            print(f"   Text content: {repr(text)}")
-            
-            # Track failures and switch to fallback if needed
+        if not success:
+            # Track failures
             self.injection_failures += 1
-            if self.injection_failures >= 3 and not self.use_fallback_display:
-                print("⚠️  Multiple injection failures detected. Switching to console display mode.")
-                self.use_fallback_display = True
-            
-            # Fallback: Display text in console
-            if self.use_fallback_display:
-                self._display_fallback_text(text)
+            print(f"⚠️  Text injection failed (attempt {self.injection_failures})")
+        else:
+            # Reset failure counter on success
+            self.injection_failures = 0
     
     def _display_fallback_text(self, text):
         """Display text in console when injection fails"""
