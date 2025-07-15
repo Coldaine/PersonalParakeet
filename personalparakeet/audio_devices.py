@@ -5,6 +5,9 @@ Audio device selection and management utilities
 import sounddevice as sd
 from typing import List, Dict, Optional, Tuple
 import sys
+from .logger import setup_logger
+
+logger = setup_logger(__name__)
 
 
 class AudioDeviceManager:
@@ -31,22 +34,22 @@ class AudioDeviceManager:
         return devices
     
     @staticmethod
-    def print_input_devices():
+    def logger.info_input_devices():
         """Print a formatted list of input devices"""
-        print("\n🎤 Available Audio Input Devices:")
-        print("=" * 60)
+        logger.info("\n🎤 Available Audio Input Devices:")
+        logger.info("=" * 60)
         
         devices = AudioDeviceManager.list_input_devices()
         if not devices:
-            print("❌ No audio input devices found!")
+            logger.error("❌ No audio input devices found!")
             return
         
         for device in devices:
             default_marker = " (DEFAULT)" if device['is_default'] else ""
-            print(f"  [{device['index']}] {device['name']}{default_marker}")
-            print(f"      Channels: {device['channels']}, Sample Rate: {device['sample_rate']} Hz")
+            logger.info(f"  [{device['index']}] {device['name']}{default_marker}")
+            logger.info(f"      Channels: {device['channels']}, Sample Rate: {device['sample_rate']} Hz")
         
-        print("=" * 60)
+        logger.info("=" * 60)
     
     @staticmethod
     def find_device_by_name(name_pattern: str) -> Optional[int]:
@@ -134,7 +137,7 @@ class AudioDeviceManager:
         Returns:
             Selected device index or None if cancelled
         """
-        AudioDeviceManager.print_input_devices()
+        AudioDeviceManager.logger.info_input_devices()
         
         devices = AudioDeviceManager.list_input_devices()
         if not devices:
@@ -151,7 +154,7 @@ class AudioDeviceManager:
                     # Use default device
                     default_device = next((d['index'] for d in devices if d['is_default']), None)
                     if default_device is not None:
-                        print(f"✅ Using default device")
+                        logger.info(f"✅ Using default device")
                         return default_device
                 
                 device_index = int(choice)
@@ -160,38 +163,38 @@ class AudioDeviceManager:
                 if any(d['index'] == device_index for d in devices):
                     valid, msg = AudioDeviceManager.validate_device(device_index)
                     if valid:
-                        print(f"✅ {msg}")
+                        logger.info(f"✅ {msg}")
                         return device_index
                     else:
-                        print(f"❌ {msg}")
+                        logger.info(f"❌ {msg}")
                 else:
-                    print(f"❌ Invalid device number. Please choose from the list.")
+                    logger.info(f"❌ Invalid device number. Please choose from the list.")
                     
             except ValueError:
-                print("❌ Please enter a valid number")
+                logger.info("❌ Please enter a valid number")
             except KeyboardInterrupt:
-                print("\n\n❌ Selection cancelled")
+                logger.info("\n\n❌ Selection cancelled")
                 return None
 
 
 # Quick test functionality
 if __name__ == "__main__":
-    print("🧪 Testing Audio Device Manager")
+    logger.info("🧪 Testing Audio Device Manager")
     
     # List devices
-    AudioDeviceManager.print_input_devices()
+    AudioDeviceManager.logger.info_input_devices()
     
     # Test device search
-    print("\n🔍 Testing device search:")
+    logger.info("\n🔍 Testing device search:")
     test_names = ["microphone", "headset", "webcam", "default"]
     for name in test_names:
         idx = AudioDeviceManager.find_device_by_name(name)
         if idx is not None:
             info = AudioDeviceManager.get_device_info(idx)
-            print(f"  Found '{name}': {info['name']} (index {idx})")
+            logger.info(f"  Found '{name}': {info['name']} (index {idx})")
     
     # Interactive selection
-    print("\n🎯 Testing interactive selection:")
+    logger.info("\n🎯 Testing interactive selection:")
     selected = AudioDeviceManager.select_device_interactive()
     if selected is not None:
-        print(f"\nYou selected device index: {selected}")
+        logger.info(f"\nYou selected device index: {selected}")

@@ -5,6 +5,9 @@ import time
 from typing import Dict, List, Optional, Tuple
 from dataclasses import dataclass
 from collections import deque, defaultdict
+from .logger import setup_logger
+
+logger = setup_logger(__name__)
 
 @dataclass
 class TextState:
@@ -275,17 +278,17 @@ class TranscriptionProcessor:
             self.on_state_update(state)
             
         # Debug: Show what we're checking for callback
-        print(f"🔍 DEBUG: newly_committed='{state.newly_committed}', callback_set={self.on_committed_text is not None}")
+        logger.debug(f"🔍 DEBUG: newly_committed='{state.newly_committed}', callback_set={self.on_committed_text is not None}")
         
         if state.newly_committed and self.on_committed_text:
-            print(f"🔥 TRIGGERING CALLBACK with: '{state.newly_committed}'")
+            logger.debug(f"🔥 TRIGGERING CALLBACK with: '{state.newly_committed}'")
             self.on_committed_text(state.newly_committed)
         
         # Visual feedback (optional)
         if self.enable_visual_feedback and state.newly_committed:
-            print(f"✅ Committed: '{state.newly_committed}'")
+            logger.info(f"✅ Committed: '{state.newly_committed}'")
             if state.pending:
-                print(f"⏳ Pending: '{state.pending}'")
+                logger.info(f"⏳ Pending: '{state.pending}'")
         
         return state
     
@@ -303,7 +306,7 @@ if __name__ == "__main__":
     
     # Set up text output callback
     def output_committed_text(text):
-        print(f"OUTPUT: {text}")
+        logger.info(f"OUTPUT: {text}")
     
     processor.set_text_output_callback(output_committed_text)
     
@@ -318,4 +321,4 @@ if __name__ == "__main__":
     
     for transcription in transcriptions:
         state = processor.process_transcription(transcription)
-        print(f"Committed: '{state.committed}' | Pending: '{state.pending}'")
+        logger.info(f"Committed: '{state.committed}' | Pending: '{state.pending}'")

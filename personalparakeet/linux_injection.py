@@ -12,6 +12,9 @@ import time
 import subprocess
 from typing import Optional
 from .text_injection import TextInjectionStrategy, ApplicationInfo, ApplicationType
+from .logger import setup_logger
+
+logger = setup_logger(__name__)
 
 
 class LinuxXTestStrategy(TextInjectionStrategy):
@@ -20,8 +23,9 @@ class LinuxXTestStrategy(TextInjectionStrategy):
     Based on the design.md KDEPlasmaInjector implementation.
     """
     
-    def __init__(self):
+    def __init__(self, config: Optional[InjectionConfig] = None):
         super().__init__()
+        self.config = config if config is not None else InjectionConfig()
         self.display = None
         self.xtest = None
         self.X = None
@@ -35,11 +39,11 @@ class LinuxXTestStrategy(TextInjectionStrategy):
             self.display = display.Display()
             self.xtest = xtest
             self.X = X
-            print("✅ X11 XTEST initialized successfully")
+            logger.info("X11 XTEST initialized successfully")
         except ImportError:
-            print("⚠️  python-xlib not installed, XTEST injection unavailable")
+            logger.warning("python-xlib not installed, XTEST injection unavailable")
         except Exception as e:
-            print(f"⚠️  Failed to initialize X11: {e}")
+            logger.warning(f"Failed to initialize X11: {e}")
     
     def inject(self, text: str, app_info: Optional[ApplicationInfo] = None) -> bool:
         """Inject text using XTEST extension"""
@@ -48,7 +52,7 @@ class LinuxXTestStrategy(TextInjectionStrategy):
         
         try:
             # Add small delay to ensure focus
-            time.sleep(0.05)
+            time.sleep(self.config.focus_acquisition_delay)
             
             # Special handling for specific applications
             if app_info and app_info.window_class:
@@ -67,13 +71,13 @@ class LinuxXTestStrategy(TextInjectionStrategy):
                         self.xtest.fake_input(self.display, self.X.KeyPress, keycode)
                         self.xtest.fake_input(self.display, self.X.KeyRelease, keycode)
                 except Exception as e:
-                    print(f"⚠️  Failed to inject character '{char}': {e}")
+                    logger.warning(f"Failed to inject character '{char}': {e}")
             
             self.display.sync()
             return True
             
         except Exception as e:
-            print(f"❌ XTEST injection failed: {e}")
+            logger.error(f"XTEST injection failed: {e}")
             return False
     
     def _inject_konsole_dbus(self, text: str) -> bool:
@@ -95,8 +99,9 @@ class LinuxXTestStrategy(TextInjectionStrategy):
 class LinuxXdotoolStrategy(TextInjectionStrategy):
     """Xdotool-based injection - widely compatible fallback"""
     
-    def __init__(self):
+    def __init__(self, config: Optional[InjectionConfig] = None):
         super().__init__()
+        self.config = config if config is not None else InjectionConfig()
         self.xdotool_available = self._check_xdotool()
     
     def _check_xdotool(self) -> bool:
@@ -104,10 +109,10 @@ class LinuxXdotoolStrategy(TextInjectionStrategy):
         try:
             subprocess.run(['xdotool', '--version'], 
                          capture_output=True, check=True)
-            print("✅ xdotool is available")
+            logger.info("xdotool is available")
             return True
         except (subprocess.CalledProcessError, FileNotFoundError):
-            print("⚠️  xdotool not installed")
+            logger.warning("xdotool not installed")
             return False
     
     def inject(self, text: str, app_info: Optional[ApplicationInfo] = None) -> bool:
@@ -117,25 +122,25 @@ class LinuxXdotoolStrategy(TextInjectionStrategy):
         
         try:
             # Add small delay to ensure focus
-            time.sleep(0.05)
+            time.sleep(self.config.focus_acquisition_delay)
             
             # Use xdotool type command with --clearmodifiers for reliability
             # This handles shift states and special characters automatically
             subprocess.run([
                 'xdotool', 'type', '--clearmodifiers', '--delay', '10', 
                 text + " "
-            ], check=True, timeout=10)
+            ], check=True, timeout=self.config.xdotool_timeout)
             
             return True
             
         except subprocess.TimeoutExpired:
-            print("❌ xdotool timed out")
+            logger.error("xdotool timed out")
             return False
         except subprocess.CalledProcessError as e:
-            print(f"❌ xdotool failed: {e}")
+            logger.error(f"xdotool failed: {e}")
             return False
         except Exception as e:
-            print(f"❌ xdotool injection error: {e}")
+            logger.error(f"xdotool injection error: {e}")
             return False
     
     def is_available(self) -> bool:
@@ -149,8 +154,9 @@ class LinuxATSPIStrategy(TextInjectionStrategy):
     Based on the design.md GNOMEInjector implementation.
     """
     
-    def __init__(self):
+    def __init__(self, config: Optional[InjectionConfig] = None):
         super().__init__()
+        self.config = config if config is not None else InjectionConfig()
         self.at_spi = None
         self._init_at_spi()
     
@@ -159,9 +165,9 @@ class LinuxATSPIStrategy(TextInjectionStrategy):
         try:
             import pyatspi
             self.at_spi = pyatspi
-            print("✅ AT-SPI initialized successfully")
+            logger.info("AT-SPI initialized successfully")
         except ImportError:
-            print("⚠️  pyatspi not installed, AT-SPI injection unavailable")
+            logger.warning("pyatspi not installed, AT-SPI injection unavailable")
     
     def inject(self, text: str, app_info: Optional[ApplicationInfo] = None) -> bool:
         """Inject text using AT-SPI"""
@@ -186,7 +192,7 @@ class LinuxATSPIStrategy(TextInjectionStrategy):
             return False
             
         except Exception as e:
-            print(f"❌ AT-SPI injection failed: {e}")
+            logger.error(f"AT-SPI injection failed: {e}")
             # Try wtype as fallback
             return self._inject_wtype(text)
     
@@ -212,12 +218,12 @@ class LinuxATSPIStrategy(TextInjectionStrategy):
     def _inject_wtype(self, text: str) -> bool:
         """Fallback to wtype for Wayland"""
         try:
-            subprocess.run(['wtype', text + " "], check=True, timeout=5)
+            subprocess.run(['wtype', text + " "], check=True, timeout=self.config.kde_dbus_timeout)
             return True
         except (subprocess.CalledProcessError, FileNotFoundError):
             return False
         except subprocess.TimeoutExpired:
-            print("❌ wtype timed out")
+            logger.error("wtype timed out")
             return False
     
     def is_available(self) -> bool:
@@ -234,30 +240,18 @@ class LinuxATSPIStrategy(TextInjectionStrategy):
             return False
 
 
+from .linux_clipboard_manager import LinuxClipboardManager
+
+
 class LinuxClipboardStrategy(TextInjectionStrategy):
     """Clipboard-based injection for Linux"""
     
-    def __init__(self):
+    def __init__(self, config: Optional[InjectionConfig] = None):
         super().__init__()
-        self.clipboard_tool = self._detect_clipboard_tool()
+        self.config = config if config is not None else InjectionConfig()
+        self.clipboard_manager = LinuxClipboardManager(self.config.max_clipboard_retries, self.config.clipboard_retry_delay)
         self.display = None
         self._init_x11_for_paste()
-    
-    def _detect_clipboard_tool(self) -> Optional[str]:
-        """Detect available clipboard tool"""
-        tools = ['xclip', 'xsel', 'wl-copy']
-        
-        for tool in tools:
-            try:
-                subprocess.run([tool, '--version'], 
-                             capture_output=True, check=True)
-                print(f"✅ Using {tool} for clipboard operations")
-                return tool
-            except:
-                continue
-        
-        print("⚠️  No clipboard tool found (xclip, xsel, or wl-copy)")
-        return None
     
     def _init_x11_for_paste(self):
         """Initialize X11 for sending Ctrl+V"""
@@ -273,87 +267,31 @@ class LinuxClipboardStrategy(TextInjectionStrategy):
     
     def inject(self, text: str, app_info: Optional[ApplicationInfo] = None) -> bool:
         """Inject text via clipboard"""
-        if not self.clipboard_tool:
+        if not self.clipboard_manager.is_available():
             return False
         
         try:
             # Save current clipboard content
-            original_clipboard = self._get_clipboard()
+            self.clipboard_manager.save_clipboard()
             
             # Set new clipboard content
-            if self.clipboard_tool == 'xclip':
-                process = subprocess.Popen(
-                    ['xclip', '-selection', 'clipboard'],
-                    stdin=subprocess.PIPE
-                )
-                process.communicate((text + " ").encode('utf-8'))
-            elif self.clipboard_tool == 'xsel':
-                process = subprocess.Popen(
-                    ['xsel', '--clipboard', '--input'],
-                    stdin=subprocess.PIPE
-                )
-                process.communicate((text + " ").encode('utf-8'))
-            elif self.clipboard_tool == 'wl-copy':
-                process = subprocess.Popen(
-                    ['wl-copy'],
-                    stdin=subprocess.PIPE
-                )
-                process.communicate((text + " ").encode('utf-8'))
+            self.clipboard_manager._set_clipboard_content(text + " ")
             
             # Small delay to ensure clipboard is set
-            time.sleep(0.1)
+            time.sleep(self.config.clipboard_paste_delay)
             
             # Trigger paste
             if self._trigger_paste():
                 # Restore original clipboard after a delay
-                time.sleep(0.2)
-                if original_clipboard:
-                    self._set_clipboard(original_clipboard)
+                time.sleep(self.config.clipboard_paste_delay)
+                self.clipboard_manager.restore_clipboard()
                 return True
             
             return False
             
         except Exception as e:
-            print(f"❌ Clipboard injection failed: {e}")
+            logger.error(f"Clipboard injection failed: {e}")
             return False
-    
-    def _get_clipboard(self) -> Optional[str]:
-        """Get current clipboard content"""
-        try:
-            if self.clipboard_tool == 'xclip':
-                result = subprocess.run(
-                    ['xclip', '-selection', 'clipboard', '-out'],
-                    capture_output=True, text=True
-                )
-            elif self.clipboard_tool == 'xsel':
-                result = subprocess.run(
-                    ['xsel', '--clipboard', '--output'],
-                    capture_output=True, text=True
-                )
-            elif self.clipboard_tool == 'wl-copy':
-                result = subprocess.run(
-                    ['wl-paste'],
-                    capture_output=True, text=True
-                )
-            else:
-                return None
-                
-            return result.stdout if result.returncode == 0 else None
-        except:
-            return None
-    
-    def _set_clipboard(self, content: str):
-        """Restore clipboard content"""
-        try:
-            if self.clipboard_tool == 'xclip':
-                process = subprocess.Popen(
-                    ['xclip', '-selection', 'clipboard'],
-                    stdin=subprocess.PIPE
-                )
-                process.communicate(content.encode('utf-8'))
-            # Similar for other tools...
-        except:
-            pass
     
     def _trigger_paste(self) -> bool:
         """Trigger Ctrl+V paste"""
@@ -389,4 +327,4 @@ class LinuxClipboardStrategy(TextInjectionStrategy):
     
     def is_available(self) -> bool:
         """Check if clipboard injection is available"""
-        return self.clipboard_tool is not None
+        return self.clipboard_manager.is_available()

@@ -12,6 +12,10 @@ from dataclasses import dataclass
 from typing import Optional, Dict, Any, Callable
 import time
 from abc import ABC, abstractmethod
+from .logger import setup_logger
+from .config import InjectionConfig
+
+logger = setup_logger(__name__)
 
 
 class Platform(Enum):
@@ -226,7 +230,8 @@ class TextInjectionStrategy(ABC):
 class TextInjectionManager:
     """Manages text injection across different platforms and applications"""
     
-    def __init__(self):
+    def __init__(self, config: Optional[InjectionConfig] = None):
+        self.config = config if config is not None else InjectionConfig()
         self.platform_info = PlatformDetector.detect()
         self.strategies: Dict[str, TextInjectionStrategy] = {}
         self.fallback_display: Optional[Callable[[str], None]] = None
@@ -240,7 +245,7 @@ class TextInjectionManager:
             from .application_detection import ApplicationDetector
             self.app_detector = ApplicationDetector()
         except ImportError as e:
-            print(f"Warning: Application detection not available: {e}")
+            logger.warning(f"Application detection not available: {e}")
     
     def _initialize_strategies(self):
         """Initialize platform-specific injection strategies"""
@@ -252,11 +257,11 @@ class TextInjectionManager:
                     WindowsKeyboardStrategy,
                     WindowsClipboardStrategy
                 )
-                self.strategies['ui_automation'] = WindowsUIAutomationStrategy()
-                self.strategies['keyboard'] = WindowsKeyboardStrategy()
-                self.strategies['clipboard'] = WindowsClipboardStrategy()
+                self.strategies['ui_automation'] = WindowsUIAutomationStrategy(self.config)
+                self.strategies['keyboard'] = WindowsKeyboardStrategy(self.config)
+                self.strategies['clipboard'] = WindowsClipboardStrategy(self.config)
             except ImportError as e:
-                print(f"Failed to import Windows strategies: {e}")
+                logger.error(f"Failed to import Windows strategies: {e}")
                 
         elif self.platform_info.platform == Platform.LINUX:
             # Import Linux-specific strategies dynamically
@@ -272,19 +277,19 @@ class TextInjectionManager:
                 if self.platform_info.desktop_env == DesktopEnvironment.KDE:
                     try:
                         from .kde_injection import KDESimpleInjector
-                        self.strategies['kde_simple'] = KDESimpleInjector()
+                        self.strategies['kde_simple'] = KDESimpleInjector(self.config)
                     except ImportError:
                         pass
                 
                 if self.platform_info.session_type == SessionType.X11:
-                    self.strategies['xtest'] = LinuxXTestStrategy()
-                    self.strategies['xdotool'] = LinuxXdotoolStrategy()
+                    self.strategies['xtest'] = LinuxXTestStrategy(self.config)
+                    self.strategies['xdotool'] = LinuxXdotoolStrategy(self.config)
                 elif self.platform_info.session_type == SessionType.WAYLAND:
-                    self.strategies['atspi'] = LinuxATSPIStrategy()
+                    self.strategies['atspi'] = LinuxATSPIStrategy(self.config)
                     
-                self.strategies['clipboard'] = LinuxClipboardStrategy()
+                self.strategies['clipboard'] = LinuxClipboardStrategy(self.config)
             except ImportError as e:
-                print(f"Failed to import Linux strategies: {e}")
+                logger.error(f"Failed to import Linux strategies: {e}")
         
         # Always add the basic keyboard strategy as fallback
         try:
@@ -292,25 +297,44 @@ class TextInjectionManager:
             from .basic_injection import BasicKeyboardStrategy
             self.strategies['basic_keyboard'] = BasicKeyboardStrategy()
         except ImportError:
-            print("Warning: keyboard module not available")
+            logger.warning("keyboard module not available")
     
     def inject_text(self, text: str, app_info: Optional[ApplicationInfo] = None) -> bool:
-        """Inject text using the best available strategy
+        """Inject text using the best available strategy.
+        
+        This method automatically selects the optimal injection strategy based on
+        the current platform and target application. It implements a fallback chain
+        to ensure text is injected even if the preferred method fails.
         
         Args:
-            text: Text to inject
-            app_info: Optional information about the target application
-            
+            text: The text to inject into the active application
+            app_info: Optional information about the target application. If not
+                     provided, will attempt to auto-detect the active window.
+        
         Returns:
-            True if injection succeeded, False otherwise
+            bool: True if injection succeeded, False if all strategies failed
+            
+        Raises:
+            None: All exceptions are caught and logged. Failures result in
+                  fallback attempts rather than exceptions.
+                  
+        Example:
+            >>> injector = TextInjectionManager()
+            >>> success = injector.inject_text("Hello, World!")
+            >>> if not success:
+            ...     print("All injection strategies failed")
+        
+        Note:
+            The method adds a trailing space to the injected text to ensure
+            proper word separation in continuous dictation scenarios.
         """
         # Auto-detect application if not provided
         if not app_info and self.app_detector:
             try:
                 app_info = self.app_detector.detect_active_window()
-                print(f"🎯 Detected application: {app_info.name} ({app_info.app_type.name})")
+                logger.info(f"Detected application: {app_info.name} ({app_info.app_type.name})")
             except Exception as e:
-                print(f"⚠️  Application detection failed: {e}")
+                logger.warning(f"Application detection failed: {e}")
         
         # Select strategies based on platform and application
         strategy_order = self._get_strategy_order(app_info)
@@ -320,16 +344,16 @@ class TextInjectionManager:
                 strategy = self.strategies[strategy_name]
                 if strategy.is_available():
                     try:
-                        print(f"🔤 Trying {strategy_name} strategy...")
+                        logger.debug(f"Trying {strategy_name} strategy...")
                         if strategy.inject(text, app_info):
-                            print(f"✅ Successfully injected text using {strategy_name}")
+                            logger.info(f"Successfully injected text using {strategy_name}")
                             return True
                     except Exception as e:
-                        print(f"❌ Strategy {strategy_name} failed: {e}")
+                        logger.error(f"Strategy {strategy_name} failed: {e}")
         
         # All strategies failed - use fallback display
         if self.fallback_display:
-            print("⚠️  All injection strategies failed, using fallback display")
+            logger.warning("All injection strategies failed, using fallback display")
             self.fallback_display(text)
         
         return False
@@ -337,32 +361,50 @@ class TextInjectionManager:
     def _get_strategy_order(self, app_info: Optional[ApplicationInfo]) -> list:
         """Determine optimal strategy order based on platform and application"""
         if self.platform_info.platform == Platform.WINDOWS:
-            if app_info:
-                if app_info.app_type in (ApplicationType.EDITOR, ApplicationType.IDE):
-                    return ['clipboard', 'ui_automation', 'keyboard', 'basic_keyboard']
-                elif app_info.app_type == ApplicationType.TERMINAL:
-                    return ['ui_automation', 'keyboard', 'basic_keyboard']
-                elif app_info.app_type == ApplicationType.BROWSER:
-                    return ['keyboard', 'ui_automation', 'basic_keyboard']
+            return self._get_windows_strategy_order(app_info)
+        elif self.platform_info.platform == Platform.LINUX:
+            return self._get_linux_strategy_order(app_info)
+        else:
+            return ['basic_keyboard']
+
+    def _get_windows_strategy_order(self, app_info: Optional[ApplicationInfo]) -> list:
+        """Get Windows-specific strategy order"""
+        if not app_info:
             return ['ui_automation', 'keyboard', 'clipboard', 'basic_keyboard']
             
-        elif self.platform_info.platform == Platform.LINUX:
-            # KDE Plasma gets special treatment
-            if self.platform_info.desktop_env == DesktopEnvironment.KDE:
-                if app_info and app_info.app_type in (ApplicationType.EDITOR, ApplicationType.IDE):
-                    return ['clipboard', 'kde_simple', 'xtest', 'xdotool', 'basic_keyboard']
-                return ['kde_simple', 'xtest', 'xdotool', 'clipboard', 'basic_keyboard']
-            
-            # Other Linux environments
-            if self.platform_info.session_type == SessionType.X11:
-                if app_info and app_info.app_type in (ApplicationType.EDITOR, ApplicationType.IDE):
-                    return ['clipboard', 'xtest', 'xdotool', 'basic_keyboard']
-                return ['xtest', 'xdotool', 'clipboard', 'basic_keyboard']
-            else:  # Wayland
-                return ['atspi', 'clipboard', 'basic_keyboard']
+        # Application-specific optimizations
+        strategies_by_app = {
+            ApplicationType.EDITOR: ['clipboard', 'ui_automation', 'keyboard', 'basic_keyboard'],
+            ApplicationType.IDE: ['clipboard', 'ui_automation', 'keyboard', 'basic_keyboard'],
+            ApplicationType.TERMINAL: ['ui_automation', 'keyboard', 'basic_keyboard'],
+            ApplicationType.BROWSER: ['keyboard', 'ui_automation', 'basic_keyboard'],
+        }
         
-        # Default fallback order
-        return ['basic_keyboard']
+        return strategies_by_app.get(
+            app_info.app_type, 
+            ['ui_automation', 'keyboard', 'clipboard', 'basic_keyboard']
+        )
+
+    def _get_linux_strategy_order(self, app_info: Optional[ApplicationInfo]) -> list:
+        """Get Linux-specific strategy order"""
+        if self.platform_info.desktop_env == DesktopEnvironment.KDE:
+            return self._get_kde_strategy_order(app_info)
+        elif self.platform_info.session_type == SessionType.X11:
+            return self._get_x11_strategy_order(app_info)
+        else:  # Wayland
+            return ['atspi', 'clipboard', 'basic_keyboard']
+
+    def _get_kde_strategy_order(self, app_info: Optional[ApplicationInfo]) -> list:
+        """Get KDE-specific strategy order"""
+        if app_info and app_info.app_type in (ApplicationType.EDITOR, ApplicationType.IDE):
+            return ['clipboard', 'kde_simple', 'xtest', 'xdotool', 'basic_keyboard']
+        return ['kde_simple', 'xtest', 'xdotool', 'clipboard', 'basic_keyboard']
+
+    def _get_x11_strategy_order(self, app_info: Optional[ApplicationInfo]) -> list:
+        """Get X11-specific strategy order"""
+        if app_info and app_info.app_type in (ApplicationType.EDITOR, ApplicationType.IDE):
+            return ['clipboard', 'xtest', 'xdotool', 'basic_keyboard']
+        return ['xtest', 'xdotool', 'clipboard', 'basic_keyboard']
     
     def set_fallback_display(self, callback: Callable[[str], None]):
         """Set fallback display callback for when all injection methods fail"""

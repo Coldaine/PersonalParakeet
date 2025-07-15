@@ -11,6 +11,10 @@ import time
 import keyboard
 from typing import Optional
 from .text_injection import TextInjectionStrategy, ApplicationInfo, ApplicationType
+from .config import InjectionConfig
+from .logger import setup_logger
+
+logger = setup_logger(__name__)
 
 
 class WindowsUIAutomationStrategy(TextInjectionStrategy):
@@ -20,8 +24,9 @@ class WindowsUIAutomationStrategy(TextInjectionStrategy):
     (Win+H) injects text. It works with most modern Windows applications.
     """
     
-    def __init__(self):
+    def __init__(self, config: Optional[InjectionConfig] = None):
         super().__init__()
+        self.config = config if config is not None else InjectionConfig()
         self.uia = None
         self._init_ui_automation()
     
@@ -37,9 +42,9 @@ class WindowsUIAutomationStrategy(TextInjectionStrategy):
                 "{ff48dba4-60ef-4201-aa87-54103eef594e}",
                 interface=automation.IUIAutomation
             )
-            print("✅ Windows UI Automation initialized successfully")
+            logger.info("Windows UI Automation initialized successfully")
         except Exception as e:
-            print(f"⚠️  Failed to initialize UI Automation: {e}")
+            logger.warning(f"Failed to initialize UI Automation: {e}")
             self.uia = None
     
     def inject(self, text: str, app_info: Optional[ApplicationInfo] = None) -> bool:
@@ -51,7 +56,7 @@ class WindowsUIAutomationStrategy(TextInjectionStrategy):
             # Get the currently focused element
             focused = self.uia.GetFocusedElement()
             if not focused:
-                print("⚠️  No focused element found")
+                logger.warning("No focused element found")
                 return False
             
             # Pattern IDs from UI Automation
@@ -78,13 +83,13 @@ class WindowsUIAutomationStrategy(TextInjectionStrategy):
                     value_pattern.SetValue(current + text + " ")
                     return True
             except Exception as e:
-                print(f"⚠️  ValuePattern failed: {e}")
+                logger.warning(f"ValuePattern failed: {e}")
             
             # Neither pattern worked
             return False
             
         except Exception as e:
-            print(f"❌ UI Automation injection failed: {e}")
+            logger.error(f"UI Automation injection failed: {e}")
             return False
     
     def is_available(self) -> bool:
@@ -95,18 +100,22 @@ class WindowsUIAutomationStrategy(TextInjectionStrategy):
 class WindowsKeyboardStrategy(TextInjectionStrategy):
     """Direct keyboard injection for Windows"""
     
+    def __init__(self, config: Optional[InjectionConfig] = None):
+        super().__init__()
+        self.config = config if config is not None else InjectionConfig()
+    
     def inject(self, text: str, app_info: Optional[ApplicationInfo] = None) -> bool:
         """Inject text using keyboard.write()"""
         try:
             # Small delay to ensure focus
-            time.sleep(0.05)
+            time.sleep(self.config.focus_acquisition_delay)
             
             # Use keyboard.write for direct injection
             keyboard.write(text + " ")
             return True
             
         except Exception as e:
-            print(f"❌ Windows keyboard injection failed: {e}")
+            logger.error(f"Windows keyboard injection failed: {e}")
             return False
     
     def is_available(self) -> bool:
@@ -118,80 +127,50 @@ class WindowsKeyboardStrategy(TextInjectionStrategy):
             return False
 
 
+from .windows_clipboard_manager import WindowsClipboardManager
+
+
 class WindowsClipboardStrategy(TextInjectionStrategy):
     """Clipboard-based injection for Windows
     
     Best for code editors and applications that support paste operations.
     """
     
-    def __init__(self):
+    def __init__(self, config: Optional[InjectionConfig] = None):
         super().__init__()
-        self.win32clipboard = None
-        self._init_clipboard()
-    
-    def _init_clipboard(self):
-        """Initialize Windows clipboard access"""
-        try:
-            import win32clipboard
-            self.win32clipboard = win32clipboard
-            print("✅ Windows clipboard access initialized")
-        except ImportError:
-            print("⚠️  pywin32 not installed, clipboard injection unavailable")
-            self.win32clipboard = None
+        self.config = config if config is not None else InjectionConfig()
+        self.clipboard_manager = WindowsClipboardManager()
     
     def inject(self, text: str, app_info: Optional[ApplicationInfo] = None) -> bool:
         """Inject text via clipboard paste"""
-        if not self.win32clipboard:
+        if not self.clipboard_manager.is_available():
             return False
         
         try:
             # Save current clipboard content
-            original_clipboard = self._get_clipboard_text()
+            self.clipboard_manager.save_clipboard()
             
             # Set new clipboard content
-            self.win32clipboard.OpenClipboard()
-            self.win32clipboard.EmptyClipboard()
-            self.win32clipboard.SetClipboardText(text + " ")
-            self.win32clipboard.CloseClipboard()
+            self.clipboard_manager._set_clipboard_content(text + " ")
             
             # Paste using Ctrl+V
             keyboard.press_and_release('ctrl+v')
             
             # Small delay to ensure paste completes
-            time.sleep(0.1)
+            time.sleep(self.config.clipboard_paste_delay)
             
-            # Restore original clipboard content if possible
-            if original_clipboard is not None:
-                try:
-                    self.win32clipboard.OpenClipboard()
-                    self.win32clipboard.EmptyClipboard()
-                    self.win32clipboard.SetClipboardText(original_clipboard)
-                    self.win32clipboard.CloseClipboard()
-                except:
-                    pass  # Don't fail the injection if restore fails
+            # Restore original clipboard content
+            self.clipboard_manager.restore_clipboard()
             
             return True
             
         except Exception as e:
-            print(f"❌ Windows clipboard injection failed: {e}")
+            logger.error(f"Windows clipboard injection failed: {e}")
             return False
-    
-    def _get_clipboard_text(self) -> Optional[str]:
-        """Get current clipboard text content"""
-        try:
-            self.win32clipboard.OpenClipboard()
-            if self.win32clipboard.IsClipboardFormatAvailable(self.win32clipboard.CF_TEXT):
-                data = self.win32clipboard.GetClipboardData()
-                self.win32clipboard.CloseClipboard()
-                return data.decode('utf-8', errors='ignore')
-            self.win32clipboard.CloseClipboard()
-        except:
-            pass
-        return None
     
     def is_available(self) -> bool:
         """Check if clipboard access is available"""
-        return self.win32clipboard is not None
+        return self.clipboard_manager.is_available()
 
 
 class WindowsSendInputStrategy(TextInjectionStrategy):
@@ -201,8 +180,9 @@ class WindowsSendInputStrategy(TextInjectionStrategy):
     other methods fail, but it requires more setup.
     """
     
-    def __init__(self):
+    def __init__(self, config: Optional[InjectionConfig] = None):
         super().__init__()
+        self.config = config if config is not None else InjectionConfig()
         self.ctypes = None
         self.user32 = None
         self._init_win32()
@@ -220,9 +200,9 @@ class WindowsSendInputStrategy(TextInjectionStrategy):
             self.KEYEVENTF_UNICODE = 0x0004
             self.KEYEVENTF_KEYUP = 0x0002
             
-            print("✅ Win32 SendInput initialized")
+            logger.info("Win32 SendInput initialized")
         except Exception as e:
-            print(f"⚠️  Failed to initialize Win32 API: {e}")
+            logger.warning(f"Failed to initialize Win32 API: {e}")
             self.user32 = None
     
     def inject(self, text: str, app_info: Optional[ApplicationInfo] = None) -> bool:
@@ -232,7 +212,7 @@ class WindowsSendInputStrategy(TextInjectionStrategy):
         
         try:
             # Small delay to ensure focus
-            time.sleep(0.05)
+            time.sleep(self.config.focus_acquisition_delay)
             
             # Send each character as Unicode input
             for char in text + " ":
@@ -242,12 +222,12 @@ class WindowsSendInputStrategy(TextInjectionStrategy):
                 self.user32.keybd_event(0, ord(char), 
                                       self.KEYEVENTF_UNICODE | self.KEYEVENTF_KEYUP, 0)
                 # Small delay between characters
-                time.sleep(0.005)
+                time.sleep(self.config.default_key_delay)
             
             return True
             
         except Exception as e:
-            print(f"❌ Win32 SendInput failed: {e}")
+            logger.error(f"Win32 SendInput failed: {e}")
             return False
     
     def is_available(self) -> bool:

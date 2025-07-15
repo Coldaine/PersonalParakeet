@@ -8,6 +8,7 @@ import subprocess
 import time
 from typing import Optional
 from .text_injection import TextInjectionStrategy, ApplicationInfo
+from Xlib import X
 
 
 class KDESimpleInjector(TextInjectionStrategy):
@@ -17,8 +18,9 @@ class KDESimpleInjector(TextInjectionStrategy):
     Works with 99% of KDE applications.
     """
     
-    def __init__(self):
+    def __init__(self, config: Optional[InjectionConfig] = None):
         super().__init__()
+        self.config = config if config is not None else InjectionConfig()
         self.xdotool_available = self._check_xdotool()
         self.display = None
         self.xtest = None
@@ -52,7 +54,7 @@ class KDESimpleInjector(TextInjectionStrategy):
                 subprocess.run(
                     ['xdotool', 'type', '--clearmodifiers', text + " "], 
                     check=True, 
-                    timeout=5
+                    timeout=self.config.xdotool_timeout
                 )
                 return True
             except:
@@ -65,12 +67,12 @@ class KDESimpleInjector(TextInjectionStrategy):
                 for char in text + " ":
                     keycode = self.display.keysym_to_keycode(ord(char))
                     if keycode:
-                        self.xtest.fake_input(self.display, 6, keycode)  # KeyPress
-                        self.xtest.fake_input(self.display, 7, keycode)  # KeyRelease
+                        self.xtest.fake_input(self.display, X.KeyPress, keycode)  # KeyPress
+                        self.xtest.fake_input(self.display, X.KeyRelease, keycode)  # KeyRelease
                 self.display.sync()
                 return True
             except Exception as e:
-                print(f"❌ XTEST fallback failed: {e}")
+                logger.error(f"XTEST fallback failed: {e}")
         
         return False
     

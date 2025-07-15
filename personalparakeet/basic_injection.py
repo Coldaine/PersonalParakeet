@@ -7,75 +7,43 @@ import time
 import keyboard
 from typing import Optional
 from .text_injection import TextInjectionStrategy, ApplicationInfo
+from .config import InjectionConfig
+from .logger import setup_logger
+
+logger = setup_logger(__name__)
 
 
 class BasicKeyboardStrategy(TextInjectionStrategy):
-    """Basic keyboard injection using the keyboard library"""
+    """Basic keyboard injection strategy using the keyboard library.
     
-    def __init__(self):
+    This is a universal fallback strategy, but it might not be as reliable
+    or fast as platform-specific methods, especially for special characters
+    or in certain applications.
+    """
+    
+    def __init__(self, config: Optional[InjectionConfig] = None):
         super().__init__()
-        self.consecutive_failures = 0
-        self.max_failures = 3
-    
+        self.config = config if config is not None else InjectionConfig()
+
     def inject(self, text: str, app_info: Optional[ApplicationInfo] = None) -> bool:
-        """Inject text using keyboard.write() with fallback methods
-        
-        Args:
-            text: Text to inject
-            app_info: Optional application information (not used in basic strategy)
-            
-        Returns:
-            True if injection succeeded, False otherwise
-        """
+        """Inject text by typing character by character"""
         try:
-            # Add small delay to ensure focus remains on target window
-            time.sleep(0.05)
+            # Add a small delay to ensure the window is ready to receive input
+            time.sleep(self.config.focus_acquisition_delay)
             
-            # Try keyboard.write first (fastest method)
-            try:
-                keyboard.write(text + " ")  # Add space after each word/phrase
-                self.consecutive_failures = 0
-                return True
-            except AttributeError as e:
-                # Common threading issue with keyboard.write
-                print(f"⚠️  keyboard.write failed (threading issue): {e}")
-                
-                # Fallback to character-by-character typing
-                return self._inject_by_typing(text)
-                
-        except Exception as e:
-            print(f"❌ Basic keyboard injection failed: {type(e).__name__}: {e}")
-            self.consecutive_failures += 1
+            # Type the text character by character
+            keyboard.write(text + " ")
             
-            # If we've failed too many times, use the fallback display
-            if self.consecutive_failures >= self.max_failures and self.fallback_callback:
-                self.fallback_callback(text)
-            
-            return False
-    
-    def _inject_by_typing(self, text: str) -> bool:
-        """Fallback method: type character by character
-        
-        This is slower but more compatible, especially with threading issues.
-        """
-        try:
-            for char in text + " ":
-                keyboard.press_and_release(char)
-                time.sleep(0.01)  # Small delay between keystrokes for compatibility
-            
-            self.consecutive_failures = 0
             return True
             
         except Exception as e:
-            print(f"❌ Character-by-character typing also failed: {e}")
-            self.consecutive_failures += 1
+            logger.error(f"Basic keyboard injection failed: {e}")
             return False
     
     def is_available(self) -> bool:
-        """Check if keyboard library is available and functional"""
+        """Check if the keyboard library is available"""
         try:
-            # Test if we can access keyboard functions
-            # Note: This doesn't actually press anything, just checks the function exists
+            # Attempt to use a function from the keyboard library to check availability
             _ = keyboard.is_pressed
             return True
         except Exception:
