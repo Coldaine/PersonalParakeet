@@ -1,6 +1,11 @@
 """Allow running personalparakeet as a module: python -m personalparakeet"""
 
-from .dictation import main
-
 if __name__ == "__main__":
-    main()
+    try:
+        from .dictation import main
+        main()
+    except ImportError as e:
+        print(f"❌ Cannot run PersonalParakeet: Missing dependencies")
+        print(f"   Error: {e}")
+        print(f"   Install dependencies with: pip install -r requirements.txt")
+        exit(1)

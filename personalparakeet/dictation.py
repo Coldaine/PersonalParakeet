@@ -16,24 +16,48 @@ import argparse
 # Import your LocalAgreement logic
 from .local_agreement import TranscriptionProcessor
 from .audio_devices import AudioDeviceManager
+from .config import ConfigurationManager, ConfigurationProfile
 
 class SimpleDictation:
-    def __init__(self, device_index=None, device_name=None):
+    def __init__(self, device_index=None, device_name=None, agreement_threshold=1, chunk_duration=1.0, config_manager=None):
         """
-        Initialize SimpleDictation with optional device selection
+        Initialize SimpleDictation with optional device selection and configuration
         
         Args:
             device_index: Specific device index to use
             device_name: Partial device name to search for (ignored if device_index provided)
+            agreement_threshold: Number of consecutive agreements needed to commit text (1-5)
+            chunk_duration: Audio processing chunk size in seconds (0.3-2.0)
+            config_manager: ConfigurationManager instance (optional)
         """
         print("🔧 Initializing Simple Parakeet Dictation...")
         
-        # Audio device selection
-        self.device_index = self._select_audio_device(device_index, device_name)
+        # Configuration management
+        self.config_manager = config_manager or ConfigurationManager()
         
-        # Audio settings (optimized for real-time dictation)
-        self.sample_rate = 16000
-        self.chunk_duration = 1.0  # 1 second chunks for more responsive processing
+        # If CLI args provided, use them; otherwise use config
+        if agreement_threshold != 1 or chunk_duration != 1.0:
+            # CLI args provided - use them directly
+            self.agreement_threshold = max(1, min(5, agreement_threshold))
+            self.chunk_duration = max(0.3, min(2.0, chunk_duration))
+        else:
+            # No CLI args - use active profile
+            profile = self.config_manager.get_active_profile()
+            self.agreement_threshold = profile.agreement_threshold
+            self.chunk_duration = profile.chunk_duration
+            self.max_pending_words = profile.max_pending_words
+            self.word_timeout = profile.word_timeout
+            self.position_tolerance = profile.position_tolerance
+            self.audio_level_threshold = profile.audio_level_threshold
+            print(f"📋 Using profile: {profile.name} - {profile.description}")
+        
+        # Audio device selection
+        system_config = self.config_manager.get_system_config()
+        effective_device_name = device_name or system_config.audio.device_pattern
+        self.device_index = self._select_audio_device(device_index, effective_device_name)
+        
+        # Audio settings (configurable for real-time dictation)
+        self.sample_rate = system_config.audio.sample_rate
         self.chunk_size = int(self.sample_rate * self.chunk_duration)
         
         # State
@@ -49,9 +73,8 @@ class SimpleDictation:
         ).to(dtype=torch.float16)
         print("✅ Model loaded successfully")
         
-        # LocalAgreement processor (your innovation!)
-        # Very low threshold for testing - we can tune this up later
-        self.processor = TranscriptionProcessor(agreement_threshold=1)
+        # LocalAgreement processor (configurable)
+        self.processor = TranscriptionProcessor(agreement_threshold=self.agreement_threshold)
         self.processor.set_text_output_callback(self.output_text)
         
         # Audio processing thread
@@ -188,7 +211,8 @@ class SimpleDictation:
                 
                 # Check if we have enough audio (avoid processing silence)
                 max_level = np.max(np.abs(audio_chunk))
-                if max_level < 0.01:  # Very quiet, skip
+                audio_threshold = getattr(self, 'audio_level_threshold', 0.01)
+                if max_level < audio_threshold:  # Very quiet, skip
                     continue
                 
                 print(f"🔊 Processing audio chunk (level: {max_level:.3f})")
@@ -364,14 +388,73 @@ class SimpleDictation:
                 pass
         
         print("✅ Cleanup completed")
+    
+    def switch_profile(self, profile_name: str) -> bool:
+        """Switch configuration profile at runtime"""
+        if self.config_manager.switch_profile(profile_name):
+            self._apply_configuration_changes()
+            return True
+        return False
+    
+    def _apply_configuration_changes(self) -> None:
+        """Apply configuration changes without restart"""
+        profile = self.config_manager.get_active_profile()
+        
+        # Update audio processing parameters
+        self.chunk_duration = profile.chunk_duration
+        self.chunk_size = int(self.sample_rate * self.chunk_duration)
+        self.audio_level_threshold = profile.audio_level_threshold
+        
+        # Update processor settings
+        self.agreement_threshold = profile.agreement_threshold
+        self.processor.set_agreement_threshold(profile.agreement_threshold)
+        
+        # Update other LocalAgreement parameters if the processor supports them
+        if hasattr(self.processor, 'set_max_pending_words'):
+            self.processor.set_max_pending_words(profile.max_pending_words)
+        if hasattr(self.processor, 'set_timeout_seconds'):
+            self.processor.set_timeout_seconds(profile.word_timeout)
+        if hasattr(self.processor, 'set_position_tolerance'):
+            self.processor.set_position_tolerance(profile.position_tolerance)
+        
+        print(f"🔄 Applied profile: {profile.name} - {profile.description}")
+    
+    def get_available_profiles(self) -> List[str]:
+        """Get list of available configuration profiles"""
+        return self.config_manager.list_available_profiles()
+    
+    def get_current_profile(self) -> ConfigurationProfile:
+        """Get the current active profile"""
+        return self.config_manager.get_active_profile()
 
-def main(device_index=None, device_name=None, list_devices=False):
+def main(device_index=None, device_name=None, list_devices=False, agreement_threshold=1, chunk_duration=1.0, profile=None, list_profiles=False):
     """Main entry point with comprehensive error handling"""
+    
+    # Initialize configuration manager first
+    config_manager = ConfigurationManager()
     
     # Just list devices if requested
     if list_devices:
         AudioDeviceManager.print_input_devices()
         return
+    
+    # Just list profiles if requested
+    if list_profiles:
+        print("📋 Available configuration profiles:")
+        for profile_name in config_manager.list_available_profiles():
+            profile = config_manager.get_profile(profile_name)
+            marker = "✅" if profile_name == config_manager.active_profile_name else "  "
+            print(f"{marker} {profile_name}: {profile.description}")
+        return
+    
+    # Switch profile if requested
+    if profile:
+        if config_manager.switch_profile(profile):
+            config_manager.save_to_file()
+            print(f"✅ Profile switched to: {profile}")
+        else:
+            print(f"❌ Failed to switch to profile: {profile}")
+            return
     
     print("🚀 Simple Parakeet Dictation System")
     print("=" * 50)
@@ -391,21 +474,28 @@ def main(device_index=None, device_name=None, list_devices=False):
     try:
         # Create dictation system with error handling
         print("🔧 Initializing system...")
-        dictation = SimpleDictation(device_index=device_index, device_name=device_name)
+        dictation = SimpleDictation(
+            device_index=device_index, 
+            device_name=device_name,
+            agreement_threshold=agreement_threshold,
+            chunk_duration=chunk_duration,
+            config_manager=config_manager
+        )
         
-        # Set up hotkey (F4 to toggle)
-        print("⌨️  Setting up hotkey...")
-        keyboard.add_hotkey('f4', dictation.toggle_dictation)
-        print("✅ Hotkey registered: F4 to start/stop dictation")
+        # Set up hotkeys from configuration
+        print("⌨️  Setting up hotkeys...")
+        hotkey_config = config_manager.get_system_config().hotkeys
+        keyboard.add_hotkey(hotkey_config.toggle_dictation.lower(), dictation.toggle_dictation)
+        print(f"✅ Hotkey registered: {hotkey_config.toggle_dictation} to start/stop dictation")
         
         print("\n🎯 READY TO USE:")
         print("   1. Click in any text field (Notepad, browser, etc.)")
-        print("   2. Press F4 to start dictation")
+        print(f"   2. Press {hotkey_config.toggle_dictation} to start dictation")
         print("   3. Speak clearly")
         print("   4. Watch text appear with LocalAgreement buffering")
-        print("   5. Press F4 again to stop")
+        print(f"   5. Press {hotkey_config.toggle_dictation} again to stop")
         print("   6. Press Ctrl+C to quit")
-        print("\n⏳ Waiting for F4...")
+        print(f"\n⏳ Waiting for {hotkey_config.toggle_dictation}...")
         
         # Keep running until Ctrl+C
         keyboard.wait('ctrl+c')
@@ -448,7 +538,7 @@ def main(device_index=None, device_name=None, list_devices=False):
         
         # Remove hotkey
         try:
-            keyboard.remove_hotkey('f4')
+            keyboard.remove_hotkey(hotkey_config.toggle_dictation.lower())
         except:
             pass
             
@@ -464,8 +554,12 @@ def cli():
 Examples:
   %(prog)s                    # Use default audio device
   %(prog)s --list-devices     # List available devices
+  %(prog)s --list-profiles    # List available configuration profiles
   %(prog)s --device 2         # Use device index 2
   %(prog)s --device-name "Blue Yeti"  # Use device by name
+  %(prog)s --profile accurate_document  # Use accurate document mode
+  %(prog)s --agreement-threshold 3    # More accurate mode
+  %(prog)s --chunk-duration 0.5       # Faster processing
         """
     )
     
@@ -487,17 +581,44 @@ Examples:
         help='List available audio input devices and exit'
     )
     
+    parser.add_argument(
+        '--agreement-threshold', '-t',
+        type=int,
+        default=1,
+        help='Number of consecutive agreements needed to commit text (1-5, default: 1)'
+    )
+    
+    parser.add_argument(
+        '--chunk-duration', '-c',
+        type=float,
+        default=1.0,
+        help='Audio processing chunk size in seconds (0.3-2.0, default: 1.0)'
+    )
+    
+    parser.add_argument(
+        '--profile', '-p',
+        type=str,
+        help='Configuration profile to use (fast_conversation, balanced, accurate_document, low_latency)'
+    )
+    
+    parser.add_argument(
+        '--list-profiles',
+        action='store_true',
+        help='List available configuration profiles and exit'
+    )
+    
     args = parser.parse_args()
     
     # Run main with arguments
     main(
         device_index=args.device,
         device_name=args.device_name,
-        list_devices=args.list_devices
+        list_devices=args.list_devices,
+        agreement_threshold=args.agreement_threshold,
+        chunk_duration=args.chunk_duration,
+        profile=args.profile,
+        list_profiles=args.list_profiles
     )
-        print("   - Check that CUDA is available")
-        print("   - Ensure microphone permissions are granted")
-        sys.exit(1)
 
 if __name__ == "__main__":
     cli()

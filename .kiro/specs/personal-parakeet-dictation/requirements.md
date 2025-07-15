@@ -285,3 +285,33 @@ WHEN switching between profiles THEN the system SHALL apply changes immediately 
 WHEN custom configuration is created THEN the system SHALL allow saving it as a new profile with a user-defined name
 
 WHEN configuration changes are made THEN the system SHALL provide visual feedback showing the impact on accuracy vs responsiveness trade-offs
+
+### Requirement 16: Dynamic Configuration Adaptation
+**User Story**: As a user, I want the system to automatically adapt to my speech patterns and usage context, so that it continuously improves performance without manual configuration.
+
+#### Acceptance Criteria
+
+**Auto-tuning based on speech patterns:**
+- WHEN the system detects my speaking pace THEN it SHALL automatically adjust chunk duration to match my natural rhythm
+- WHEN the system detects my pause patterns THEN it SHALL optimize agreement thresholds for my speaking style
+- WHEN the system learns my speech rhythm THEN it SHALL adapt to my natural flow and timing
+- WHEN the system identifies optimal buffer sizes THEN it SHALL learn and apply user-specific settings
+
+**Application-aware tuning:**
+- WHEN the system detects the active application THEN it SHALL identify whether it's an editor, browser, or other application type
+- WHEN Word, VS Code, or other applications are active THEN it SHALL auto-switch to appropriate configuration profiles
+- WHEN different applications require different settings THEN it SHALL maintain separate optimized configurations for coding vs. document writing
+- WHEN custom application profiles are needed THEN it SHALL provide an API for defining application-specific settings
+
+**User preference learning:**
+- WHEN I make manual corrections to transcribed text THEN the system SHALL track these patterns and learn from them
+- WHEN I manually switch between configuration profiles THEN the system SHALL monitor this behavior and learn my preferences
+- WHEN the system identifies user-specific patterns THEN it SHALL build optimization models tailored to my usage
+- WHEN learned preferences are developed THEN the system SHALL store them persistently across sessions
+
+**Performance monitoring and adjustment:**
+- WHEN the system processes audio THEN it SHALL track real-time latency and maintain performance metrics
+- WHEN transcription accuracy can be measured THEN it SHALL collect accuracy metrics and trend analysis
+- WHEN text rewrites occur THEN it SHALL analyze rewrite frequency and automatically adjust thresholds
+- WHEN performance metrics indicate issues THEN it SHALL automatically adjust thresholds based on measured performance
+- WHEN performance degradation is detected THEN it SHALL provide alerts and suggested optimizations

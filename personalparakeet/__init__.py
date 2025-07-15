@@ -2,8 +2,16 @@
 
 __version__ = "1.0.0"
 
-# Main exports
-from .dictation import SimpleDictation
+# Import lightweight components first
 from .local_agreement import TranscriptionProcessor, LocalAgreementBuffer
 
-__all__ = ['SimpleDictation', 'TranscriptionProcessor', 'LocalAgreementBuffer']
+# Conditionally import heavy dependencies
+__all__ = ['TranscriptionProcessor', 'LocalAgreementBuffer']
+
+try:
+    from .dictation import SimpleDictation
+    __all__.append('SimpleDictation')
+except ImportError:
+    # Allow package to be imported even if heavy dependencies aren't available
+    # This is useful for testing individual components
+    pass

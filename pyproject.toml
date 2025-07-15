@@ -28,6 +28,7 @@ dependencies = [
     "numpy>=1.24.0",
     "keyboard>=0.13.5",
     "torch>=2.0.0",
+    "toml>=0.10.2",
 ]
 
 [project.optional-dependencies]

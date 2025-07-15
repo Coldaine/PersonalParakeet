@@ -60,10 +60,11 @@ pip install -r requirements.txt
 python tests/test_audio_minimal.py
 
 # Run the dictation system
-python run_dictation.py
+python -m personalparakeet
 
-# Or run as a module
-python -m personalparakeet.dictation
+# Or install as package and run
+pip install -e .
+personalparakeet
 
 # Test LocalAgreement logic
 python tests/test_local_agreement.py
@@ -128,7 +129,7 @@ python tests/test_local_agreement.py
 python tests/test_keyboard_output.py
 
 # End-to-end system testing
-python run_dictation.py
+python -m personalparakeet
 ```
 
 ## Project Structure
@@ -148,7 +149,9 @@ PersonalParakeet/
 │   ├── CURRENT_STATUS.md      # Latest project status
 │   ├── SCOPE_CREEP_LESSONS.md # Development lessons learned
 │   └── LLM_REFINEMENT_EXAMPLES.md
-├── run_dictation.py          # Main entry point
+├── personalparakeet/         # Main package
+│   ├── dictation.py          # Main dictation system
+│   └── __main__.py           # Entry point for python -m personalparakeet
 ├── requirements.txt          # Python dependencies
 ├── README.md                 # This file
 └── CLAUDE.md                # Claude Code assistant guidance
