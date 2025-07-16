@@ -9,6 +9,9 @@ import subprocess
 from typing import Optional, List, Tuple
 from dataclasses import dataclass
 from .text_injection import ApplicationInfo, ApplicationType
+from .logger import setup_logger
+
+logger = setup_logger(__name__)
 
 
 class ApplicationDetector:
@@ -106,7 +109,7 @@ class ApplicationDetector:
             )
             
         except Exception as e:
-            print(f"⚠️  Windows app detection failed: {e}")
+            logger.warning(f"Windows app detection failed: {e}")
             return self._create_unknown_app_info()
     
     def _detect_linux(self) -> ApplicationInfo:
@@ -164,7 +167,7 @@ class ApplicationDetector:
             # xdotool not available or failed
             return self._detect_linux_alternative()
         except Exception as e:
-            print(f"⚠️  Linux app detection failed: {e}")
+            logger.warning(f"Linux app detection failed: {e}")
             return self._create_unknown_app_info()
     
     def _detect_linux_alternative(self) -> ApplicationInfo:
@@ -233,7 +236,7 @@ class ApplicationDetector:
             )
             
         except Exception as e:
-            print(f"⚠️  macOS app detection failed: {e}")
+            logger.warning(f"macOS app detection failed: {e}")
             return self._create_unknown_app_info()
     
     def classify_application(self, process_name: str, window_title: str) -> ApplicationType:

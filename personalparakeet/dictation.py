@@ -12,15 +12,24 @@ from queue import Queue, Empty
 import sys
 import signal
 import argparse
+from typing import Optional, Callable, List
 
 # Import your LocalAgreement logic
 from .local_agreement import TranscriptionProcessor
 from .audio_devices import AudioDeviceManager
 from .config import ConfigurationManager, ConfigurationProfile
-from .text_injection import TextInjectionManager
+from .text_injection import TextInjectionManager, ApplicationInfo, PlatformDetector
+from .logger import setup_logger
+
+logger = setup_logger(__name__)
 
 class SimpleDictation:
-    def __init__(self, device_index=None, device_name=None, agreement_threshold=1, chunk_duration=1.0, config_manager=None):
+    """A simplified dictation class for demonstration purposes."""
+
+    def __init__(self, 
+                 audio_input_callback: Optional[Callable[[], str]] = None,
+                 stt_callback: Optional[Callable[[str], str]] = None,
+                 device_index=None, device_name=None, agreement_threshold=1, chunk_duration=1.0, config_manager=None):
         """
         Initialize SimpleDictation with optional device selection and configuration
         
@@ -31,7 +40,7 @@ class SimpleDictation:
             chunk_duration: Audio processing chunk size in seconds (0.3-2.0)
             config_manager: ConfigurationManager instance (optional)
         """
-        print("🔧 Initializing Simple Parakeet Dictation...")
+        logger.info("Initializing Simple Parakeet Dictation...")
         
         # Configuration management
         self.config_manager = config_manager or ConfigurationManager()
@@ -50,7 +59,7 @@ class SimpleDictation:
             self.word_timeout = profile.word_timeout
             self.position_tolerance = profile.position_tolerance
             self.audio_level_threshold = profile.audio_level_threshold
-            print(f"📋 Using profile: {profile.name} - {profile.description}")
+            logger.info(f"Using profile: {profile.name} - {profile.description}")
         
         # Audio device selection
         system_config = self.config_manager.get_system_config()
@@ -67,12 +76,12 @@ class SimpleDictation:
         self.stream = None
         
         # Load Parakeet model (use larger 1.1B model for RTX 3090)
-        print("📡 Loading Parakeet-TDT-1.1B model...")
+        logger.info("Loading Parakeet-TDT-1.1B model...")
         self.model = nemo_asr.models.ASRModel.from_pretrained(
             "nvidia/parakeet-tdt-1.1b",
             map_location="cuda"
         ).to(dtype=torch.float16)
-        print("✅ Model loaded successfully")
+        logger.info("Model loaded successfully")
         
         # LocalAgreement processor (configurable)
         self.processor = TranscriptionProcessor(agreement_threshold=self.agreement_threshold)
@@ -86,8 +95,8 @@ class SimpleDictation:
         self.use_fallback_display = False
         
         # Initialize text injection manager
-        self.text_injector = TextInjectionManager()
-        self.text_injector.set_fallback_display(self._display_fallback_text)
+        self.text_injection_manager = TextInjectionManager()
+        self.text_injection_manager.set_fallback_display(self._display_fallback_text)
     
     def _select_audio_device(self, device_index=None, device_name=None):
         """Select and validate audio input device"""
@@ -95,11 +104,11 @@ class SimpleDictation:
         if device_index is not None:
             valid, msg = AudioDeviceManager.validate_device(device_index)
             if valid:
-                print(f"🎤 Using specified device: {msg}")
+                logger.info(f"Using specified device: {msg}")
                 return device_index
             else:
-                print(f"⚠️  {msg}")
-                print("   Falling back to device selection...")
+                logger.warning(f"{msg}")
+                logger.warning("Falling back to device selection...")
         
         # If device name provided, try to find it
         if device_name:
@@ -107,21 +116,21 @@ class SimpleDictation:
             if found_idx is not None:
                 valid, msg = AudioDeviceManager.validate_device(found_idx)
                 if valid:
-                    print(f"🎤 Found and using device: {msg}")
+                    logger.info(f"Found and using device: {msg}")
                     return found_idx
                 else:
-                    print(f"⚠️  Found device but validation failed: {msg}")
+                    logger.warning(f"Found device but validation failed: {msg}")
             else:
-                print(f"⚠️  No device found matching '{device_name}'")
+                logger.warning(f"No device found matching '{device_name}'")
         
         # Try default device
         default_valid, default_msg = AudioDeviceManager.validate_device(None)
         if default_valid:
-            print(f"🎤 Using default device: {default_msg}")
+            logger.info(f"Using default device: {default_msg}")
             return None
         
         # If default doesn't work, show device list and let user choose
-        print("\n⚠️  Default device not available. Please select a device:")
+        logger.warning("Default device not available. Please select a device:")
         selected = AudioDeviceManager.select_device_interactive()
         
         if selected is None:
@@ -131,31 +140,27 @@ class SimpleDictation:
         
     def output_text(self, text):
         """Output committed text using the new text injection system"""
-        print(f"📝 OUTPUT CALLBACK TRIGGERED: '{text}'")
+        logger.info(f"OUTPUT CALLBACK TRIGGERED: '{text}'")
         
         # Use the new text injection manager
-        success = self.text_injector.inject_text(text)
+        success = self.text_injection_manager.inject_text(text)
         
         if not success:
             # Track failures
             self.injection_failures += 1
-            print(f"⚠️  Text injection failed (attempt {self.injection_failures})")
+            logger.warning(f"Text injection failed (attempt {self.injection_failures})")
         else:
             # Reset failure counter on success
             self.injection_failures = 0
     
     def _display_fallback_text(self, text):
         """Display text in console when injection fails"""
-        print("\n" + "=" * 60)
-        print("📝 DICTATED TEXT (copy/paste manually):")
-        print("=" * 60)
-        print(text)
-        print("=" * 60 + "\n")
+        logger.error(f"\n---\nINJECTION FAILED, TEXT TO INJECT:\n{text}\n---")
         
     def audio_callback(self, indata, frames, time, status):
         """Audio input callback with error handling - queues chunks for processing"""
         if status:
-            print(f"⚠️  Audio status: {status}")
+            logger.warning(f"Audio status: {status}")
             
         if self.is_recording:
             try:
@@ -166,14 +171,14 @@ class SimpleDictation:
                 if self.audio_queue.qsize() < 50:  # Limit queue size
                     self.audio_queue.put(audio_chunk.copy())
                 else:
-                    print("⚠️  Audio queue full, dropping chunk")
+                    logger.warning("Audio queue full, dropping chunk")
                     
             except Exception as e:
-                print(f"❌ Audio callback error: {type(e).__name__}: {str(e)}")
+                logger.error(f"Audio callback error: {type(e).__name__}: {str(e)}")
     
     def process_audio_loop(self):
         """Background thread that processes audio chunks with robust error handling"""
-        print("🎤 Audio processing thread started")
+        logger.info("Audio processing thread started")
         consecutive_errors = 0
         max_consecutive_errors = 5
         
@@ -188,7 +193,7 @@ class SimpleDictation:
                 if max_level < audio_threshold:  # Very quiet, skip
                     continue
                 
-                print(f"🔊 Processing audio chunk (level: {max_level:.3f})")
+                logger.debug(f"Processing audio chunk (level: {max_level:.3f})")
                 
                 # Transcribe with Parakeet
                 try:
@@ -196,17 +201,17 @@ class SimpleDictation:
                         result = self.model.transcribe([audio_chunk])
                         raw_text = result[0].text if result and result[0].text else ""
                 except torch.cuda.OutOfMemoryError:
-                    print("❌ GPU out of memory! Clearing cache...")
+                    logger.error("GPU out of memory! Clearing cache...")
                     torch.cuda.empty_cache()
                     consecutive_errors += 1
                     continue
                 except Exception as e:
-                    print(f"❌ Transcription error: {type(e).__name__}: {str(e)}")
+                    logger.error(f"Transcription error: {type(e).__name__}: {str(e)}")
                     consecutive_errors += 1
                     continue
                 
                 if raw_text.strip():
-                    print(f"🎯 Raw transcription: '{raw_text}'")
+                    logger.info(f"Raw transcription: '{raw_text}'")
                     
                     # Process through LocalAgreement with error handling
                     try:
@@ -214,13 +219,13 @@ class SimpleDictation:
                         
                         # Display current state
                         if state.committed or state.pending:
-                            print(f"✅ Committed: '{state.committed}' | ⏳ Pending: '{state.pending}'")
+                            logger.info(f"Committed: '{state.committed}' | Pending: '{state.pending}'")
                         
                         # Reset error counter on success
                         consecutive_errors = 0
                         
                     except Exception as e:
-                        print(f"❌ LocalAgreement processing error: {type(e).__name__}: {str(e)}")
+                        logger.error(f"LocalAgreement processing error: {type(e).__name__}: {str(e)}")
                         consecutive_errors += 1
                 
             except Empty:
@@ -228,24 +233,24 @@ class SimpleDictation:
                 continue
             except Exception as e:
                 if self.is_recording:  # Only show errors if we're still supposed to be recording
-                    print(f"❌ Processing error: {type(e).__name__}: {str(e)}")
+                    logger.error(f"Processing error: {type(e).__name__}: {str(e)}")
                     consecutive_errors += 1
                     
             # Check if we've hit too many consecutive errors
             if consecutive_errors >= max_consecutive_errors:
-                print(f"❌ Too many consecutive errors ({consecutive_errors}). Stopping audio processing...")
+                logger.error(f"Too many consecutive errors ({consecutive_errors}). Stopping audio processing...")
                 self.stop_dictation()
                 break
                 
-        print("🛑 Audio processing thread stopped")
+        logger.info("Audio processing thread stopped")
     
     def start_dictation(self):
         """Start dictation (F4 key) with error handling"""
         if self.is_recording:
-            print("⚠️  Already recording!")
+            logger.warning("Already recording!")
             return
             
-        print("🎙️  Starting dictation...")
+        logger.info("Starting dictation...")
         
         try:
             # Clear the audio queue before starting
@@ -272,26 +277,26 @@ class SimpleDictation:
                 )
                 self.stream.start()
                 
-                print("✅ Dictation active! Speak now...")
-                print("   - Text will appear where your cursor is")
-                print("   - Press F4 again to stop")
+                logger.info("Dictation active! Speak now...")
+                logger.info("Text will appear where your cursor is")
+                logger.info("Press F4 again to stop")
                 
             except Exception as e:
-                print(f"❌ Failed to start audio stream: {type(e).__name__}: {str(e)}")
+                logger.error(f"Failed to start audio stream: {type(e).__name__}: {str(e)}")
                 self.is_recording = False
                 raise
                 
         except Exception as e:
-            print(f"❌ Failed to start dictation: {type(e).__name__}: {str(e)}")
+            logger.error(f"Failed to start dictation: {type(e).__name__}: {str(e)}")
             self.is_recording = False
     
     def stop_dictation(self):
         """Stop dictation (F4 key) with graceful shutdown"""
         if not self.is_recording:
-            print("⚠️  Not currently recording!")
+            logger.warning("Not currently recording!")
             return
             
-        print("🛑 Stopping dictation...")
+        logger.info("Stopping dictation...")
         self.is_recording = False
         
         # Stop audio stream
@@ -300,7 +305,7 @@ class SimpleDictation:
                 self.stream.stop()
                 self.stream.close()
             except Exception as e:
-                print(f"⚠️  Error stopping audio stream: {type(e).__name__}: {str(e)}")
+                logger.warning(f"Error stopping audio stream: {type(e).__name__}: {str(e)}")
             finally:
                 self.stream = None
         
@@ -308,16 +313,16 @@ class SimpleDictation:
         if self.processing_thread and self.processing_thread.is_alive():
             self.processing_thread.join(timeout=5.0)
             if self.processing_thread.is_alive():
-                print("⚠️  Processing thread did not stop cleanly")
+                logger.warning("Processing thread did not stop cleanly")
         
         # Process any remaining pending text with error handling
         try:
             if self.processor.buffer.pending_words:
                 pending_text = " ".join(self.processor.buffer.pending_words)
-                print(f"📝 Flushing pending text: '{pending_text}'")
+                logger.info(f"Flushing pending text: '{pending_text}'")
                 self.output_text(pending_text)  # Use our error-handled output method
         except Exception as e:
-            print(f"❌ Error flushing pending text: {type(e).__name__}: {str(e)}")
+            logger.error(f"Error flushing pending text: {type(e).__name__}: {str(e)}")
         
         # Clear the audio queue
         while not self.audio_queue.empty():
@@ -326,7 +331,7 @@ class SimpleDictation:
             except Empty:
                 break
         
-        print("✅ Dictation stopped")
+        logger.info("Dictation stopped")
     
     def toggle_dictation(self):
         """Toggle dictation on/off"""
@@ -337,7 +342,7 @@ class SimpleDictation:
     
     def cleanup(self):
         """Comprehensive cleanup of all resources"""
-        print("\n🧹 Performing cleanup...")
+        logger.info("Performing cleanup...")
         
         # Stop dictation if running
         if self.is_recording:
@@ -348,9 +353,9 @@ class SimpleDictation:
             if hasattr(self, 'model'):
                 del self.model
                 torch.cuda.empty_cache()
-                print("✅ GPU memory cleared")
+                logger.info("GPU memory cleared")
         except Exception as e:
-            print(f"⚠️  Error clearing GPU memory: {e}")
+            logger.warning(f"Error clearing GPU memory: {e}")
         
         # Close any remaining streams
         if hasattr(self, 'stream') and self.stream:
@@ -360,7 +365,7 @@ class SimpleDictation:
             except:
                 pass
         
-        print("✅ Cleanup completed")
+        logger.info("Cleanup completed")
     
     def switch_profile(self, profile_name: str) -> bool:
         """Switch configuration profile at runtime"""
@@ -390,7 +395,7 @@ class SimpleDictation:
         if hasattr(self.processor, 'set_position_tolerance'):
             self.processor.set_position_tolerance(profile.position_tolerance)
         
-        print(f"🔄 Applied profile: {profile.name} - {profile.description}")
+        logger.info(f"Applied profile: {profile.name} - {profile.description}")
     
     def get_available_profiles(self) -> List[str]:
         """Get list of available configuration profiles"""
@@ -413,30 +418,30 @@ def main(device_index=None, device_name=None, list_devices=False, agreement_thre
     
     # Just list profiles if requested
     if list_profiles:
-        print("📋 Available configuration profiles:")
+        logger.info("Available configuration profiles:")
         for profile_name in config_manager.list_available_profiles():
             profile = config_manager.get_profile(profile_name)
             marker = "✅" if profile_name == config_manager.active_profile_name else "  "
-            print(f"{marker} {profile_name}: {profile.description}")
+            logger.info(f"{marker} {profile_name}: {profile.description}")
         return
     
     # Switch profile if requested
     if profile:
         if config_manager.switch_profile(profile):
             config_manager.save_to_file()
-            print(f"✅ Profile switched to: {profile}")
+            logger.info(f"Profile switched to: {profile}")
         else:
-            print(f"❌ Failed to switch to profile: {profile}")
+            logger.error(f"Failed to switch to profile: {profile}")
             return
     
-    print("🚀 Simple Parakeet Dictation System")
-    print("=" * 50)
+    logger.info("Simple Parakeet Dictation System")
+    logger.info("=" * 50)
     
     dictation = None
     
     # Setup signal handlers for graceful shutdown
     def signal_handler(signum, frame):
-        print("\n\n⚠️  Signal received, shutting down gracefully...")
+        logger.warning("Signal received, shutting down gracefully...")
         if dictation:
             dictation.cleanup()
         sys.exit(0)
@@ -446,7 +451,7 @@ def main(device_index=None, device_name=None, list_devices=False, agreement_thre
     
     try:
         # Create dictation system with error handling
-        print("🔧 Initializing system...")
+        logger.info("Initializing system...")
         dictation = SimpleDictation(
             device_index=device_index, 
             device_name=device_name,
@@ -456,58 +461,59 @@ def main(device_index=None, device_name=None, list_devices=False, agreement_thre
         )
         
         # Set up hotkeys from configuration
-        print("⌨️  Setting up hotkeys...")
+        logger.info("Setting up hotkeys...")
         hotkey_config = config_manager.get_system_config().hotkeys
         keyboard.add_hotkey(hotkey_config.toggle_dictation.lower(), dictation.toggle_dictation)
-        print(f"✅ Hotkey registered: {hotkey_config.toggle_dictation} to start/stop dictation")
+        logger.info(f"Hotkey registered: {hotkey_config.toggle_dictation} to start/stop dictation")
         
-        print("\n🎯 READY TO USE:")
-        print("   1. Click in any text field (Notepad, browser, etc.)")
-        print(f"   2. Press {hotkey_config.toggle_dictation} to start dictation")
-        print("   3. Speak clearly")
-        print("   4. Watch text appear with LocalAgreement buffering")
-        print(f"   5. Press {hotkey_config.toggle_dictation} again to stop")
-        print("   6. Press Ctrl+C to quit")
-        print(f"\n⏳ Waiting for {hotkey_config.toggle_dictation}...")
+        logger.info("READY TO USE:")
+        logger.info("1. Click in any text field (Notepad, browser, etc.)")
+        logger.info(f"2. Press {hotkey_config.toggle_dictation} to start dictation")
+        logger.info("3. Speak clearly")
+        logger.info("4. Watch text appear with LocalAgreement buffering")
+        logger.info(f"5. Press {hotkey_config.toggle_dictation} again to stop")
+        logger.info("6. Press Ctrl+C to quit")
+        logger.info(f"Waiting for {hotkey_config.toggle_dictation}...")
         
         # Keep running until Ctrl+C
         keyboard.wait('ctrl+c')
         
     except KeyboardInterrupt:
-        print("\n\n🔄 Shutting down...")
+        logger.info("Shutting down...")
         
     except sd.PortAudioError as e:
-        print(f"\n❌ Audio device error: {e}")
-        print("   - Check if microphone is connected")
-        print("   - Try closing other applications using the microphone")
-        print("   - Check Windows sound settings")
+        logger.error(f"Audio device error: {e}")
+        logger.error("Check if microphone is connected")
+        logger.error("Try closing other applications using the microphone")
+        logger.error("Try restarting the application")
+        logger.error("Check Windows sound settings")
         
     except torch.cuda.CudaError as e:
-        print(f"\n❌ CUDA/GPU error: {e}")
-        print("   - Check if NVIDIA drivers are installed")
-        print("   - Try restarting the application")
-        print("   - Check GPU memory usage with nvidia-smi")
+        logger.error(f"CUDA/GPU error: {e}")
+        logger.error("Check if NVIDIA drivers are installed")
+        logger.error("Try restarting the application")
+        logger.error("Check GPU memory usage with nvidia-smi")
         
     except ImportError as e:
-        print(f"\n❌ Import error: {e}")
-        print("   - Check if all dependencies are installed")
-        print("   - Run: pip install -r requirements.txt")
+        logger.error(f"Import error: {e}")
+        logger.error("Check if all dependencies are installed")
+        logger.error("Run: pip install -r requirements.txt")
         
     except Exception as e:
-        print(f"\n❌ Unexpected error: {type(e).__name__}: {e}")
+        logger.error(f"Unexpected error: {type(e).__name__}: {e}")
         import traceback
-        traceback.print_exc()
+        logger.error(traceback.format_exc())
         
     finally:
         # Cleanup
-        print("\n🧹 Cleaning up...")
+        logger.info("Cleaning up...")
         
         # Comprehensive cleanup
         if dictation:
             try:
                 dictation.cleanup()
             except Exception as e:
-                print(f"⚠️  Cleanup error: {e}")
+                logger.warning(f"Cleanup error: {e}")
         
         # Remove hotkey
         try:
@@ -515,7 +521,7 @@ def main(device_index=None, device_name=None, list_devices=False, agreement_thre
         except:
             pass
             
-        print("👋 Goodbye!")
+        logger.info("Goodbye!")
 
 
 def cli():
