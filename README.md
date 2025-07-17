@@ -22,11 +22,11 @@ The system uses direct integration with NVIDIA NeMo framework:
 
 ### Core Components
 
-#### Essential Implementation Files
-- **`ESSENTIAL_LocalAgreement_Code.py`** - Complete LocalAgreement buffer implementation (318 lines)
-- **`ESSENTIAL_RTX_Config.py`** - Dual RTX 5090/3090 GPU optimization (228 lines)  
-- **`ESSENTIAL_Audio_Integration.py`** - Audio capture and processing (264 lines)
-- **`updated-project/dictation_simple_fixed.py`** - Working single-file implementation (203 lines)
+#### Core Implementation Files
+- **`personalparakeet/dictation.py`** - Main dictation system with complete integration
+- **`personalparakeet/local_agreement.py`** - LocalAgreement buffer implementation (core differentiator)
+- **`personalparakeet/cuda_fix.py`** - RTX 5090 CUDA compatibility fix
+- **`run_dictation.py`** - Ready-to-use entry point for the complete system
 
 #### LocalAgreement Innovation
 The core differentiator that prevents text rewrites:
@@ -146,12 +146,9 @@ PersonalParakeet/
 │   ├── test_local_agreement.py
 │   └── test_keyboard_output.py
 ├── docs/                      # Documentation
-│   ├── CURRENT_STATUS.md      # Latest project status
 │   ├── SCOPE_CREEP_LESSONS.md # Development lessons learned
-│   └── LLM_REFINEMENT_EXAMPLES.md
-├── personalparakeet/         # Main package
-│   ├── dictation.py          # Main dictation system
-│   └── __main__.py           # Entry point for python -m personalparakeet
+│   ├── LLM_REFINEMENT_EXAMPLES.md
+│   └── GUI_FEATURE_PLANNING.md # Future GUI feature planning
 ├── requirements.txt          # Python dependencies
 ├── README.md                 # This file
 └── CLAUDE.md                # Claude Code assistant guidance
