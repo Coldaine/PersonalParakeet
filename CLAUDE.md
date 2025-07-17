@@ -23,9 +23,9 @@ pip install sounddevice numpy nemo-toolkit torch keyboard
 python run_dictation.py
 
 # Test core components individually
-python tests/test_audio_minimal.py      # Windows audio capture
+python tests/test_audio_minimal.py      # Cross-platform audio capture
 python tests/test_local_agreement.py    # LocalAgreement logic
-python tests/test_keyboard_output.py    # Keyboard output
+python tests/test_keyboard_output.py    # Cross-platform keyboard output
 ```
 
 ### Development and Testing
