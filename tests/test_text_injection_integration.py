@@ -4,7 +4,7 @@ import unittest
 from unittest.mock import patch, MagicMock, call
 from personalparakeet.text_injection import TextInjectionManager, ApplicationInfo
 from personalparakeet.config import InjectionConfig
-from personalparakeet.constants import PLATFORM_WINDOWS, PLATFORM_LINUX
+from personalparakeet.text_injection import Platform
 
 
 class TestTextInjectionIntegration(unittest.TestCase):
@@ -25,7 +25,7 @@ class TestTextInjectionIntegration(unittest.TestCase):
         
         manager = TextInjectionManager(config=self.custom_config)
         
-        self.assertEqual(manager.platform, PLATFORM_WINDOWS)
+        self.assertEqual(manager.platform_info.platform, Platform.WINDOWS)
         self.assertEqual(manager.config, self.custom_config)
         self.assertIsNotNone(manager.strategies)
         
@@ -36,7 +36,7 @@ class TestTextInjectionIntegration(unittest.TestCase):
         
         manager = TextInjectionManager(config=self.custom_config)
         
-        self.assertEqual(manager.platform, PLATFORM_LINUX)
+        self.assertEqual(manager.platform_info.platform, Platform.LINUX)
         self.assertEqual(manager.config, self.custom_config)
         
     @patch('platform.system')
