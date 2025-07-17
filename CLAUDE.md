@@ -30,7 +30,7 @@ python tests/test_keyboard_output.py    # Cross-platform keyboard output
 
 ### Development and Testing
 ```bash
-# Test Windows audio capture (critical for system functionality)
+# Test cross-platform audio capture (critical for system functionality)
 python tests/test_audio_minimal.py
 
 # GPU monitoring (essential for performance)
@@ -61,7 +61,10 @@ The project is now properly structured with a clean package organization:
 - **`personalparakeet/dictation.py`**: Main dictation system - **CURRENTLY WORKING**
 - **`personalparakeet/local_agreement.py`**: LocalAgreement buffer implementation - core differentiator
 - **`personalparakeet/cuda_fix.py`**: RTX 5090 CUDA compatibility fix
-- **`tests/test_audio_minimal.py`**: Windows audio debugging script (**WORKING**)
+- **`personalparakeet/linux_injection.py`**: Linux text injection strategies
+- **`personalparakeet/kde_injection.py`**: KDE-specific optimizations
+- **`personalparakeet/linux_clipboard_manager.py`**: Linux clipboard handling
+- **`tests/test_audio_minimal.py`**: Cross-platform audio debugging script (**WORKING**)
 
 ## Key Configuration
 
@@ -72,7 +75,7 @@ pip install sounddevice numpy nemo-toolkit torch keyboard
 
 # Hardware requirements
 NVIDIA GPU (RTX 3090/5090 recommended)
-Windows 10/11 (primary target)
+Windows 10/11 or Linux (Ubuntu 20.04+ recommended)
 CUDA 12.1+ compatible drivers
 
 # Audio settings
@@ -90,7 +93,7 @@ AUDIO_CHANNELS=1         # Mono audio processing
 - **Priority**: Polish working system, fix minor text output issues
 
 ### Development Constraints
-- **Windows compatibility required** - primary target platform
+- **Dual platform support** - Windows and Linux both fully supported
 - **Single-file approach preferred** - proven working architecture
 - **LocalAgreement buffering is the core differentiator** - **IMPLEMENTED AND WORKING**
 - **Avoid scope creep** - see SCOPE_CREEP_LESSONS.md for lessons learned
@@ -110,10 +113,60 @@ The core system is **WORKING** with proven functionality:
 - **`personalparakeet/cuda_fix.py`**: RTX 5090 CUDA compatibility (integrated)
 - **`run_dictation.py`**: Ready-to-use entry point
 
+## Cross-Platform Development Best Practices
+
+### Environment Setup (Windows & Linux)
+```bash
+# Quick setup for new developers
+python -m venv .venv
+
+# Activation (platform-specific)
+# Windows:
+.venv\Scripts\activate
+# Linux/Mac:
+source .venv/bin/activate
+
+# Install dependencies (same on all platforms)
+pip install -r requirements.txt
+```
+
+### Git Workflow Best Practices
+```bash
+# Safe branch switching (preserves .venv)
+git reset --hard
+git pull origin main
+
+# Emergency clean (removes everything except .gitignore items)
+git clean -fdx  # Note: .venv is protected by .gitignore
+```
+
+### Virtual Environment Management
+- **NEVER commit** virtual environments (.venv/, venv/)
+- **Already protected** by .gitignore
+- **Each developer** maintains their own environment
+- **Fast recreation** using requirements.txt
+
+### Dependency Management
+```bash
+# Update requirements after installing new packages
+pip freeze > requirements.txt
+
+# Keep requirements.txt clean and minimal
+# Current core dependencies are platform-agnostic
+```
+
+### Platform-Specific Notes
+- **Windows**: Full dictation support with native text injection
+- **Linux**: Full dictation support with KDE/X11/Wayland optimizations
+- **GPU requirements**: NVIDIA CUDA drivers on both platforms
+- **Audio systems**: WASAPI (Windows) and ALSA/PulseAudio (Linux) handled by sounddevice
+- **Text injection**: Native Windows APIs and Linux clipboard/keyboard strategies
+- **Desktop environments**: Optimized for Windows Desktop and major Linux DEs (KDE, GNOME, etc.)
+
 ## Testing Notes
 
-- **`tests/test_audio_minimal.py` is WORKING** - Windows audio compatibility confirmed
+- **`tests/test_audio_minimal.py` is WORKING** - Cross-platform audio compatibility confirmed
 - **Manual testing preferred** - System requires interactive testing with real microphone input
 - **GPU monitoring essential** - Use `nvidia-smi` and `watch -n 1 nvidia-smi` for performance monitoring
-- **Test on Windows immediately** - Every change must work on target platform
+- **Test on both platforms** - Every change must work on Windows and Linux
 - **Component testing available** - Individual test scripts for LocalAgreement, keyboard output, etc.
