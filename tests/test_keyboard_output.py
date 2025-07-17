@@ -16,10 +16,10 @@ def test_direct_keyboard():
     
     try:
         keyboard.write("Hello from direct keyboard test!")
-        print("✅ Direct keyboard test successful")
+        print("[PASS] Direct keyboard test successful")
         return True
     except Exception as e:
-        print(f"❌ Direct keyboard test failed: {e}")
+        print(f"[FAIL] Direct keyboard test failed: {e}")
         return False
 
 def test_threaded_keyboard():
@@ -36,16 +36,16 @@ def test_threaded_keyboard():
             time.sleep(0.5)
             text_queue.put("Hello from background thread!")
         except Exception as e:
-            print(f"❌ Background thread error: {e}")
+            print(f"[FAIL] Background thread error: {e}")
     
     def output_thread():
         try:
             text = text_queue.get(timeout=2)
             keyboard.write(text)
-            print("✅ Threaded keyboard test successful")
+            print("[PASS] Threaded keyboard test successful")
             return True
         except Exception as e:
-            print(f"❌ Threaded keyboard test failed: {e}")
+            print(f"[FAIL] Threaded keyboard test failed: {e}")
             return False
     
     # Start background thread
@@ -66,23 +66,23 @@ def test_callback_mechanism():
     def text_output_callback(text):
         nonlocal callback_called
         try:
-            print(f"📝 Callback triggered with: '{text}'")
+            print(f"INFO: Callback triggered with: '{text}'")
             keyboard.write(text)
             callback_called = True
-            print("✅ Callback mechanism test successful")
+            print("[PASS] Callback mechanism test successful")
         except Exception as e:
-            print(f"❌ Callback mechanism test failed: {e}")
+            print(f"[FAIL] Callback mechanism test failed: {e}")
     
     # Simulate the LocalAgreement callback
     try:
         text_output_callback("Hello from callback test!")
         return callback_called
     except Exception as e:
-        print(f"❌ Callback test error: {e}")
+        print(f"[FAIL] Callback test error: {e}")
         return False
 
 if __name__ == "__main__":
-    print("🧪 Testing Keyboard Output Mechanisms")
+    print("TEST: Testing Keyboard Output Mechanisms")
     print("=" * 50)
     
     # Test 1: Direct keyboard output
@@ -94,15 +94,15 @@ if __name__ == "__main__":
     # Test 3: Callback mechanism
     callback_success = test_callback_mechanism()
     
-    print("\n📊 Test Results:")
-    print(f"Direct keyboard: {'✅ PASS' if direct_success else '❌ FAIL'}")
-    print(f"Threaded keyboard: {'✅ PASS' if threaded_success else '❌ FAIL'}")
-    print(f"Callback mechanism: {'✅ PASS' if callback_success else '❌ FAIL'}")
+    print("\nRESULTS:")
+    print(f"Direct keyboard: {'[PASS]' if direct_success else '[FAIL]'}")
+    print(f"Threaded keyboard: {'[PASS]' if threaded_success else '[FAIL]'}")
+    print(f"Callback mechanism: {'[PASS]' if callback_success else '[FAIL]'}")
     
     if all([direct_success, threaded_success, callback_success]):
-        print("\n🎉 All tests passed! Keyboard output should work.")
+        print("\nSUCCESS: All tests passed! Keyboard output should work.")
     else:
-        print("\n⚠️  Some tests failed. Check Windows permissions and focus.")
+        print("\nWARNING: Some tests failed. Check Windows permissions and focus.")
         print("   - Make sure you clicked in a text field")
         print("   - Check if antivirus is blocking keyboard simulation")
         print("   - Try running as administrator if needed")

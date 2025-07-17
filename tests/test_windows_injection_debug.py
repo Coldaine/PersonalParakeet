@@ -49,16 +49,16 @@ class WindowsInjectionDebugger:
             try:
                 strategy = strategy_class(self.config)
                 self.strategies[name] = strategy
-                print(f"✓ {name} strategy initialized")
+                print(f"[PASS] {name} strategy initialized")
             except Exception as e:
-                print(f"✗ {name} strategy failed to initialize: {e}")
+                print(f"[FAIL] {name} strategy failed to initialize: {e}")
     
     def check_availability(self):
         """Check which strategies are available"""
         print("\n=== Strategy Availability Check ===")
         for name, strategy in self.strategies.items():
             available = strategy.is_available()
-            status = "✓ Available" if available else "✗ Not Available"
+            status = "[PASS] Available" if available else "[FAIL] Not Available"
             print(f"{name}: {status}")
         return {name: strategy.is_available() for name, strategy in self.strategies.items()}
     
@@ -72,21 +72,21 @@ class WindowsInjectionDebugger:
         results = {}
         for name, strategy in self.strategies.items():
             if not strategy.is_available():
-                print(f"⏭️  Skipping {name} (not available)")
+                print(f"SKIPPING: {name} (not available)")
                 results[name] = False
                 continue
             
-            print(f"\n🧪 Testing {name} strategy...")
+            print(f"\nTEST: Testing {name} strategy...")
             print("You have 3 seconds to focus on the target application...")
             time.sleep(3)
             
             try:
                 success = strategy.inject(test_text)
-                status = "✓ Success" if success else "✗ Failed"
+                status = "[PASS] Success" if success else "[FAIL] Failed"
                 print(f"{name}: {status}")
                 results[name] = success
             except Exception as e:
-                print(f"{name}: ✗ Exception - {e}")
+                print(f"{name}: [FAIL] Exception - {e}")
                 results[name] = False
             
             # Give time to see the result
@@ -107,7 +107,7 @@ class WindowsInjectionDebugger:
         
         results = {}
         for app_name, app_type in app_types:
-            print(f"\n📱 Testing with {app_name} ({app_type.name})")
+            print(f"\nTEST: Testing with {app_name} ({app_type.name})")
             print(f"Open {app_name} and focus on a text input, then press Enter...")
             input()
             
@@ -125,17 +125,17 @@ class WindowsInjectionDebugger:
                 if not strategy.is_available():
                     continue
                 
-                print(f"  🧪 Testing {name} with {app_name}...")
+                print(f"  TEST: Testing {name} with {app_name}...")
                 time.sleep(1)
                 
                 try:
                     success = strategy.inject(test_text, app_info)
                     app_results[name] = success
-                    status = "✓" if success else "✗"
+                    status = "[PASS]" if success else "[FAIL]"
                     print(f"    {status} {name}")
                 except Exception as e:
                     app_results[name] = False
-                    print(f"    ✗ {name} - Exception: {e}")
+                    print(f"    [FAIL] {name} - Exception: {e}")
                 
                 time.sleep(1)
             
@@ -156,7 +156,7 @@ class WindowsInjectionDebugger:
             if not strategy.is_available():
                 continue
             
-            print(f"\n⏱️  Testing {name} performance...")
+            print(f"\nTEST: Testing {name} performance...")
             times = []
             successes = 0
             
@@ -192,7 +192,7 @@ class WindowsInjectionDebugger:
         print("\n=== Special Character Testing ===")
         
         special_tests = [
-            ("Unicode", "Hello 世界 🌍"),
+            ("Unicode", "Hello 世界 World"),
             ("Symbols", "Test @#$%^&*()_+-=[]{}|;:,.<>?"),
             ("Newlines", "Line 1\nLine 2\nLine 3"),
             ("Tabs", "Col1\tCol2\tCol3"),
@@ -203,7 +203,7 @@ class WindowsInjectionDebugger:
         results = {}
         
         for test_name, test_text in special_tests:
-            print(f"\n🔤 Testing {test_name}: '{test_text}'")
+            print(f"\nTEST: Testing {test_name}: '{test_text}'")
             print("Focus on a text field and press Enter...")
             input()
             
@@ -218,11 +218,11 @@ class WindowsInjectionDebugger:
                 try:
                     success = strategy.inject(test_text)
                     test_results[name] = success
-                    status = "✓" if success else "✗"
+                    status = "[PASS]" if success else "[FAIL]"
                     print(f"    {status} {name}")
                 except Exception as e:
                     test_results[name] = False
-                    print(f"    ✗ {name} - Exception: {e}")
+                    print(f"    [FAIL] {name} - Exception: {e}")
                 
                 time.sleep(1)
             
@@ -238,28 +238,28 @@ class WindowsInjectionDebugger:
         
         # Strategy availability
         if 'availability' in all_results:
-            print("\n📊 Strategy Availability:")
+            print("\nRESULTS: Strategy Availability:")
             for name, available in all_results['availability'].items():
-                status = "✓" if available else "✗"
+                status = "[PASS]" if available else "[FAIL]"
                 print(f"  {status} {name}")
         
         # Basic injection results
         if 'basic' in all_results:
-            print("\n📝 Basic Injection Results:")
+            print("\nRESULTS: Basic Injection Results:")
             for name, success in all_results['basic'].items():
-                status = "✓" if success else "✗"
+                status = "[PASS]" if success else "[FAIL]"
                 print(f"  {status} {name}")
         
         # Performance results
         if 'performance' in all_results:
-            print("\n⏱️  Performance Results:")
+            print("\nRESULTS: Performance Results:")
             for name, perf in all_results['performance'].items():
                 print(f"  {name}:")
                 print(f"    Average time: {perf['avg_time']:.3f}s")
                 print(f"    Success rate: {perf['success_rate']:.1f}%")
         
         # Recommendations
-        print("\n💡 Recommendations:")
+        print("\nRECOMMENDATIONS:")
         if 'basic' in all_results:
             best_strategies = [name for name, success in all_results['basic'].items() if success]
             if best_strategies:
@@ -271,7 +271,7 @@ class WindowsInjectionDebugger:
     
     def run_full_test_suite(self):
         """Run the complete test suite"""
-        print("🧪 Windows Injection Strategy Debug Suite")
+        print("TEST: Windows Injection Strategy Debug Suite")
         print("=" * 50)
         
         all_results = {}
@@ -286,12 +286,12 @@ class WindowsInjectionDebugger:
         all_results['special_chars'] = self.test_special_characters()
         
         # Performance test (optional)
-        print("\n❓ Run performance test? (y/n): ", end="")
+        print("\nRun performance test? (y/n): ", end="")
         if input().lower().startswith('y'):
             all_results['performance'] = self.test_performance()
         
         # Application-specific test (optional)
-        print("\n❓ Run application-specific test? (y/n): ", end="")
+        print("\nRun application-specific test? (y/n): ", end="")
         if input().lower().startswith('y'):
             all_results['app_specific'] = self.test_application_specific()
         
@@ -304,10 +304,10 @@ class WindowsInjectionDebugger:
 def main():
     """Main function to run the debug suite"""
     if sys.platform != 'win32':
-        print("❌ This debug tool is for Windows only")
+        print("[FAIL] This debug tool is for Windows only")
         return
     
-    print("🚀 Starting Windows Injection Debug Suite")
+    print("STARTING: Windows Injection Debug Suite")
     print("Make sure you have text applications ready for testing!")
     print("Recommended: Notepad, browser, VS Code, terminal")
     
@@ -342,10 +342,10 @@ def main():
         elif choice == '6':
             debugger.run_full_test_suite()
         elif choice == '7':
-            print("👋 Goodbye!")
+            print("Goodbye!")
             break
         else:
-            print("❌ Invalid option, please try again")
+            print("[FAIL] Invalid option, please try again")
 
 
 if __name__ == "__main__":

@@ -83,9 +83,9 @@ def test_text_injection():
         print(f"\nInjecting: '{msg}'")
         success = manager.inject_text(msg)
         if success:
-            print("✅ Injection successful!")
+            print("[PASS] Injection successful!")
         else:
-            print("❌ Injection failed!")
+            print("[FAIL] Injection failed!")
         time.sleep(1)
 
 
@@ -96,7 +96,7 @@ def test_fallback_display():
     print("=" * 60)
     
     def custom_fallback(text):
-        print(f"\n🚨 FALLBACK DISPLAY 🚨")
+        print(f"\nWARNING: FALLBACK DISPLAY")
         print(f"Text to copy: {text}")
         print("=" * 40 + "\n")
     

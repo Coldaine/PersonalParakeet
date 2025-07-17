@@ -25,18 +25,18 @@ def test_windows_audio():
                       dtype=np.float32)
         sd.wait()
         
-        print(f"✅ Successfully captured {len(audio)} samples")
-        print(f"📊 Audio level: {np.max(np.abs(audio)):.3f}")
+        print(f"[PASS] Successfully captured {len(audio)} samples")
+        print(f"STATS: Audio level: {np.max(np.abs(audio)):.3f}")
         
         if np.max(np.abs(audio)) > 0.001:
-            print("🎤 Audio detected - microphone is working!")
+            print("SUCCESS: Audio detected - microphone is working!")
         else:
-            print("❌ No audio detected - check microphone permissions")
+            print("[FAIL] No audio detected - check microphone permissions")
             
         return audio
         
     except Exception as e:
-        print(f"❌ Audio capture failed: {e}")
+        print(f"[FAIL] Audio capture failed: {e}")
         return None
 
 if __name__ == "__main__":

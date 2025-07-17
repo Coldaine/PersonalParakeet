@@ -13,17 +13,17 @@ import threading
 
 def test_error_handling():
     """Test error handling improvements"""
-    print("🧪 Testing Enhanced Dictation System")
+    print("TEST: Testing Enhanced Dictation System")
     print("=" * 50)
     
     try:
         # Create dictation instance
-        print("\n1️⃣ Testing initialization...")
+        print("\n1. Testing initialization...")
         dictation = SimpleDictation()
-        print("✅ Initialization successful")
+        print("[PASS] Initialization successful")
         
         # Test text output callback directly
-        print("\n2️⃣ Testing text output callback...")
+        print("\n2. Testing text output callback...")
         dictation.output_text("Test message from enhanced system")
         
         # Test with various text types
@@ -35,28 +35,28 @@ def test_error_handling():
             "Unicode text: café résumé",
         ]
         
-        print("\n3️⃣ Testing various text types...")
+        print("\n3. Testing various text types...")
         for text in test_texts:
             print(f"\nTesting: '{text}'")
             dictation.output_text(text)
             time.sleep(0.5)
         
         # Test fallback display
-        print("\n4️⃣ Testing fallback display (simulating failures)...")
+        print("\n4. Testing fallback display (simulating failures)...")
         dictation.injection_failures = 3  # Force fallback mode
         dictation.use_fallback_display = True
         dictation._display_fallback_text("This is fallback text that should appear in console")
         
-        print("\n✅ All tests completed!")
+        print("\n[PASS] All tests completed!")
         
     except Exception as e:
-        print(f"\n❌ Test failed: {type(e).__name__}: {e}")
+        print(f"\n[FAIL] Test failed: {type(e).__name__}: {e}")
         import traceback
         traceback.print_exc()
 
 def test_thread_safety():
     """Test thread safety of text output"""
-    print("\n\n🧪 Testing Thread Safety")
+    print("\n\nTEST: Testing Thread Safety")
     print("=" * 50)
     
     try:
@@ -79,13 +79,13 @@ def test_thread_safety():
         for t in threads:
             t.join()
         
-        print("\n✅ Thread safety test completed!")
+        print("\n[PASS] Thread safety test completed!")
         
     except Exception as e:
-        print(f"\n❌ Thread safety test failed: {e}")
+        print(f"\n[FAIL] Thread safety test failed: {e}")
 
 if __name__ == "__main__":
-    print("🚀 Enhanced Dictation System Test Suite")
+    print("STARTING: Enhanced Dictation System Test Suite")
     print("=====================================")
     print("Note: Some tests require you to have a text editor open")
     print("Click in a text field before continuing...\n")
@@ -96,8 +96,8 @@ if __name__ == "__main__":
     test_error_handling()
     test_thread_safety()
     
-    print("\n\n📊 Test Summary:")
+    print("\n\nRESULTS: Test Summary:")
     print("- Error handling: Enhanced with fallback display")
     print("- Thread safety: Improved with better exception handling") 
     print("- Text injection: Multiple methods with graceful degradation")
-    print("\n🎉 Testing complete!")
+    print("\nSUCCESS: Testing complete!")

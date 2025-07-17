@@ -12,7 +12,7 @@ from personalparakeet.local_agreement import TranscriptionProcessor
 
 def test_streaming_scenario():
     """Simulate what happens with streaming audio chunks"""
-    print("🧪 Testing LocalAgreement with Streaming Audio Simulation")
+    print("TEST: Testing LocalAgreement with Streaming Audio Simulation")
     print("=" * 60)
     
     processor = TranscriptionProcessor(agreement_threshold=2, enable_visual_feedback=False)
@@ -21,7 +21,7 @@ def test_streaming_scenario():
     committed_texts = []
     def capture_committed_text(text):
         committed_texts.append(text)
-        print(f"🎯 COMMITTED: '{text}'")
+        print(f"COMMITTED: '{text}'")
     
     processor.set_text_output_callback(capture_committed_text)
     
@@ -59,7 +59,7 @@ def test_streaming_scenario():
                 for word, count in word_counts.items():
                     print(f"    Position {pos}: '{word}' = {count} agreements")
     
-    print(f"\n📊 Final Results:")
+    print(f"\nRESULTS:")
     print(f"Total committed texts: {len(committed_texts)}")
     print(f"Committed texts: {committed_texts}")
     print(f"Final committed text: '{processor.buffer.committed_text}'")
@@ -67,7 +67,7 @@ def test_streaming_scenario():
 
 def test_ideal_scenario():
     """Test how LocalAgreement should work with repeated transcriptions"""
-    print("\n\n🧪 Testing LocalAgreement with Ideal Repeated Transcriptions")
+    print("\n\nTEST: Testing LocalAgreement with Ideal Repeated Transcriptions")
     print("=" * 60)
     
     processor = TranscriptionProcessor(agreement_threshold=2, enable_visual_feedback=False)
@@ -75,7 +75,7 @@ def test_ideal_scenario():
     committed_texts = []
     def capture_committed_text(text):
         committed_texts.append(text)
-        print(f"🎯 COMMITTED: '{text}'")
+        print(f"COMMITTED: '{text}'")
     
     processor.set_text_output_callback(capture_committed_text)
     
@@ -100,13 +100,13 @@ def test_ideal_scenario():
         print(f"  Pending: '{state.pending}'")
         print(f"  Newly committed: '{state.newly_committed}'")
     
-    print(f"\n📊 Final Results:")
+    print(f"\nRESULTS:")
     print(f"Total committed texts: {len(committed_texts)}")
     print(f"Committed texts: {committed_texts}")
 
 def test_overlapping_chunks():
     """Test a potential solution with overlapping chunks"""
-    print("\n\n🧪 Testing Potential Solution: Overlapping Chunks")
+    print("\n\nTEST: Testing Potential Solution: Overlapping Chunks")
     print("=" * 60)
     
     processor = TranscriptionProcessor(agreement_threshold=2, enable_visual_feedback=False)
@@ -114,7 +114,7 @@ def test_overlapping_chunks():
     committed_texts = []
     def capture_committed_text(text):
         committed_texts.append(text)
-        print(f"🎯 COMMITTED: '{text}'")
+        print(f"COMMITTED: '{text}'")
     
     processor.set_text_output_callback(capture_committed_text)
     
@@ -139,7 +139,7 @@ def test_overlapping_chunks():
         print(f"  Pending: '{state.pending}'")
         print(f"  Newly committed: '{state.newly_committed}'")
     
-    print(f"\n📊 Final Results:")
+    print(f"\nRESULTS:")
     print(f"Total committed texts: {len(committed_texts)}")
     print(f"Committed texts: {committed_texts}")
 
