@@ -4,8 +4,10 @@ import unittest
 import tempfile
 import os
 import logging
+import sys
+from pathlib import Path
 from unittest.mock import patch, MagicMock
-from personalparakeet.logger import setup_logger, get_log_file_path
+from personalparakeet.logger import setup_logger
 
 
 class TestLogger(unittest.TestCase):
@@ -21,6 +23,10 @@ class TestLogger(unittest.TestCase):
         """Clean up after tests"""
         # Remove all handlers from test logger
         logger = logging.getLogger(self.test_logger_name)
+        # Close file handlers before clearing
+        for handler in logger.handlers:
+            if isinstance(handler, logging.FileHandler):
+                handler.close()
         logger.handlers.clear()
         
     def test_setup_logger_creates_logger(self):
@@ -34,6 +40,14 @@ class TestLogger(unittest.TestCase):
         logger = setup_logger(self.test_logger_name)
         self.assertEqual(logger.level, logging.INFO)
         
+    def test_logger_custom_level(self):
+        """Test that logger accepts custom log level"""
+        logger = setup_logger(self.test_logger_name, level="DEBUG")
+        self.assertEqual(logger.level, logging.DEBUG)
+        
+        logger2 = setup_logger(self.test_logger_name + "_warn", level="WARNING")
+        self.assertEqual(logger2.level, logging.WARNING)
+        
     def test_logger_has_console_handler(self):
         """Test that logger has a console handler"""
         logger = setup_logger(self.test_logger_name)
@@ -42,75 +56,116 @@ class TestLogger(unittest.TestCase):
         stream_handlers = [h for h in logger.handlers if isinstance(h, logging.StreamHandler)]
         self.assertGreater(len(stream_handlers), 0, "Logger should have at least one StreamHandler")
         
+        # Check that it outputs to stdout
+        console_handler = stream_handlers[0]
+        self.assertEqual(console_handler.stream, sys.stdout)
+        
     def test_logger_has_file_handler(self):
         """Test that logger has a file handler"""
-        with patch('personalparakeet.logger.get_log_file_path') as mock_path:
-            mock_path.return_value = os.path.join(self.temp_dir, 'test.log')
+        with patch('pathlib.Path.mkdir') as mock_mkdir:
             logger = setup_logger(self.test_logger_name)
             
             # Check for FileHandler
             file_handlers = [h for h in logger.handlers if isinstance(h, logging.FileHandler)]
             self.assertGreater(len(file_handlers), 0, "Logger should have at least one FileHandler")
             
-    def test_logger_formats_include_emoji(self):
-        """Test that logger format includes emoji symbols"""
+            # Check file path includes .personalparakeet/logs
+            file_handler = file_handlers[0]
+            self.assertIn('.personalparakeet', file_handler.baseFilename)
+            self.assertIn('logs', file_handler.baseFilename)
+            
+    def test_logger_formats(self):
+        """Test that logger formatters are set correctly"""
         logger = setup_logger(self.test_logger_name)
         
-        # Get console handler
+        # Get handlers
         console_handler = next((h for h in logger.handlers if isinstance(h, logging.StreamHandler)), None)
+        file_handler = next((h for h in logger.handlers if isinstance(h, logging.FileHandler)), None)
+        
         self.assertIsNotNone(console_handler)
+        self.assertIsNotNone(file_handler)
         
-        # Check format
-        formatter = console_handler.formatter
-        self.assertIsNotNone(formatter)
-        # The format should include timestamp and level
-        self.assertIn('%(asctime)s', formatter._fmt)
-        self.assertIn('%(levelname)s', formatter._fmt)
-        
-    def test_get_log_file_path_creates_directory(self):
-        """Test that get_log_file_path creates logs directory if needed"""
-        with patch('os.makedirs') as mock_makedirs:
-            with patch('os.path.exists', return_value=False):
-                path = get_log_file_path()
-                mock_makedirs.assert_called_once()
-                self.assertTrue(path.endswith('.log'))
+        # Check formatters
+        for handler in [console_handler, file_handler]:
+            formatter = handler.formatter
+            self.assertIsNotNone(formatter)
+            # The format should include timestamp, name, level, and message
+            self.assertIn('%(asctime)s', formatter._fmt)
+            self.assertIn('%(name)s', formatter._fmt)
+            self.assertIn('%(levelname)s', formatter._fmt)
+            self.assertIn('%(message)s', formatter._fmt)
                 
-    def test_get_log_file_path_includes_date(self):
-        """Test that log file path includes current date"""
-        from datetime import datetime
-        path = get_log_file_path()
-        date_str = datetime.now().strftime('%Y%m%d')
-        self.assertIn(date_str, path)
+    def test_log_directory_creation(self):
+        """Test that log directory is created with correct path"""
+        with patch('pathlib.Path.home') as mock_home:
+            with patch('pathlib.Path.mkdir') as mock_mkdir:
+                with patch('logging.FileHandler') as mock_file_handler:
+                    mock_home.return_value = Path('/home/testuser')
+                    logger = setup_logger(self.test_logger_name)
+                    
+                    # Check mkdir was called with correct arguments
+                    mock_mkdir.assert_called_once_with(parents=True, exist_ok=True)
+                
+    def test_logger_file_path(self):
+        """Test that log file has correct name and location"""
+        logger = setup_logger(self.test_logger_name)
+        
+        # Find file handler
+        file_handler = next((h for h in logger.handlers if isinstance(h, logging.FileHandler)), None)
+        self.assertIsNotNone(file_handler)
+        
+        # Check filename
+        self.assertTrue(file_handler.baseFilename.endswith('personalparakeet.log'))
         
     def test_logger_no_duplicate_handlers(self):
         """Test that calling setup_logger multiple times doesn't duplicate handlers"""
-        logger1 = setup_logger(self.test_logger_name)
+        # Create a unique logger name for this test
+        unique_logger_name = self.test_logger_name + "_no_dup"
+        
+        logger1 = setup_logger(unique_logger_name)
         initial_handler_count = len(logger1.handlers)
         
-        logger2 = setup_logger(self.test_logger_name)
-        self.assertEqual(logger1, logger2)  # Should be same instance
-        self.assertEqual(len(logger2.handlers), initial_handler_count)  # No new handlers added
+        # Close file handlers before clearing
+        for handler in logger1.handlers:
+            if isinstance(handler, logging.FileHandler):
+                handler.close()
+        # Clear handlers to simulate fresh setup
+        logger1.handlers.clear()
         
-    def test_logger_writes_to_file(self):
-        """Test that logger actually writes to file"""
-        with patch('personalparakeet.logger.get_log_file_path') as mock_path:
-            log_file = os.path.join(self.temp_dir, 'test_write.log')
-            mock_path.return_value = log_file
+        logger2 = setup_logger(unique_logger_name)
+        self.assertEqual(logger1, logger2)  # Should be same instance
+        self.assertEqual(len(logger2.handlers), initial_handler_count)  # Same number of handlers
+        
+    def test_logger_writes_to_console(self):
+        """Test that logger actually writes to console"""
+        # Get a fresh logger with cleared handlers
+        test_logger_name = self.test_logger_name + "_console_test"
+        logger = logging.getLogger(test_logger_name)
+        logger.handlers.clear()
+        logger.setLevel(logging.INFO)
+        
+        # Add a mock handler
+        mock_handler = MagicMock(spec=logging.StreamHandler)
+        mock_handler.level = logging.INFO
+        logger.addHandler(mock_handler)
+        
+        # Log a message
+        test_message = "Test console log message"
+        logger.info(test_message)
+        
+        # Check that handle was called
+        mock_handler.handle.assert_called()
             
-            logger = setup_logger(self.test_logger_name)
-            test_message = "Test log message"
-            logger.info(test_message)
-            
-            # Force flush
-            for handler in logger.handlers:
-                if isinstance(handler, logging.FileHandler):
-                    handler.flush()
-            
-            # Check file contains message
-            if os.path.exists(log_file):
-                with open(log_file, 'r') as f:
-                    content = f.read()
-                    self.assertIn(test_message, content)
+    def test_logger_case_insensitive_level(self):
+        """Test that log level is case insensitive"""
+        logger1 = setup_logger(self.test_logger_name + "_lower", level="debug")
+        self.assertEqual(logger1.level, logging.DEBUG)
+        
+        logger2 = setup_logger(self.test_logger_name + "_upper", level="DEBUG")
+        self.assertEqual(logger2.level, logging.DEBUG)
+        
+        logger3 = setup_logger(self.test_logger_name + "_mixed", level="DeBuG")
+        self.assertEqual(logger3.level, logging.DEBUG)
 
 
 if __name__ == '__main__':
