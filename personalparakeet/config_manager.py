@@ -18,11 +18,21 @@ from .logger import setup_logger
 
 logger = setup_logger(__name__)
 
+@dataclass
+class VADSettings:
+    enabled: bool = True
+    sensitivity: str = "medium"  # low/medium/high preset
+    custom_threshold: Optional[float] = None
+    pause_duration_ms: int = 1500
+    adaptive_mode: bool = True
+    breathing_detection: bool = True
+    background_noise_adaptation: bool = True
 
 @dataclass
 class PersonalParakeetConfig:
     """Complete configuration for PersonalParakeet system"""
     injection: InjectionConfig
+    vad: VADSettings = VADSettings()
     
     # Model settings
     model_name: str = "nvidia/parakeet-tdt-1.1b"
@@ -53,6 +63,9 @@ class PersonalParakeetConfig:
         if self.application_profiles is None:
             self.application_profiles = {}
         
+        if self.vad is None:
+            self.vad = VADSettings()
+
         # Sync audio settings with injection config
         if self.audio_device_index is not None:
             self.injection.audio_device_index = self.audio_device_index
@@ -70,15 +83,20 @@ class PersonalParakeetConfig:
         injection_dict = config_dict.get('injection', {})
         injection_config = InjectionConfig.from_dict(injection_dict)
         
-        # Remove injection from main dict
+        # Extract VAD config
+        vad_dict = config_dict.get('vad', {})
+        vad_config = VADSettings(**vad_dict)
+
+        # Remove injection and VAD from main dict
         main_dict = config_dict.copy()
         main_dict.pop('injection', None)
+        main_dict.pop('vad', None)
         
         # Filter out unknown keys
         valid_keys = {field.name for field in cls.__dataclass_fields__.values()}
         filtered_dict = {k: v for k, v in main_dict.items() if k in valid_keys}
         
-        return cls(injection=injection_config, **filtered_dict)
+        return cls(injection=injection_config, vad=vad_config, **filtered_dict)
     
     def to_dict(self) -> Dict[str, Any]:
         """Convert configuration to dictionary"""
@@ -149,12 +167,12 @@ class ConfigManager:
             else:
                 # No config file found, create default
                 logger.info("No config file found, using default configuration")
-                self.config = PersonalParakeetConfig(injection=InjectionConfig())
+                self.config = PersonalParakeetConfig(injection=InjectionConfig(), vad=VADSettings())
         
         # Validate configuration
         if not self.config.validate():
             logger.warning("Configuration validation failed, using default values")
-            self.config = PersonalParakeetConfig(injection=InjectionConfig())
+            self.config = PersonalParakeetConfig(injection=InjectionConfig(), vad=VADSettings())
         
         return self.config
     
@@ -225,7 +243,7 @@ class ConfigManager:
             output_path = Path(output_path)
         
         # Create sample config with comments
-        sample_config = PersonalParakeetConfig(injection=InjectionConfig())
+        sample_config = PersonalParakeetConfig(injection=InjectionConfig(), vad=VADSettings())
         
         # Add sample application profiles
         sample_config.application_profiles = {
@@ -318,7 +336,7 @@ def save_config(config: Optional[PersonalParakeetConfig] = None) -> bool:
     return get_config_manager().save_config(config)
 
 
-def create_sample_config(output_path: Optional[Union[str, Path]] = None) -> bool:
+def create_sample__config(output_path: Optional[Union[str, Path]] = None) -> bool:
     """Create a sample configuration file"""
     return get_config_manager().create_sample_config(output_path)
 

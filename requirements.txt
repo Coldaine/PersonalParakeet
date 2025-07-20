@@ -4,6 +4,10 @@ sounddevice>=0.4.6
 numpy>=1.24.0
 keyboard>=0.13.5
 torch>=2.0.0
+webrtcvad>=2.0.10
+scipy>=1.10.0
+librosa>=0.10.0
+websockets>=12.0
 
 # Optional Dependencies for Development
 pytest>=7.0.0

@@ -1,0 +1,24 @@
+[package]
+name = "workshop-box"
+version = "0.0.0"
+description = "PersonalParakeet Workshop Box UI"
+authors = ["PersonalParakeet Team"]
+license = ""
+repository = ""
+edition = "2021"
+
+[build-dependencies]
+tauri-build = { version = "1.5", features = [] }
+
+[dependencies]
+tauri = { version = "1.5", features = [ "window-all", "shell-open" ] }
+serde = { version = "1.0", features = ["derive"] }
+serde_json = "1.0"
+tokio = { version = "1", features = ["full"] }
+tungstenite = "0.21"
+tokio-tungstenite = "0.21"
+futures-util = "0.3"
+
+[features]
+default = ["custom-protocol"]
+custom-protocol = ["tauri/custom-protocol"]

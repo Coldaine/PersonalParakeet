@@ -4,114 +4,125 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 ## Project Overview
 
-PersonalParakeet is a real-time dictation system using NVIDIA Parakeet-TDT 1.1B model with direct NeMo integration. The project has successfully implemented a "LocalAgreement buffering" system that prevents text rewrites and provides a superior dictation experience.
-
-### Current Branch Structure
-- `main`: Clean reset approach with single-file implementation  
-- `community-wrapper`: Working direct NeMo integration (current branch)
+PersonalParakeet v2 is a real-time dictation system featuring the **Dictation View** - a transparent, floating UI that provides live transcription feedback with real-time AI text corrections. The system uses NVIDIA Parakeet-TDT 1.1B model with direct NeMo integration.
 
 ## Essential Commands
 
-### Direct NeMo Integration (Working System)
+### Dictation View System (v2)
 ```bash
 # Install dependencies
 pip install -r requirements.txt
-# or manually:
-pip install sounddevice numpy nemo-toolkit torch keyboard
 
-# Run complete working dictation system
-python run_dictation.py
+# Install UI dependencies  
+cd dictation-view-ui && npm install && cd ..
 
-# Test core components individually
-python tests/test_audio_minimal.py      # Cross-platform audio capture
-python tests/test_local_agreement.py    # LocalAgreement logic
-python tests/test_keyboard_output.py    # Cross-platform keyboard output
+# Start complete Dictation View system
+python start_dictation_view.py
+
+# Or run components separately:
+python dictation_websocket_bridge.py     # Backend WebSocket server
+cd dictation-view-ui && npm run tauri dev # Frontend UI
+
+# Test core components
+python tests/test_audio_minimal.py      # Audio capture testing
+python test_clarity_engine_integration.py  # Clarity Engine testing
 ```
 
 ### Development and Testing
 ```bash
-# Test cross-platform audio capture (critical for system functionality)
+# Test audio capture (critical for system functionality)
 python tests/test_audio_minimal.py
 
 # GPU monitoring (essential for performance)
 nvidia-smi
-watch -n 1 nvidia-smi
 
-# Test LocalAgreement buffer system (core innovation)
-python tests/test_local_agreement.py
+# Test Clarity Engine corrections
+python personalparakeet/clarity_engine.py
 
-# Manual testing only (DO NOT run automatically)
-# System requires interactive testing with real microphone input
+# Manual testing with real microphone input required
 ```
 
 ## Architecture Overview
 
-### Direct NeMo Integration Architecture
-The system uses direct integration with NVIDIA NeMo framework for real-time dictation:
+### Dictation View v2 Architecture
+The system uses a modern client-server architecture with WebSocket communication:
 
-- **Single-file deployment** - Simple, maintainable architecture
-- **Direct model loading** - No API wrapper overhead
-- **Real-time processing** - Chunk-based audio processing with GPU acceleration
-- **LocalAgreement buffering** - Core innovation preventing text rewrites
+- **Backend (Python)** - WebSocket server with Parakeet integration
+- **Frontend (Tauri/React)** - Modern UI with glass morphism effects  
+- **Real-time communication** - WebSocket for live transcription updates
+- **Clarity Engine** - Built-in text corrections for better accuracy
 
 ### Core Implementation Files
-The project is now properly structured with a clean package organization:
+The project uses a clean modular architecture:
 
-- **`run_dictation.py`**: Main entry point - starts the complete working system
-- **`personalparakeet/dictation.py`**: Main dictation system - **CURRENTLY WORKING**
-- **`personalparakeet/local_agreement.py`**: LocalAgreement buffer implementation - core differentiator
-- **`personalparakeet/cuda_fix.py`**: RTX 5090 CUDA compatibility fix
-- **`personalparakeet/linux_injection.py`**: Linux text injection strategies
-- **`personalparakeet/kde_injection.py`**: KDE-specific optimizations
-- **`personalparakeet/linux_clipboard_manager.py`**: Linux clipboard handling
-- **`tests/test_audio_minimal.py`**: Cross-platform audio debugging script (**WORKING**)
+- **`start_dictation_view.py`**: Main entry point - launches complete system
+- **`dictation_websocket_bridge.py`**: WebSocket server and backend logic - **MAIN BACKEND**
+- **`personalparakeet/dictation.py`**: Parakeet-TDT integration for STT
+- **`personalparakeet/clarity_engine.py`**: Real-time text corrections - **WORKING**
+- **`personalparakeet/vad_engine.py`**: Voice activity detection
+- **`personalparakeet/config_manager.py`**: Configuration management
+- **`dictation-view-ui/`**: Tauri frontend with React components
 
 ## Key Configuration
 
 ### System Configuration
 ```bash
-# Core dependencies
-pip install sounddevice numpy nemo-toolkit torch keyboard
+# Core dependencies (Python)
+pip install sounddevice numpy nemo-toolkit torch
+
+# UI dependencies (Node.js/Rust)
+npm install  # In dictation-view-ui directory
+cargo --version  # Rust required for Tauri
 
 # Hardware requirements
 NVIDIA GPU (RTX 3090/5090 recommended)
-Windows 10/11 or Linux (Ubuntu 20.04+ recommended)
+Windows 10/11 primary platform
 CUDA 12.1+ compatible drivers
+Node.js and Rust for UI compilation
 
-# Audio settings
-SAMPLE_RATE=16000        # Target sample rate for Parakeet
-CHUNK_DURATION=1.0       # Audio chunk size in seconds
-AUDIO_CHANNELS=1         # Mono audio processing
+# Configuration via config.json
+{
+  "audio_device_index": null,
+  "sample_rate": 16000,
+  "vad": {
+    "custom_threshold": 0.01,
+    "pause_duration_ms": 1500
+  },
+  "clarity": {
+    "enabled": true
+  }
+}
 ```
 
 ## Critical Development Notes
 
 ### Current Status (July 2025)
-- **Working**: Complete end-to-end dictation system, LocalAgreement buffering, Windows audio capture
-- **Working**: Parakeet transcription, GPU acceleration, real-time processing, hotkey integration
-- **Minor Issues**: Text output callback refinement needed, error handling enhancement
-- **Priority**: Polish working system, fix minor text output issues
+- **Working**: Dictation View UI with glass morphism effects
+- **Working**: WebSocket communication between frontend and backend
+- **Working**: Clarity Engine real-time text corrections (ultra-fast rule-based)
+- **Working**: Voice activity detection with pause triggers
+- **In Progress**: Command Mode and Intelligent Thought-Linking
 
 ### Development Constraints
-- **Dual platform support** - Windows and Linux both fully supported
-- **Single-file approach preferred** - proven working architecture
-- **LocalAgreement buffering is the core differentiator** - **IMPLEMENTED AND WORKING**
-- **Avoid scope creep** - see SCOPE_CREEP_LESSONS.md for lessons learned
+- **v2 Dictation View focus** - All development centers on Dictation View UI approach
+- **Tauri/React frontend** - Modern web technologies for UI
+- **WebSocket architecture** - Real-time communication between components
+- **Clarity Engine priority** - Fast, accurate text corrections essential
 
 ### Working System Features
-- **F4 hotkey toggle** - Start/stop dictation functionality
-- **Real-time processing** - 2-3 iterations per second, responsive performance
-- **LocalAgreement buffering** - Text stabilization preventing rewrites
-- **Universal output** - Works with any Windows application
-- **GPU acceleration** - Optimized for RTX hardware
+- **Dictation View UI** - Transparent, draggable, adaptive sizing
+- **Real-time transcription** - Live feedback in beautiful interface
+- **Clarity Engine** - Built-in corrections for technical terms and homophones
+- **Voice activity detection** - Automatic commit on sustained pause
+- **Cross-platform** - Windows primary, designed for expansion
 
 ## Implementation Status
 
-The core system is **WORKING** with proven functionality:
-- **`personalparakeet/dictation.py`**: Complete working dictation system
-- **`personalparakeet/local_agreement.py`**: Core LocalAgreement implementation (integrated)
-- **`personalparakeet/cuda_fix.py`**: RTX 5090 CUDA compatibility (integrated)
-- **`run_dictation.py`**: Ready-to-use entry point
+The v2 system is **ACTIVELY DEVELOPED** with working components:
+- **`dictation_websocket_bridge.py`**: Main backend server (integrated with Clarity Engine and VAD)
+- **`personalparakeet/clarity_engine.py`**: Real-time text corrections (**WORKING**)
+- **`dictation-view-ui/`**: Tauri frontend with React components
+- **`start_dictation_view.py`**: Unified system launcher
 
 ## Cross-Platform Development Best Practices
 
@@ -130,43 +141,44 @@ source .venv/bin/activate
 pip install -r requirements.txt
 ```
 
-### Git Workflow Best Practices
+### Git Workflow Best Practices  
 ```bash
-# Safe branch switching (preserves .venv)
+# Safe branch switching (preserves .venv and node_modules)
 git reset --hard
 git pull origin main
 
 # Emergency clean (removes everything except .gitignore items)
-git clean -fdx  # Note: .venv is protected by .gitignore
+git clean -fdx  # Note: .venv and node_modules protected by .gitignore
 ```
 
 ### Virtual Environment Management
-- **NEVER commit** virtual environments (.venv/, venv/)
+- **NEVER commit** virtual environments (.venv/, venv/) or node_modules/
 - **Already protected** by .gitignore
 - **Each developer** maintains their own environment
-- **Fast recreation** using requirements.txt
+- **Fast recreation** using requirements.txt and package.json
 
 ### Dependency Management
 ```bash
-# Update requirements after installing new packages
+# Python dependencies
 pip freeze > requirements.txt
 
-# Keep requirements.txt clean and minimal
-# Current core dependencies are platform-agnostic
+# UI dependencies  
+cd workshop-box-ui && npm install
+
+# Keep dependency files clean and minimal
 ```
 
 ### Platform-Specific Notes
-- **Windows**: Full dictation support with native text injection
-- **Linux**: Full dictation support with KDE/X11/Wayland optimizations
-- **GPU requirements**: NVIDIA CUDA drivers on both platforms
-- **Audio systems**: WASAPI (Windows) and ALSA/PulseAudio (Linux) handled by sounddevice
-- **Text injection**: Native Windows APIs and Linux clipboard/keyboard strategies
-- **Desktop environments**: Optimized for Windows Desktop and major Linux DEs (KDE, GNOME, etc.)
+- **Windows**: Primary platform with full Workshop Box support
+- **Cross-platform potential**: Tauri enables Linux/macOS expansion
+- **GPU requirements**: NVIDIA CUDA drivers essential for Parakeet
+- **Audio systems**: sounddevice handles cross-platform audio capture
+- **UI framework**: Tauri provides native performance with web technologies
 
 ## Testing Notes
 
-- **`tests/test_audio_minimal.py` is WORKING** - Cross-platform audio compatibility confirmed
-- **Manual testing preferred** - System requires interactive testing with real microphone input
-- **GPU monitoring essential** - Use `nvidia-smi` and `watch -n 1 nvidia-smi` for performance monitoring
-- **Test on both platforms** - Every change must work on Windows and Linux
-- **Component testing available** - Individual test scripts for LocalAgreement, keyboard output, etc.
+- **`tests/test_audio_minimal.py`** - Cross-platform audio compatibility testing
+- **Manual testing required** - Dictation View needs real microphone input testing
+- **GPU monitoring essential** - Use `nvidia-smi` for performance monitoring
+- **Component testing** - Individual test scripts for Clarity Engine, VAD, etc.
+- **Frontend testing** - Tauri dev mode for UI development and testing

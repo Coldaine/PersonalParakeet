@@ -1,165 +1,157 @@
-# PersonalParakeet - Real-Time Dictation System
+# PersonalParakeet v2 - Dictation View System
 
-PersonalParakeet is a real-time dictation system using NVIDIA Parakeet-TDT model with direct NeMo integration. The project's core innovation is the **LocalAgreement buffering system** that prevents jarring text rewrites and provides a superior dictation experience.
+PersonalParakeet v2 is a real-time dictation system featuring the **Dictation View** - a transparent, floating UI that provides live transcription feedback with real-time AI text corrections.
 
-## 🎉 BREAKTHROUGH: Core System is Working!
+## 🎯 Core Innovation: The Dictation View
 
-The project has successfully implemented a complete end-to-end dictation system with:
+The Dictation View is a semi-transparent, always-on-top UI element that serves as a "scratchpad" for live transcription:
 
-- **✅ Windows audio capture** - Real-time microphone input with proper levels
-- **✅ Parakeet transcription** - NVIDIA model processing speech to text in real-time  
-- **✅ LocalAgreement buffering** - Text stabilization with committed vs pending logic
-- **✅ Real-time processing** - 2-3 iterations per second, responsive performance
-- **✅ Hotkey integration** - F4 toggle functionality operational
+- **Real-time feedback** - See STT output and corrections as they happen
+- **Clarity Engine** - Built-in LLM corrections for homophones and technical jargon  
+- **Glass morphism UI** - Beautiful transparent interface with blur effects
+- **Adaptive sizing** - Grows/shrinks based on content length
+- **Commit & Control** - Explicit user control over text finalization
 
-## Architecture Overview
+## 🚀 Quick Start
 
-### Direct NeMo Integration
-The system uses direct integration with NVIDIA NeMo framework:
-- **Parakeet-TDT-1.1B model** - Direct model loading and inference
-- **Single-file deployment** - Simple, maintainable architecture
-- **GPU acceleration** - CUDA 12.1 compatible with RTX 5090/3090 optimization
+### Prerequisites
+- **Windows 10/11** with NVIDIA GPU (RTX 3090/5090 recommended)
+- **CUDA 12.1+** drivers installed
+- **Node.js** (for Tauri UI)
+- **Rust** (for Tauri compilation)
 
-### Core Components
-
-#### Core Implementation Files
-- **`personalparakeet/dictation.py`** - Main dictation system with complete integration
-- **`personalparakeet/local_agreement.py`** - LocalAgreement buffer implementation (core differentiator)
-- **`personalparakeet/cuda_fix.py`** - RTX 5090 CUDA compatibility fix
-- **`run_dictation.py`** - Ready-to-use entry point for the complete system
-
-#### LocalAgreement Innovation
-The core differentiator that prevents text rewrites:
-```
-🔊 Processing audio chunk (level: 0.386)
-🎯 Raw transcription: 'well'
-✅ Committed: '' | ⏳ Pending: 'well'
-
-🔊 Processing audio chunk (level: 0.475)  
-🎯 Raw transcription: 'oh shit this is actually'
-✅ Committed: '' | ⏳ Pending: 'oh shit this is actually'
-
-🔊 Processing audio chunk (level: 0.353)
-🎯 Raw transcription: 'fucking working'
-✅ Committed: 'well' | ⏳ Pending: 'working'
-```
-
-## Quick Start
-
-### Dependencies
+### Installation
 ```bash
-pip install sounddevice numpy nemo-toolkit torch keyboard
-```
-
-### Basic Usage
-```bash
-# Install dependencies
+# Clone and install dependencies
+git clone <repository>
+cd PersonalParakeet
 pip install -r requirements.txt
 
-# Test audio capture (critical first step)
-python tests/test_audio_minimal.py
-
-# Run the dictation system
-python -m personalparakeet
-
-# Or install as package and run
-pip install -e .
-personalparakeet
-
-# Test LocalAgreement logic
-python tests/test_local_agreement.py
+# Install UI dependencies
+cd workshop-box-ui
+npm install
+cd ..
 ```
 
-### Hardware Requirements
-- **Windows 10/11** - Primary target platform
-- **NVIDIA GPU** - RTX 3090/5090 recommended with CUDA 12.1+
-- **Microphone** - Any Windows-compatible audio input device
-
-## Key Features
-
-### 1. LocalAgreement Buffering
-- **Committed vs Pending Text** - Prevents jarring rewrites
-- **Agreement Threshold** - Configurable stability requirements
-- **Position Tolerance** - Handles transcription variations gracefully
-- **Timeout Handling** - Automatic commit of stale pending text
-
-### 2. Real-Time Processing
-- **Chunk-based Audio** - 1-second audio chunks for responsiveness
-- **GPU Acceleration** - Optimized for RTX hardware
-- **Voice Activity Detection** - Intelligent silence handling
-- **Multi-threaded** - Separate audio capture and processing threads
-
-### 3. System Integration
-- **F4 Hotkey Toggle** - Start/stop dictation
-- **Universal Text Output** - Works with any Windows application
-- **Real-time Feedback** - Visual processing status and debugging
-
-## Current Status
-
-### Working Components ✅
-- Windows audio capture via sounddevice
-- Parakeet transcription with NeMo integration
-- LocalAgreement buffer system (core innovation)
-- Real-time processing pipeline
-- Hotkey integration and system controls
-
-### System Status ✅
-- **Complete working system** - All core functionality implemented and stable
-- **LocalAgreement buffering** - Core innovation preventing text rewrites
-- **Real-time performance** - Responsive dictation with GPU acceleration
-- **Windows compatibility** - Fully functional on target platform
-
-## Development Guidelines
-
-### Implementation Constraints
-- **Single-file approach** - Keep implementations simple until proven
-- **Windows compatibility** - All features must work on target platform
-- **Direct testing** - Manual verification preferred over automated testing
-- **LocalAgreement first** - Core differentiator takes priority
-
-### Testing Strategy
+### Usage
 ```bash
-# Audio hardware testing
-python tests/test_audio_minimal.py
+# Start Dictation View (checks prerequisites automatically)
+python start_dictation_view.py
 
-# LocalAgreement algorithm testing  
-python tests/test_local_agreement.py
-
-# Keyboard output testing
-python tests/test_keyboard_output.py
-
-# End-to-end system testing
-python -m personalparakeet
+# Or run components separately:
+python dictation_websocket_bridge.py  # Backend
+cd dictation-view-ui && npm run tauri dev  # Frontend
 ```
 
-## Project Structure
+## ✨ Key Features
 
+### 1. Dictation View UI
+- **Transparent interface** - Glass morphism with blur effects
+- **Draggable positioning** - Move anywhere on screen
+- **Adaptive sizing** - 3-state breathing system (Compact/Standard/Extended)
+- **Connection status** - Visual indicator (green=connected, red=disconnected)
+- **Always-on-top** - Stays visible over all applications
+
+### 2. Clarity Engine Integration
+Real-time text corrections powered by rule-based engine:
+- `clod code` → `claude code`
+- `cloud code` → `claude code` 
+- `get hub` → `github`
+- `pie torch` → `pytorch`
+- `dock her` → `docker`
+- `colonel` → `kernel`
+- Plus homophone corrections (`too/to`, `your/you're`, etc.)
+
+### 3. Voice Activity Detection
+- **Automatic commit** - Natural pause detection triggers text injection
+- **Configurable thresholds** - Customize silence and pause detection
+- **Visual feedback** - VAD status shown in UI
+
+### 4. Commit & Control Logic
+Three distinct actions for text finalization:
+- **Commit & Continue** - Sustained pause (>1.5s) injects text and continues
+- **Commit & Execute** - Enter key injects text + Enter press
+- **Abort & Clear** - Escape key discards all text
+
+## 🏗️ Architecture
+
+### Backend (Python)
+- **`workshop_websocket_bridge.py`** - Main WebSocket server
+- **`personalparakeet/dictation.py`** - Parakeet-TDT integration  
+- **`personalparakeet/clarity_engine.py`** - Real-time text corrections
+- **`personalparakeet/vad_engine.py`** - Voice activity detection
+
+### Frontend (Tauri/React)
+- **`workshop-box-ui/`** - Tauri application with React components
+- **WebSocket communication** - Real-time updates from backend
+- **Modern UI** - TypeScript + Zustand state management
+
+### Key Components
 ```
-PersonalParakeet/
-├── personalparakeet/           # Main package
-│   ├── __init__.py
-│   ├── dictation.py           # Main dictation system
-│   ├── local_agreement.py     # LocalAgreement buffering
-│   └── cuda_fix.py            # RTX 5090 CUDA compatibility
-├── tests/                     # Test suite
-│   ├── test_audio_minimal.py  # Windows audio test (✅ Working!)
-│   ├── test_local_agreement.py
-│   └── test_keyboard_output.py
-├── docs/                      # Documentation
-│   ├── SCOPE_CREEP_LESSONS.md # Development lessons learned
-│   ├── LLM_REFINEMENT_EXAMPLES.md
-│   └── GUI_FEATURE_PLANNING.md # Future GUI feature planning
-├── requirements.txt          # Python dependencies
-├── README.md                 # This file
-└── CLAUDE.md                # Claude Code assistant guidance
+PersonalParakeet v2/
+├── workshop_websocket_bridge.py     # Main backend server
+├── start_workshop_box.py            # Unified launcher
+├── personalparakeet/                # Core package
+│   ├── dictation.py                 # Parakeet integration
+│   ├── clarity_engine.py            # Text corrections  
+│   ├── vad_engine.py                # Voice activity detection
+│   └── config_manager.py            # Configuration system
+├── workshop-box-ui/                 # Tauri frontend
+│   ├── src/components/WorkshopBox.tsx
+│   ├── src/stores/transcriptionStore.ts  
+│   └── src-tauri/                   # Rust backend
+└── docs/                            # Documentation
 ```
 
-## Next Steps
+## 🔧 Configuration
 
-1. **Enhancement opportunities** - Polish user interface and feedback
-2. **Performance optimization** - Further improve processing efficiency  
-3. **Advanced features** - Add voice commands and controls
-4. **User experience** - Refine interface and visual feedback
-5. **Deployment** - Package for easy distribution
+Configuration via `config.json`:
+```json
+{
+  "audio_device_index": null,
+  "sample_rate": 16000,
+  "vad": {
+    "custom_threshold": 0.01,
+    "pause_duration_ms": 1500
+  },
+  "clarity": {
+    "enabled": true
+  }
+}
+```
 
-The core breakthrough is complete - PersonalParakeet successfully demonstrates superior dictation experience through LocalAgreement buffering with a **fully functional working system**!
+## 🎮 Controls
+
+- **F4** - Toggle dictation on/off (planned)
+- **Drag** - Move Dictation View position
+- **Escape** - Abort current transcription
+- **Enter** - Commit text with execute action
+- **Natural pause** - Auto-commit after 1.5 seconds
+
+## 📊 Current Status
+
+### ✅ Working Features
+- Dictation View UI with glass morphism effects
+- Real-time transcription display  
+- Clarity Engine text corrections
+- WebSocket communication
+- Voice activity detection
+- Basic commit & control logic
+
+### 🚧 In Development  
+- Command Mode ("Parakeet Command" activation)
+- Intelligent Thought-Linking
+- Enhanced pause detection
+- Session management
+
+### 🎯 Next Steps
+1. Implement Command Mode voice activation
+2. Add Intelligent Thought-Linking for multi-sentence composition
+3. Polish UI animations and effects
+4. Add comprehensive testing suite
+
+## 💡 Innovation
+
+PersonalParakeet v2 represents a paradigm shift in dictation UX. Instead of hiding the "messiness" of real-time STT behind complex algorithms, we expose it in a beautiful, controlled interface that gives users transparency and control while delivering perfectly clean results to their applications.
+
+The Dictation View turns the inherent uncertainty of real-time speech recognition into a feature, not a bug.

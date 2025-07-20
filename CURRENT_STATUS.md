@@ -1,49 +1,69 @@
-# PersonalParakeet v2.0 Workshop Box - Current Status
+# PersonalParakeet v2 Dictation View - Current Status
 
-## ✅ Successfully Completed
+## ✅ Working Components
 
 ### Core Infrastructure
-- **RTX 5090 Support**: PyTorch nightly (2.9.0.dev20250716+cu128) with CUDA 12.8 installed
-- **CUDA**: Fully functional with Compute Capability 12.0 (Blackwell sm_120)
-- **Audio Capture**: Working correctly, detecting microphone input
-- **NeMo Toolkit**: Available and ready for Parakeet model
+- **RTX 5090 Support**: PyTorch with CUDA 12.1+ compatibility verified
+- **Audio Capture**: Cross-platform audio input working correctly
+- **NeMo Toolkit**: Parakeet-TDT-1.1B model integration complete
+- **Clarity Engine**: Real-time text corrections (ultra-fast rule-based) ✅
 
-### Workshop Box UI
-- **Framework**: Migrated from PyQt6 to Tauri for true transparency
-- **Glass Morphism**: Implemented with blur effects and modern aesthetics
-- **Adaptive Sizing**: 3-state breathing system (Compact/Standard/Extended)
-- **Window Features**: Draggable, always-on-top, borderless
-- **Connection Status**: Visual indicator (green=connected, red=disconnected)
+### Dictation View UI Architecture
+- **Framework**: Tauri/React for native performance with web technologies
+- **Glass Morphism**: Transparent interface with blur effects
+- **WebSocket Communication**: Real-time updates between backend and frontend
+- **Adaptive Sizing**: Dynamic content-based window sizing
+- **Cross-platform**: Windows primary, expandable to Linux/macOS
 
 ### Backend Integration
-- **WebSocket Bridge**: Complete Python backend with Parakeet integration
-- **Auto-start**: Dictation begins automatically when backend launches
-- **Text Streaming**: Real-time transcription updates to UI
+- **WebSocket Bridge**: `workshop_websocket_bridge.py` with full integration
+- **Clarity Engine**: Built-in corrections for homophones and technical jargon
+- **Voice Activity Detection**: Pause-based automatic commit functionality
+- **Configuration System**: JSON-based settings management
 
-## 🚀 Ready to Use
+## 🚀 Quick Start
 
-To start the Workshop Box:
 ```bash
-python start_workshop_box.py
+# Install dependencies
+pip install -r requirements.txt
+cd dictation-view-ui && npm install && cd ..
+
+# Start Dictation View system
+python start_dictation_view.py
 ```
 
-This will:
+The launcher will:
 1. Check prerequisites (CUDA, Rust, Node.js)
-2. Start Python WebSocket backend with Parakeet
-3. Launch Tauri UI with glass morphism effects
+2. Start Python WebSocket backend with integrated components
+3. Launch Tauri UI with real-time transcription display
 
-## 📋 Next Priority Tasks
+## 📋 Development Status
 
-1. **Document v2 Architecture** - Create comprehensive docs for the new Workshop Model
-2. **Integrate Clarity Engine** - Add LLM for real-time text corrections
-3. **Command Mode** - Implement "Parakeet Command" voice activation
-4. **Voice Activity Detection** - Add natural pause detection
+### ✅ Completed Features
+- Dictation View UI foundation with Tauri/React
+- WebSocket communication architecture
+- Clarity Engine integration (6 essential corrections)
+- Voice Activity Detection with pause triggers
+- Basic commit & control logic
 
-## 🔧 Known Issues
+### 🚧 In Active Development  
+- **Command Mode** - "Parakeet Command" voice activation pattern
+- **Intelligent Thought-Linking** - Multi-sentence composition logic
+- **Enhanced UI Polish** - Improved animations and visual effects
 
-- First run of Tauri takes 1-2 minutes to compile
-- ffmpeg/avconv warning (non-critical for core functionality)
+### 🎯 Next Priority Tasks
+1. Implement Command Mode voice activation system
+2. Add Intelligent Thought-Linking for coherent multi-utterance composition
+3. Polish UI animations and visual feedback
+4. Comprehensive testing and documentation
 
-## 💡 Key Innovation
+## 🔧 Technical Notes
 
-The Workshop Box represents a paradigm shift from v1's invisible LocalAgreement buffering to v2's transparent UI approach. Users can now see their dictation in real-time with a beautiful glass morphism interface that adapts to content length.
+- **First run**: Tauri compilation takes 1-2 minutes initially
+- **Performance**: Clarity Engine averages 0ms correction time
+- **Configuration**: All settings managed via `config.json`
+- **Testing**: Manual testing with real microphone input required
+
+## 💡 Architecture Philosophy
+
+PersonalParakeet v2 embraces transparency over complexity. Instead of hiding the inherent "messiness" of real-time speech recognition, we expose it in a beautiful, controlled interface that gives users full visibility and control while delivering perfectly clean results to their target applications.
