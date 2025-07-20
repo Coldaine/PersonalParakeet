@@ -17,7 +17,7 @@ from typing import Optional, Callable, List
 # Import your LocalAgreement logic
 from .local_agreement import TranscriptionProcessor
 from .audio_devices import AudioDeviceManager
-from .config import ConfigurationManager, ConfigurationProfile
+from .config_manager import ConfigManager, PersonalParakeetConfig
 from .text_injection import TextInjectionManager, ApplicationInfo, PlatformDetector
 from .logger import setup_logger
 
@@ -38,12 +38,12 @@ class SimpleDictation:
             device_name: Partial device name to search for (ignored if device_index provided)
             agreement_threshold: Number of consecutive agreements needed to commit text (1-5)
             chunk_duration: Audio processing chunk size in seconds (0.3-2.0)
-            config_manager: ConfigurationManager instance (optional)
+            config_manager: ConfigManager instance (optional)
         """
         logger.info("Initializing Simple Parakeet Dictation...")
         
         # Configuration management
-        self.config_manager = config_manager or ConfigurationManager()
+        self.config_manager = config_manager or ConfigManager()
         
         # If CLI args provided, use them; otherwise use config
         if agreement_threshold != 1 or chunk_duration != 1.0:
@@ -51,23 +51,23 @@ class SimpleDictation:
             self.agreement_threshold = max(1, min(5, agreement_threshold))
             self.chunk_duration = max(0.3, min(2.0, chunk_duration))
         else:
-            # No CLI args - use active profile
-            profile = self.config_manager.get_active_profile()
-            self.agreement_threshold = profile.agreement_threshold
-            self.chunk_duration = profile.chunk_duration
-            self.max_pending_words = profile.max_pending_words
-            self.word_timeout = profile.word_timeout
-            self.position_tolerance = profile.position_tolerance
-            self.audio_level_threshold = profile.audio_level_threshold
-            logger.info(f"Using profile: {profile.name} - {profile.description}")
+            # No CLI args - use config
+            config = self.config_manager.get_config()
+            self.agreement_threshold = getattr(config, 'agreement_threshold', 3)
+            self.chunk_duration = config.chunk_duration
+            self.max_pending_words = getattr(config, 'max_pending_words', 5)
+            self.word_timeout = getattr(config, 'word_timeout', 2.0)
+            self.position_tolerance = getattr(config, 'position_tolerance', 0.5)
+            self.audio_level_threshold = getattr(config, 'audio_level_threshold', 0.01)
+            logger.info(f"Using default configuration")
         
         # Audio device selection
-        system_config = self.config_manager.get_system_config()
-        effective_device_name = device_name or system_config.audio.device_pattern
+        config = self.config_manager.get_config()
+        effective_device_name = device_name  # Use provided device name
         self.device_index = self._select_audio_device(device_index, effective_device_name)
         
         # Audio settings (configurable for real-time dictation)
-        self.sample_rate = system_config.audio.sample_rate
+        self.sample_rate = config.sample_rate
         self.chunk_size = int(self.sample_rate * self.chunk_duration)
         
         # State
@@ -369,47 +369,45 @@ class SimpleDictation:
     
     def switch_profile(self, profile_name: str) -> bool:
         """Switch configuration profile at runtime"""
-        if self.config_manager.switch_profile(profile_name):
-            self._apply_configuration_changes()
-            return True
+        logger.warning("Profile switching not yet implemented")
         return False
     
     def _apply_configuration_changes(self) -> None:
         """Apply configuration changes without restart"""
-        profile = self.config_manager.get_active_profile()
+        config = self.config_manager.get_config()
         
         # Update audio processing parameters
-        self.chunk_duration = profile.chunk_duration
+        self.chunk_duration = config.chunk_duration
         self.chunk_size = int(self.sample_rate * self.chunk_duration)
-        self.audio_level_threshold = profile.audio_level_threshold
+        self.audio_level_threshold = getattr(config, 'audio_level_threshold', 0.01)
         
         # Update processor settings
-        self.agreement_threshold = profile.agreement_threshold
-        self.processor.set_agreement_threshold(profile.agreement_threshold)
+        self.agreement_threshold = getattr(config, 'agreement_threshold', 3)
+        self.processor.set_agreement_threshold(self.agreement_threshold)
         
         # Update other LocalAgreement parameters if the processor supports them
         if hasattr(self.processor, 'set_max_pending_words'):
-            self.processor.set_max_pending_words(profile.max_pending_words)
+            self.processor.set_max_pending_words(getattr(config, 'max_pending_words', 5))
         if hasattr(self.processor, 'set_timeout_seconds'):
-            self.processor.set_timeout_seconds(profile.word_timeout)
+            self.processor.set_timeout_seconds(getattr(config, 'word_timeout', 2.0))
         if hasattr(self.processor, 'set_position_tolerance'):
-            self.processor.set_position_tolerance(profile.position_tolerance)
+            self.processor.set_position_tolerance(getattr(config, 'position_tolerance', 0.5))
         
-        logger.info(f"Applied profile: {profile.name} - {profile.description}")
+        logger.info(f"Applied configuration updates")
     
     def get_available_profiles(self) -> List[str]:
         """Get list of available configuration profiles"""
-        return self.config_manager.list_available_profiles()
+        return []  # Profile support not yet implemented
     
-    def get_current_profile(self) -> ConfigurationProfile:
+    def get_current_profile(self) -> PersonalParakeetConfig:
         """Get the current active profile"""
-        return self.config_manager.get_active_profile()
+        return self.config_manager.get_config()
 
 def main(device_index=None, device_name=None, list_devices=False, agreement_threshold=1, chunk_duration=1.0, profile=None, list_profiles=False):
     """Main entry point with comprehensive error handling"""
     
     # Initialize configuration manager first
-    config_manager = ConfigurationManager()
+    config_manager = ConfigManager()
     
     # Just list devices if requested
     if list_devices:
@@ -418,19 +416,13 @@ def main(device_index=None, device_name=None, list_devices=False, agreement_thre
     
     # Just list profiles if requested
     if list_profiles:
-        logger.info("Available configuration profiles:")
-        for profile_name in config_manager.list_available_profiles():
-            profile = config_manager.get_profile(profile_name)
-            marker = "✅" if profile_name == config_manager.active_profile_name else "  "
-            logger.info(f"{marker} {profile_name}: {profile.description}")
+        logger.info("Profile support not yet implemented")
         return
     
     # Switch profile if requested
     if profile:
-        if config_manager.switch_profile(profile):
-            config_manager.save_to_file()
-            logger.info(f"Profile switched to: {profile}")
-        else:
+        logger.warning("Profile switching not yet implemented")
+        if False:
             logger.error(f"Failed to switch to profile: {profile}")
             return
     
@@ -462,18 +454,19 @@ def main(device_index=None, device_name=None, list_devices=False, agreement_thre
         
         # Set up hotkeys from configuration
         logger.info("Setting up hotkeys...")
-        hotkey_config = config_manager.get_system_config().hotkeys
-        keyboard.add_hotkey(hotkey_config.toggle_dictation.lower(), dictation.toggle_dictation)
-        logger.info(f"Hotkey registered: {hotkey_config.toggle_dictation} to start/stop dictation")
+        config = config_manager.get_config()
+        toggle_hotkey = config.toggle_hotkey
+        keyboard.add_hotkey(toggle_hotkey.lower(), dictation.toggle_dictation)
+        logger.info(f"Hotkey registered: {toggle_hotkey} to start/stop dictation")
         
         logger.info("READY TO USE:")
         logger.info("1. Click in any text field (Notepad, browser, etc.)")
-        logger.info(f"2. Press {hotkey_config.toggle_dictation} to start dictation")
+        logger.info(f"2. Press {toggle_hotkey} to start dictation")
         logger.info("3. Speak clearly")
         logger.info("4. Watch text appear with LocalAgreement buffering")
-        logger.info(f"5. Press {hotkey_config.toggle_dictation} again to stop")
+        logger.info(f"5. Press {toggle_hotkey} again to stop")
         logger.info("6. Press Ctrl+C to quit")
-        logger.info(f"Waiting for {hotkey_config.toggle_dictation}...")
+        logger.info(f"Waiting for {toggle_hotkey}...")
         
         # Keep running until Ctrl+C
         keyboard.wait('ctrl+c')
@@ -517,7 +510,7 @@ def main(device_index=None, device_name=None, list_devices=False, agreement_thre
         
         # Remove hotkey
         try:
-            keyboard.remove_hotkey(hotkey_config.toggle_dictation.lower())
+            keyboard.remove_all_hotkeys()
         except:
             pass
             

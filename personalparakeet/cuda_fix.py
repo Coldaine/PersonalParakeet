@@ -162,6 +162,21 @@ def main():
         print("\n❌ Verification failed. Check the output above for issues.")
         return False
 
+def ensure_cuda_available():
+    """
+    Ensure CUDA is available for PyTorch operations.
+    This is a runtime check for import compatibility.
+    """
+    try:
+        import torch
+        if not torch.cuda.is_available():
+            print("Warning: CUDA not available. GPU acceleration disabled.")
+            return False
+        return True
+    except ImportError:
+        print("Error: PyTorch not installed. Run cuda_fix.py to install.")
+        return False
+
 if __name__ == "__main__":
     success = main()
     sys.exit(0 if success else 1)
