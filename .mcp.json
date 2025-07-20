@@ -1,0 +1,14 @@
+{
+  "mcpServers": {
+    "test-filesystem": {
+      "command": "npx",
+      "args": ["@modelcontextprotocol/server-filesystem", "E:\\_ProjectBroadside\\PersonalParakeet"],
+      "env": {}
+    },
+    "test-sequential": {
+      "command": "npx", 
+      "args": ["-y", "@modelcontextprotocol/server-sequential-thinking"],
+      "env": {}
+    }
+  }
+}
