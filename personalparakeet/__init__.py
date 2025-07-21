@@ -1,13 +1,16 @@
-"""PersonalParakeet - Real-Time Dictation System with LocalAgreement buffering."""
+"""PersonalParakeet v2 - Real-Time Dictation System with Dictation View."""
 
-__version__ = "1.0.0"
+__version__ = "2.0.0"
 
-# Import lightweight components first
-from .local_agreement import TranscriptionProcessor, LocalAgreementBuffer
+# Import v2 components
+from .clarity_engine import ClarityEngine
+from .thought_linking import IntelligentThoughtLinker  
+from .command_mode import CommandModeEngine
+
+# Core v2 components
+__all__ = ['ClarityEngine', 'IntelligentThoughtLinker', 'CommandModeEngine']
 
 # Conditionally import heavy dependencies
-__all__ = ['TranscriptionProcessor', 'LocalAgreementBuffer']
-
 try:
     from .dictation import SimpleDictation
     __all__.append('SimpleDictation')

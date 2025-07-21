@@ -14,8 +14,7 @@ import signal
 import argparse
 from typing import Optional, Callable, List
 
-# Import your LocalAgreement logic
-from .local_agreement import TranscriptionProcessor
+# v2 System: LocalAgreement replaced by direct passthrough + Clarity Engine
 from .audio_devices import AudioDeviceManager
 from .config_manager import ConfigManager, PersonalParakeetConfig
 from .text_injection import TextInjectionManager, ApplicationInfo, PlatformDetector
@@ -83,9 +82,13 @@ class SimpleDictation:
         ).to(dtype=torch.float16)
         logger.info("Model loaded successfully")
         
-        # LocalAgreement processor (configurable)
-        self.processor = TranscriptionProcessor(agreement_threshold=self.agreement_threshold)
-        self.processor.set_text_output_callback(self.output_text)
+        # v2 System: Direct passthrough (no LocalAgreement buffering)
+        # Text output callback for real-time transcription
+        self.text_output_callback = self.output_text
+    
+    def set_text_output_callback(self, callback):
+        """Set custom text output callback for integration with other systems"""
+        self.text_output_callback = callback
         
         # Audio processing thread
         self.processing_thread = None
@@ -213,19 +216,17 @@ class SimpleDictation:
                 if raw_text.strip():
                     logger.info(f"Raw transcription: '{raw_text}'")
                     
-                    # Process through LocalAgreement with error handling
+                    # v2 Direct passthrough (no LocalAgreement buffering)
                     try:
-                        state = self.processor.process_transcription(raw_text)
-                        
-                        # Display current state
-                        if state.committed or state.pending:
-                            logger.info(f"Committed: '{state.committed}' | Pending: '{state.pending}'")
+                        # Send directly to output callback
+                        if self.text_output_callback:
+                            self.text_output_callback(raw_text)
                         
                         # Reset error counter on success
                         consecutive_errors = 0
                         
                     except Exception as e:
-                        logger.error(f"LocalAgreement processing error: {type(e).__name__}: {str(e)}")
+                        logger.error(f"Text output error: {type(e).__name__}: {str(e)}")
                         consecutive_errors += 1
                 
             except Empty:
@@ -315,14 +316,7 @@ class SimpleDictation:
             if self.processing_thread.is_alive():
                 logger.warning("Processing thread did not stop cleanly")
         
-        # Process any remaining pending text with error handling
-        try:
-            if self.processor.buffer.pending_words:
-                pending_text = " ".join(self.processor.buffer.pending_words)
-                logger.info(f"Flushing pending text: '{pending_text}'")
-                self.output_text(pending_text)  # Use our error-handled output method
-        except Exception as e:
-            logger.error(f"Error flushing pending text: {type(e).__name__}: {str(e)}")
+        # v2: No pending text to flush (direct passthrough)
         
         # Clear the audio queue
         while not self.audio_queue.empty():
@@ -381,17 +375,8 @@ class SimpleDictation:
         self.chunk_size = int(self.sample_rate * self.chunk_duration)
         self.audio_level_threshold = getattr(config, 'audio_level_threshold', 0.01)
         
-        # Update processor settings
-        self.agreement_threshold = getattr(config, 'agreement_threshold', 3)
-        self.processor.set_agreement_threshold(self.agreement_threshold)
-        
-        # Update other LocalAgreement parameters if the processor supports them
-        if hasattr(self.processor, 'set_max_pending_words'):
-            self.processor.set_max_pending_words(getattr(config, 'max_pending_words', 5))
-        if hasattr(self.processor, 'set_timeout_seconds'):
-            self.processor.set_timeout_seconds(getattr(config, 'word_timeout', 2.0))
-        if hasattr(self.processor, 'set_position_tolerance'):
-            self.processor.set_position_tolerance(getattr(config, 'position_tolerance', 0.5))
+        # v2: Update system settings (no LocalAgreement processor)
+        self.agreement_threshold = getattr(config, 'agreement_threshold', 1)  # v2 uses passthrough (1)
         
         logger.info(f"Applied configuration updates")
     

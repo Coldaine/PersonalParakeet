@@ -24,8 +24,14 @@ interface TranscriptionState {
   isConnected: boolean;
   commandMode: boolean;
   clarityEnabled: boolean;
+  commandModeEnabled: boolean;
+  commandStatus?: {
+    lastCommand: string;
+    status: 'recognized' | 'executed' | 'failed';
+    result: string;
+  };
   correctionInfo?: CorrectionInfo;
-  lastUpdateType: 'raw' | 'corrected' | 'none';
+  lastUpdateType: 'raw' | 'corrected' | 'command' | 'none';
   vadStatus: VADStatus;
   ws: WebSocket | null;
 
@@ -38,6 +44,8 @@ interface TranscriptionState {
   setConnected: (connected: boolean) => void;
   setCommandMode: (commandMode: boolean) => void;
   setClarityEnabled: (enabled: boolean) => void;
+  setCommandModeEnabled: (enabled: boolean) => void;
+  setCommandStatus: (status: { lastCommand: string; status: 'recognized' | 'executed' | 'failed'; result: string; }) => void;
   setVadStatus: (status: VADStatus) => void;
   handleMessage: (message: any) => void;
   connectWebSocket: () => void;
@@ -53,6 +61,8 @@ export const useTranscriptionStore = create<TranscriptionState>((set, get) => ({
   isConnected: false,
   commandMode: false,
   clarityEnabled: true,
+  commandModeEnabled: true,
+  commandStatus: undefined,
   correctionInfo: undefined,
   lastUpdateType: 'none',
   vadStatus: { isActive: false, audioLevel: 0, pauseDuration: 0, willCommitIn: 0 },
@@ -86,6 +96,8 @@ export const useTranscriptionStore = create<TranscriptionState>((set, get) => ({
   setConnected: (connected) => set({ isConnected: connected }),
   setCommandMode: (commandMode) => set({ commandMode }),
   setClarityEnabled: (enabled) => set({ clarityEnabled: enabled }),
+  setCommandModeEnabled: (enabled) => set({ commandModeEnabled: enabled }),
+  setCommandStatus: (status) => set({ commandStatus: status, lastUpdateType: 'command' }),
   setVadStatus: (status) => set({ vadStatus: status }),
 
   handleMessage: (data) => {
@@ -115,6 +127,17 @@ export const useTranscriptionStore = create<TranscriptionState>((set, get) => ({
         
       } else if (data.type === 'clarity_status') {
         store.setClarityEnabled(data.enabled);
+        
+      } else if (data.type === 'command_mode_status') {
+        store.setCommandModeEnabled(data.enabled);
+        
+      } else if (data.type === 'command') {
+        // Handle command feedback
+        store.setCommandStatus({
+          lastCommand: data.command,
+          status: data.status,
+          result: data.result || ''
+        });
         
       } else if (data.type === 'commit_text' || data.type === 'clear_text') {
         // Text was committed or cleared - clear the workshop box
@@ -185,4 +208,8 @@ export function commitText() {
 
 export function clearText() {
   sendCommand('clear_text');
+}
+
+export function toggleCommandMode() {
+  sendCommand('toggle_command_mode');
 }

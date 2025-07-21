@@ -1,5 +1,5 @@
 import { motion, AnimatePresence } from "framer-motion";
-import { useTranscriptionStore, toggleClarity, commitText, clearText } from "../stores/transcriptionStore";
+import { useTranscriptionStore, toggleClarity, commitText, clearText, toggleCommandMode } from "../stores/transcriptionStore";
 import { useEffect, useState } from "react";
 import { invoke } from "@tauri-apps/api/tauri";
 import clsx from "clsx";
@@ -25,6 +25,8 @@ export function DictationView({ isVisible }: DictationViewProps) {
     isListening, 
     isConnected, 
     clarityEnabled, 
+    commandModeEnabled,
+    commandStatus,
     correctionInfo, 
     lastUpdateType 
   } = useTranscriptionStore();
@@ -83,8 +85,10 @@ export function DictationView({ isVisible }: DictationViewProps) {
           className={clsx("dictation-view", mode, {
             "listening": isListening,
             "clarity-enabled": clarityEnabled,
+            "command-mode-enabled": commandModeEnabled,
             "corrected": lastUpdateType === 'corrected',
             "raw": lastUpdateType === 'raw',
+            "command": lastUpdateType === 'command',
             "high-confidence": confidence > 0.9,
             "medium-confidence": confidence > 0.7 && confidence <= 0.9,
             "low-confidence": confidence <= 0.7
@@ -134,14 +138,21 @@ export function DictationView({ isVisible }: DictationViewProps) {
             </div>
           )}
 
-          {/* Clarity Engine Controls */}
-          <div className="clarity-controls">
+          {/* Controls */}
+          <div className="control-panel">
             <button 
               className={`clarity-toggle ${clarityEnabled ? 'enabled' : 'disabled'}`}
               onClick={toggleClarity}
               title={`Clarity Engine: ${clarityEnabled ? 'ON' : 'OFF'}`}
             >
               ✨
+            </button>
+            <button 
+              className={`command-toggle ${commandModeEnabled ? 'enabled' : 'disabled'}`}
+              onClick={toggleCommandMode}
+              title={`Command Mode: ${commandModeEnabled ? 'ON' : 'OFF'}`}
+            >
+              🎤
             </button>
             <button 
               className="commit-btn"
@@ -187,6 +198,18 @@ export function DictationView({ isVisible }: DictationViewProps) {
                   </span>
                   <span className="processing-time">
                     {correctionInfo.processingTimeMs.toFixed(0)}ms
+                  </span>
+                </div>
+              )}
+              
+              {/* Show command status */}
+              {commandStatus && (
+                <div className={`command-status ${commandStatus.status}`}>
+                  <span className="command-name">
+                    {commandStatus.lastCommand.replace('_', ' ')}
+                  </span>
+                  <span className="command-result">
+                    {commandStatus.result}
                   </span>
                 </div>
               )}
