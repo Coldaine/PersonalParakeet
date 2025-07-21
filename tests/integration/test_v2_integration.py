@@ -12,7 +12,7 @@ import os
 import logging
 
 # Add the project root to Python path
-sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
+sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__)))))
 
 # Setup basic logging for tests
 logging.basicConfig(level=logging.WARNING, format='%(levelname)s: %(message)s')
