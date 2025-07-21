@@ -14,36 +14,36 @@ def get_dictation_theme() -> dict:
     """
     return {
         # Glass morphism colors
-        'glass_bg': ft.colors.with_opacity(0.1, ft.colors.BLACK),
-        'glass_border': ft.colors.with_opacity(0.3, ft.colors.WHITE),
+        'glass_bg': ft.Colors.with_opacity(0.1, ft.Colors.BLACK),
+        'glass_border': ft.Colors.with_opacity(0.3, ft.Colors.WHITE),
         'glass_blur': (10, 10),
         
         # Text colors
-        'primary_text': ft.colors.WHITE,
-        'secondary_text': ft.colors.GREY_400,
-        'accent_text': ft.colors.BLUE_300,
-        'error_text': ft.colors.RED_400,
-        'success_text': ft.colors.GREEN_400,
-        'warning_text': ft.colors.AMBER_400,
+        'primary_text': ft.Colors.WHITE,
+        'secondary_text': ft.Colors.GREY_400,
+        'accent_text': ft.Colors.BLUE_300,
+        'error_text': ft.Colors.RED_400,
+        'success_text': ft.Colors.GREEN_400,
+        'warning_text': ft.Colors.AMBER_400,
         
         # Status colors
-        'connected_color': ft.colors.GREEN_500,
-        'disconnected_color': ft.colors.RED_500,
-        'listening_color': ft.colors.BLUE_500,
-        'idle_color': ft.colors.GREY_500,
+        'connected_color': ft.Colors.GREEN_500,
+        'disconnected_color': ft.Colors.RED_500,
+        'listening_color': ft.Colors.BLUE_500,
+        'idle_color': ft.Colors.GREY_500,
         
         # Control colors
-        'clarity_enabled': ft.colors.AMBER_500,
-        'clarity_disabled': ft.colors.GREY_500,
-        'command_enabled': ft.colors.PURPLE_500,
-        'command_disabled': ft.colors.GREY_500,
-        'commit_button': ft.colors.GREEN_500,
-        'clear_button': ft.colors.RED_500,
+        'clarity_enabled': ft.Colors.AMBER_500,
+        'clarity_disabled': ft.Colors.GREY_500,
+        'command_enabled': ft.Colors.PURPLE_500,
+        'command_disabled': ft.Colors.GREY_500,
+        'commit_button': ft.Colors.GREEN_500,
+        'clear_button': ft.Colors.RED_500,
         
         # Confidence colors
-        'high_confidence': ft.colors.GREEN_500,    # > 90%
-        'medium_confidence': ft.colors.ORANGE_500, # 70-90%
-        'low_confidence': ft.colors.RED_500,       # < 70%
+        'high_confidence': ft.Colors.GREEN_500,    # > 90%
+        'medium_confidence': ft.Colors.ORANGE_500, # 70-90%
+        'low_confidence': ft.Colors.RED_500,       # < 70%
         
         # Animation durations
         'fast_transition': 150,    # ms
@@ -96,25 +96,25 @@ def create_status_dot(is_active: bool, color_active: str, color_inactive: str,
         height=size,
         bgcolor=color_active if is_active else color_inactive,
         border_radius=size // 2,
-        animate=ft.animation.Animation(
+        animate=ft.Animation(
             duration=1000,
             curve=ft.AnimationCurve.EASE_IN_OUT
         ) if is_active else None
     )
 
 
-def create_pulse_animation() -> ft.animation.Animation:
+def create_pulse_animation() -> ft.Animation:
     """Create pulse animation for active states"""
-    return ft.animation.Animation(
+    return ft.Animation(
         duration=1500,
         curve=ft.AnimationCurve.EASE_IN_OUT
     )
 
 
-def create_fade_animation(fast: bool = False) -> ft.animation.Animation:
+def create_fade_animation(fast: bool = False) -> ft.Animation:
     """Create fade in/out animation"""
     duration = 150 if fast else 300
-    return ft.animation.Animation(
+    return ft.Animation(
         duration=duration,
         curve=ft.AnimationCurve.EASE_OUT
     )
@@ -142,62 +142,62 @@ def get_vad_color(is_speaking: bool, is_active: bool = True) -> str:
     return theme['listening_color'] if is_speaking else theme['idle_color']
 
 
-class Colors:
+class ThemeColors:
     """Extended color palette for PersonalParakeet v3"""
     
     # Glass morphism
-    GLASS_BG = ft.colors.with_opacity(0.1, ft.colors.BLACK)
-    GLASS_BORDER = ft.colors.with_opacity(0.3, ft.colors.WHITE)
-    GLASS_OVERLAY = ft.colors.with_opacity(0.05, ft.colors.WHITE)
+    GLASS_BG = ft.Colors.with_opacity(0.1, ft.Colors.BLACK)
+    GLASS_BORDER = ft.Colors.with_opacity(0.3, ft.Colors.WHITE)
+    GLASS_OVERLAY = ft.Colors.with_opacity(0.05, ft.Colors.WHITE)
     
     # State colors
-    ACTIVE = ft.colors.BLUE_500
-    INACTIVE = ft.colors.GREY_500
-    SUCCESS = ft.colors.GREEN_500
-    WARNING = ft.colors.AMBER_500
-    ERROR = ft.colors.RED_500
-    INFO = ft.colors.BLUE_400
+    ACTIVE = ft.Colors.BLUE_500
+    INACTIVE = ft.Colors.GREY_500
+    SUCCESS = ft.Colors.GREEN_500
+    WARNING = ft.Colors.AMBER_500
+    ERROR = ft.Colors.RED_500
+    INFO = ft.Colors.BLUE_400
     
     # Text colors
-    PRIMARY = ft.colors.WHITE
-    SECONDARY = ft.colors.GREY_400
-    MUTED = ft.colors.GREY_600
-    ACCENT = ft.colors.BLUE_300
+    PRIMARY = ft.Colors.WHITE
+    SECONDARY = ft.Colors.GREY_400
+    MUTED = ft.Colors.GREY_600
+    ACCENT = ft.Colors.BLUE_300
     
     # Feature colors
-    CLARITY = ft.colors.AMBER_500
-    COMMAND = ft.colors.PURPLE_500
-    VAD = ft.colors.CYAN_500
-    TRANSCRIPTION = ft.colors.WHITE
+    CLARITY = ft.Colors.AMBER_500
+    COMMAND = ft.Colors.PURPLE_500
+    VAD = ft.Colors.CYAN_500
+    TRANSCRIPTION = ft.Colors.WHITE
 
 
 class Animations:
     """Animation presets for PersonalParakeet v3"""
     
     @staticmethod
-    def fade_in(duration: int = 300) -> ft.animation.Animation:
-        return ft.animation.Animation(
+    def fade_in(duration: int = 300) -> ft.Animation:
+        return ft.Animation(
             duration=duration,
             curve=ft.AnimationCurve.EASE_OUT
         )
     
     @staticmethod
-    def fade_out(duration: int = 300) -> ft.animation.Animation:
-        return ft.animation.Animation(
+    def fade_out(duration: int = 300) -> ft.Animation:
+        return ft.Animation(
             duration=duration,
             curve=ft.AnimationCurve.EASE_IN
         )
     
     @staticmethod
-    def pulse(duration: int = 1500) -> ft.animation.Animation:
-        return ft.animation.Animation(
+    def pulse(duration: int = 1500) -> ft.Animation:
+        return ft.Animation(
             duration=duration,
             curve=ft.AnimationCurve.EASE_IN_OUT
         )
     
     @staticmethod
-    def slide_up(duration: int = 400) -> ft.animation.Animation:
-        return ft.animation.Animation(
+    def slide_up(duration: int = 400) -> ft.Animation:
+        return ft.Animation(
             duration=duration,
             curve=ft.AnimationCurve.EASE_OUT
         )

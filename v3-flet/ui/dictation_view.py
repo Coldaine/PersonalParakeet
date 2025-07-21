@@ -10,7 +10,7 @@ import time
 from typing import Optional
 
 import flet as ft
-from flet import colors, icons
+from flet import Colors, Icons
 
 from ui.components import StatusIndicator, ControlPanel, ConfidenceBar, VADIndicator
 from ui.theme import get_dictation_theme
@@ -128,9 +128,9 @@ class DictationView:
             ], spacing=10),
             
             # Glass morphism styling
-            bgcolor=ft.colors.with_opacity(0.1, ft.colors.BLACK),
+            bgcolor=ft.Colors.with_opacity(0.1, ft.Colors.BLACK),
             border_radius=15,
-            border=ft.border.all(1, ft.colors.with_opacity(0.3, ft.colors.WHITE)),
+            border=ft.border.all(1, ft.Colors.with_opacity(0.3, ft.Colors.WHITE)),
             padding=ft.padding.all(20),
             blur=ft.Blur(10, 10, ft.BlurTileMode.MIRROR),
             
@@ -154,7 +154,7 @@ class DictationView:
             display_text or "Speak to start transcription...",
             size=18,
             weight=ft.FontWeight.W_400,
-            color=ft.colors.WHITE if display_text else ft.colors.GREY_400,
+            color=ft.Colors.WHITE if display_text else ft.Colors.GREY_400,
             text_align=ft.TextAlign.LEFT,
             selectable=True
         )
@@ -172,12 +172,12 @@ class DictationView:
                 ft.Text(
                     corrections_text,
                     size=12,
-                    color=ft.colors.AMBER_300,
+                    color=ft.Colors.AMBER_300,
                 ),
                 ft.Text(
                     timing_text,
                     size=12,
-                    color=ft.colors.GREEN_300 if self.correction_info.processing_time_ms < 150 else ft.colors.ORANGE_300,
+                    color=ft.Colors.GREEN_300 if self.correction_info.processing_time_ms < 150 else ft.Colors.ORANGE_300,
                 )
             ], spacing=10),
             visible=bool(self.correction_info and self.correction_info.corrections_made)
@@ -193,7 +193,7 @@ class DictationView:
                 display_text += "|"
             
             primary_text.value = display_text or "Speak to start transcription..."
-            primary_text.color = ft.colors.WHITE if display_text else ft.colors.GREY_400
+            primary_text.color = ft.Colors.WHITE if display_text else ft.Colors.GREY_400
             
             await self.page.update_async()
     

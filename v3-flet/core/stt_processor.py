@@ -58,7 +58,7 @@ class STTProcessor:
             logger.error(f"Failed to initialize STT processor: {e}")
             raise
     
-    async def transcribe(self, audio_chunk: np.ndarray) -> Optional[str]:
+    def transcribe(self, audio_chunk: np.ndarray) -> Optional[str]:
         """
         Transcribe audio chunk to text
         
@@ -73,10 +73,8 @@ class STTProcessor:
             return None
         
         try:
-            # Run transcription in thread pool to avoid blocking
-            loop = asyncio.get_event_loop()
-            result = await loop.run_in_executor(None, self._transcribe_sync, audio_chunk)
-            return result
+            # Direct synchronous transcription (will run in worker thread)
+            return self._transcribe_sync(audio_chunk)
             
         except Exception as e:
             logger.error(f"Transcription error: {e}")

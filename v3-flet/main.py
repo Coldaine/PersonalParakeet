@@ -46,7 +46,7 @@ class PersonalParakeetV3:
             await self.configure_window(page)
             
             # Initialize audio engine with all components
-            self.audio_engine = AudioEngine(self.config)
+            self.audio_engine = AudioEngine(self.config, asyncio.get_event_loop())
             await self.audio_engine.initialize()
             
             # Initialize dictation view
@@ -76,14 +76,14 @@ class PersonalParakeetV3:
         page.window_opacity = self.config.window.opacity
         
         # Set transparent background
-        page.bgcolor = ft.colors.TRANSPARENT
+        page.bgcolor = ft.Colors.TRANSPARENT
         page.theme_mode = ft.ThemeMode.DARK
         
         # Window title
         page.title = "PersonalParakeet v3"
         
         # Center window on screen initially
-        page.window_center()
+        # page.window_center()  # Not available in this Flet version
         
         logger.info("Window configured for floating transparent UI")
     
@@ -125,8 +125,8 @@ def run_app():
     # Run the Flet app
     ft.app(
         target=main,
-        view=ft.WEB_BROWSER,  # Can be changed to FLET_APP for native window
-        port=8550,  # Custom port to avoid conflicts
+        view=ft.FLET_APP,  # Native desktop application
+        port=8551,  # Custom port to avoid conflicts
         assets_dir="assets"
     )
 

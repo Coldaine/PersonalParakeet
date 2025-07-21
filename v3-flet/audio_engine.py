@@ -28,8 +28,9 @@ class AudioEngine:
     Manages audio capture, STT processing, and text corrections
     """
     
-    def __init__(self, config: V3Config):
+    def __init__(self, config: V3Config, event_loop=None):
         self.config = config
+        self.event_loop = event_loop
         self.is_running = False
         self.is_listening = False
         
@@ -214,9 +215,21 @@ class AudioEngine:
         # Process through Clarity Engine if enabled
         if self.clarity_enabled and self.clarity_engine.is_initialized:
             self.clarity_engine.update_context(text)
-            self.clarity_engine.correct_text_async(text, self._on_correction_complete)
+            corrected_text = self.clarity_engine.correct_text_sync(text)
+            if corrected_text != text:
+                # Create result object to match expected interface
+                class CorrectionResult:
+                    def __init__(self, original, corrected):
+                        self.original_text = original
+                        self.corrected_text = corrected
+                
+                result = CorrectionResult(text, corrected_text)
+                asyncio.run_coroutine_threadsafe(
+                    self._on_correction_complete(result),
+                    self.event_loop or asyncio.get_event_loop()
+                )
     
-    def _on_correction_complete(self, result):
+    async def _on_correction_complete(self, result):
         """Handle completed correction from Clarity Engine"""
         # Update current text with corrected version
         self.current_text = result.corrected_text
