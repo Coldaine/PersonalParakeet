@@ -1,6 +1,12 @@
-# PersonalParakeet v2 - Dictation View System
+# PersonalParakeet
 
-PersonalParakeet v2 is a real-time dictation system featuring the **Dictation View** - a transparent, floating UI that provides live transcription feedback with real-time AI text corrections.
+> ⚠️ **IMPORTANT**: PersonalParakeet is undergoing a major architectural refactor. 
+> - **v2 (Tauri/WebSocket)** - Current version has critical architectural issues
+> - **v3 (Flet)** - In active development, see [Implementation Plan](docs/Flet_Refactor_Implementation_Plan.md)
+> 
+> For the rationale behind this change, see [Architecture Decision Record](docs/Architecture_Decision_Record_Flet.md).
+
+PersonalParakeet is a real-time dictation system featuring the **Dictation View** - a transparent, floating UI that provides live transcription feedback with real-time AI text corrections.
 
 ## 🎯 Core Innovation: The Dictation View
 

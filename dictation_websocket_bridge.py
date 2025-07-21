@@ -312,11 +312,9 @@ class DictationWebSocketBridge:
                 if status:
                     self.logger.warning(status)
                 vad_status = self.vad.process_audio_frame(indata)
-                asyncio.run_coroutine_threadsafe(
-                    self.broadcast({'type': 'vad_status', 'data': vad_status}),
-                    asyncio.get_event_loop()
-                )
-                self.dictation.process_audio(indata.tobytes())
+                # Skip VAD broadcasting from audio thread to avoid threading issues
+                # VAD status will be handled in the main process_transcription flow
+                self.dictation.audio_callback(indata, frames, time, status)
 
             # Set the callback if dictation supports it
             if hasattr(self.dictation, 'set_text_output_callback'):
