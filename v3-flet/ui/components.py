@@ -20,18 +20,18 @@ class StatusIndicator:
         """Build the status indicator UI"""
         # Determine status color and tooltip
         if not self.is_connected:
-            color = ft.colors.RED_500
+            color = ft.Colors.RED_500
             tooltip = "Disconnected from backend"
         elif self.is_listening:
-            color = ft.colors.GREEN_500
+            color = ft.Colors.GREEN_500
             tooltip = "Listening..."
         else:
-            color = ft.colors.GREY_500
+            color = ft.Colors.GREY_500
             tooltip = "Connected but not listening"
         
         self.container = ft.Container(
             content=ft.Icon(
-                ft.icons.MIC if self.is_listening else ft.icons.MIC_OFF,
+                ft.Icons.MIC if self.is_listening else ft.Icons.MIC_OFF,
                 color=color,
                 size=20
             ),
@@ -49,16 +49,16 @@ class StatusIndicator:
         if self.container:
             # Update icon and color
             if not is_connected:
-                self.container.content.name = ft.icons.MIC_OFF
-                self.container.content.color = ft.colors.RED_500
+                self.container.content.name = ft.Icons.MIC_OFF
+                self.container.content.color = ft.Colors.RED_500
                 self.container.tooltip = "Disconnected from backend"
             elif is_listening:
-                self.container.content.name = ft.icons.MIC
-                self.container.content.color = ft.colors.GREEN_500
+                self.container.content.name = ft.Icons.MIC
+                self.container.content.color = ft.Colors.GREEN_500
                 self.container.tooltip = "Listening..."
             else:
-                self.container.content.name = ft.icons.MIC_OFF
-                self.container.content.color = ft.colors.GREY_500
+                self.container.content.name = ft.Icons.MIC_OFF
+                self.container.content.color = ft.Colors.GREY_500
                 self.container.tooltip = "Connected but not listening"
 
 
@@ -77,15 +77,15 @@ class VADIndicator:
             value=self.vad_status.get('rms_energy', 0.0),
             width=80,
             height=4,
-            color=ft.colors.BLUE_500 if self.vad_status.get('is_speaking', False) else ft.colors.GREY_500,
-            bgcolor=ft.colors.with_opacity(0.3, ft.colors.GREY),
+            color=ft.Colors.BLUE_500 if self.vad_status.get('is_speaking', False) else ft.Colors.GREY_500,
+            bgcolor=ft.Colors.with_opacity(0.3, ft.Colors.GREY),
         )
         
         self.container = ft.Container(
             content=ft.Row([
                 ft.Icon(
-                    ft.icons.GRAPHIC_EQ,
-                    color=ft.colors.BLUE_500 if self.vad_status.get('is_speaking', False) else ft.colors.GREY_500,
+                    ft.Icons.GRAPHIC_EQ,
+                    color=ft.Colors.BLUE_500 if self.vad_status.get('is_speaking', False) else ft.Colors.GREY_500,
                     size=16
                 ),
                 self.level_bar,
@@ -102,11 +102,11 @@ class VADIndicator:
         if self.level_bar:
             self.level_bar.value = min(1.0, vad_status.get('rms_energy', 0.0) * 10)  # Scale for visibility
             is_speaking = vad_status.get('is_speaking', False)
-            self.level_bar.color = ft.colors.BLUE_500 if is_speaking else ft.colors.GREY_500
+            self.level_bar.color = ft.Colors.BLUE_500 if is_speaking else ft.Colors.GREY_500
         
         if self.container and hasattr(self.container.content, 'controls'):
             icon = self.container.content.controls[0]
-            icon.color = ft.colors.BLUE_500 if vad_status.get('is_speaking', False) else ft.colors.GREY_500
+            icon.color = ft.Colors.BLUE_500 if vad_status.get('is_speaking', False) else ft.Colors.GREY_500
 
 
 class ControlPanel:
@@ -130,32 +130,32 @@ class ControlPanel:
         """Build the control panel UI"""
         # Clarity toggle button
         self.clarity_btn = ft.IconButton(
-            icon=ft.icons.AUTO_FIX_HIGH,
-            icon_color=ft.colors.AMBER_500 if self.clarity_enabled else ft.colors.GREY_500,
+            icon=ft.Icons.AUTO_FIX_HIGH,
+            icon_color=ft.Colors.AMBER_500 if self.clarity_enabled else ft.Colors.GREY_500,
             tooltip=f"Clarity Engine: {'ON' if self.clarity_enabled else 'OFF'}",
             on_click=lambda _: self.on_toggle_clarity()
         )
         
         # Command mode button (placeholder)
         self.command_btn = ft.IconButton(
-            icon=ft.icons.RECORD_VOICE_OVER,
-            icon_color=ft.colors.PURPLE_500 if self.command_mode_enabled else ft.colors.GREY_500,
+            icon=ft.Icons.RECORD_VOICE_OVER,
+            icon_color=ft.Colors.PURPLE_500 if self.command_mode_enabled else ft.Colors.GREY_500,
             tooltip=f"Command Mode: {'ON' if self.command_mode_enabled else 'OFF'}",
             disabled=True,  # Not implemented yet
         )
         
         # Commit button
         self.commit_btn = ft.IconButton(
-            icon=ft.icons.CHECK,
-            icon_color=ft.colors.GREEN_500,
+            icon=ft.Icons.CHECK,
+            icon_color=ft.Colors.GREEN_500,
             tooltip="Commit text (Ctrl+Enter)",
             on_click=lambda _: self.on_commit_text()
         )
         
         # Clear button
         self.clear_btn = ft.IconButton(
-            icon=ft.icons.CLEAR,
-            icon_color=ft.colors.RED_500,
+            icon=ft.Icons.CLEAR,
+            icon_color=ft.Colors.RED_500,
             tooltip="Clear text (Escape)",
             on_click=lambda _: self.on_clear_text()
         )
@@ -178,11 +178,11 @@ class ControlPanel:
         self.command_mode_enabled = command_mode_enabled
         
         if self.clarity_btn:
-            self.clarity_btn.icon_color = ft.colors.AMBER_500 if clarity_enabled else ft.colors.GREY_500
+            self.clarity_btn.icon_color = ft.Colors.AMBER_500 if clarity_enabled else ft.Colors.GREY_500
             self.clarity_btn.tooltip = f"Clarity Engine: {'ON' if clarity_enabled else 'OFF'}"
         
         if self.command_btn:
-            self.command_btn.icon_color = ft.colors.PURPLE_500 if command_mode_enabled else ft.colors.GREY_500
+            self.command_btn.icon_color = ft.Colors.PURPLE_500 if command_mode_enabled else ft.Colors.GREY_500
             self.command_btn.tooltip = f"Command Mode: {'ON' if command_mode_enabled else 'OFF'}"
 
 
@@ -202,18 +202,18 @@ class ConfidenceBar:
         
         # Color based on confidence level
         if self.confidence > 0.9:
-            color = ft.colors.GREEN_500
+            color = ft.Colors.GREEN_500
         elif self.confidence > 0.7:
-            color = ft.colors.ORANGE_500
+            color = ft.Colors.ORANGE_500
         else:
-            color = ft.colors.RED_500
+            color = ft.Colors.RED_500
         
         self.progress_bar = ft.ProgressBar(
             value=self.confidence,
             width=None,  # Full width
             height=3,
             color=color,
-            bgcolor=ft.colors.with_opacity(0.3, ft.colors.GREY),
+            bgcolor=ft.Colors.with_opacity(0.3, ft.Colors.GREY),
         )
         
         self.container = ft.Container(
@@ -221,7 +221,7 @@ class ConfidenceBar:
                 ft.Text(
                     f"Confidence: {self.confidence:.0%}",
                     size=10,
-                    color=ft.colors.GREY_400,
+                    color=ft.Colors.GREY_400,
                     text_align=ft.TextAlign.CENTER
                 ),
                 self.progress_bar,
@@ -243,11 +243,11 @@ class ConfidenceBar:
             
             # Update color
             if confidence > 0.9:
-                self.progress_bar.color = ft.colors.GREEN_500
+                self.progress_bar.color = ft.Colors.GREEN_500
             elif confidence > 0.7:
-                self.progress_bar.color = ft.colors.ORANGE_500
+                self.progress_bar.color = ft.Colors.ORANGE_500
             else:
-                self.progress_bar.color = ft.colors.RED_500
+                self.progress_bar.color = ft.Colors.RED_500
             
             # Update text
             if hasattr(self.container.content, 'controls'):
@@ -270,7 +270,7 @@ class ThinkingIndicator:
                 ft.Container(
                     width=6,
                     height=6,
-                    bgcolor=ft.colors.BLUE_300,
+                    bgcolor=ft.Colors.BLUE_300,
                     border_radius=3,
                     animate=ft.animation.Animation(
                         duration=800,

@@ -13,6 +13,7 @@ PersonalParakeet is a real-time dictation system featuring the **Dictation View*
 **IMPORTANT**: All new development should focus on the v3 Flet refactor. See:
 - [Implementation Plan](docs/Flet_Refactor_Implementation_Plan.md)
 - [Architecture Decision Record](docs/Architecture_Decision_Record_Flet.md)
+- [**Feature Migration Status**](@docs/V3_FEATURE_MIGRATION_STATUS.md) - Comprehensive v2→v3 feature porting tracker
 
 ## v3 Flet Architecture (NEW)
 

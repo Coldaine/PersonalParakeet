@@ -12,6 +12,11 @@ numpy>=1.24.0
 torch>=2.0.0
 nemo_toolkit[asr]>=1.19.0
 
+# Text Injection (Windows)
+keyboard>=0.13.5
+pywin32>=306
+pyperclip>=1.8.2
+
 # CUDA support (RTX 5090 compatibility)
 # These are automatically handled by PyTorch CUDA installation
 

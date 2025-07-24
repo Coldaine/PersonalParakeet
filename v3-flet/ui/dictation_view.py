@@ -26,9 +26,10 @@ class DictationView:
     Provides floating transparent window with real-time transcription display
     """
     
-    def __init__(self, page: ft.Page, audio_engine, config: V3Config):
+    def __init__(self, page: ft.Page, audio_engine, injection_manager, config: V3Config):
         self.page = page
         self.audio_engine = audio_engine
+        self.injection_manager = injection_manager
         self.config = config
         
         # UI state
@@ -134,12 +135,9 @@ class DictationView:
             padding=ft.padding.all(20),
             blur=ft.Blur(10, 10, ft.BlurTileMode.MIRROR),
             
-            # Make draggable
-            on_pan_update=self._on_pan_update,
-            
-            # Set fixed size initially
-            width=self.config.window.default_width,
-            height=self.config.window.default_height,
+            # Set fixed size to match window
+            width=430,  # Slightly smaller than window to account for padding
+            height=330,
         )
         
         return main_container
@@ -195,7 +193,7 @@ class DictationView:
             primary_text.value = display_text or "Speak to start transcription..."
             primary_text.color = ft.Colors.WHITE if display_text else ft.Colors.GREY_400
             
-            await self.page.update_async()
+            self.page.update()
     
     async def _update_ui_state(self):
         """Update all UI components to reflect current state"""
@@ -212,7 +210,7 @@ class DictationView:
             self.confidence_bar.update_confidence(self.confidence)
         
         await self._update_text_display()
-        await self.page.update_async()
+        self.page.update()
     
     # Event handlers
     
@@ -222,26 +220,28 @@ class DictationView:
         # This may require native window management
         pass
     
-    async def _on_toggle_clarity(self):
-        """Handle clarity toggle button"""
+    def _on_toggle_clarity(self):
+        """Handle clarity toggle button (sync)"""
         self.clarity_enabled = not self.clarity_enabled
         self.audio_engine.set_clarity_enabled(self.clarity_enabled)
-        await self._update_ui_state()
+        asyncio.create_task(self._update_ui_state())
         logger.info(f"Clarity {'enabled' if self.clarity_enabled else 'disabled'}")
     
-    async def _on_commit_text(self):
-        """Handle commit text button"""
+    def _on_commit_text(self):
+        """Handle commit text button (sync)"""
         if self.text or self.corrected_text:
             final_text = self.corrected_text or self.text
-            logger.info(f"Committing text: '{final_text}'")
+            logger.info(f"Committing text: '{final_text.strip()}'")
             
-            # TODO: Implement text injection to active application
-            # For now, just clear the current text
-            await self._clear_current_text()
+            # Inject text asynchronously
+            if self.injection_manager:
+                asyncio.create_task(self._inject_text_async(final_text.strip()))
+            
+            asyncio.create_task(self._clear_current_text())
     
-    async def _on_clear_text(self):
-        """Handle clear text button"""
-        await self._clear_current_text()
+    def _on_clear_text(self):
+        """Handle clear text button (sync)"""
+        asyncio.create_task(self._clear_current_text())
     
     async def _clear_current_text(self):
         """Clear current text and reset state"""
@@ -283,8 +283,13 @@ class DictationView:
         
         # Auto-commit on pause
         if text.strip():
-            # TODO: Implement actual text injection
-            logger.info(f"Auto-committing: '{text}'")
+            final_text = self.corrected_text or text
+            logger.info(f"Auto-committing: '{final_text.strip()}'")
+            
+            # Inject text into active application
+            if self.injection_manager:
+                await self._inject_text_async(final_text.strip())
+            
             await self._clear_current_text()
     
     async def _on_vad_status(self, vad_status: dict):
@@ -294,7 +299,7 @@ class DictationView:
         # Update VAD indicator
         if self.vad_indicator:
             self.vad_indicator.update_status(vad_status)
-            await self.page.update_async()
+            self.page.update()
     
     async def _on_error(self, error_message: str):
         """Handle error messages from audio engine"""
@@ -302,3 +307,21 @@ class DictationView:
         
         # TODO: Show error in UI
         # For now, just log it
+    
+    async def _inject_text_async(self, text: str):
+        """Inject text asynchronously using the injection manager"""
+        if not text or not text.strip():
+            logger.warning("Attempted to inject empty text")
+            return
+        
+        try:
+            # Run injection in a thread pool to avoid blocking the UI
+            loop = asyncio.get_event_loop()
+            await loop.run_in_executor(
+                None, 
+                self.injection_manager.inject_text, 
+                text.strip()
+            )
+            logger.info(f"Text injection completed: '{text.strip()[:50]}...'")
+        except Exception as e:
+            logger.error(f"Text injection failed: {e}")
