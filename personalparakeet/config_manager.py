@@ -60,17 +60,7 @@ class PersonalParakeetConfig:
     
     def __post_init__(self):
         """Post-init processing"""
-        # application_profiles and vad are now handled by default_factory
-
-        # Sync audio settings with injection config
-        if self.audio_device_index is not None:
-            self.injection.audio_device_index = self.audio_device_index
-        
-        self.injection.chunk_duration = self.chunk_duration
-        self.injection.sample_rate = self.sample_rate
-        self.injection.enable_monitoring = self.enable_monitoring
-        self.injection.stats_report_interval = self.stats_report_interval
-        self.injection.enable_debug_logging = self.enable_debug_logging
+        pass # No longer need to sync properties
     
     @classmethod
     def from_dict(cls, config_dict: Dict[str, Any]) -> 'PersonalParakeetConfig':
@@ -332,7 +322,7 @@ def save_config(config: Optional[PersonalParakeetConfig] = None) -> bool:
     return get_config_manager().save_config(config)
 
 
-def create_sample__config(output_path: Optional[Union[str, Path]] = None) -> bool:
+def create_sample_config(output_path: Optional[Union[str, Path]] = None) -> bool:
     """Create a sample configuration file"""
     return get_config_manager().create_sample_config(output_path)
 

@@ -1,20 +1,21 @@
 # personalparakeet/vad_engine.py
 import numpy as np
-from typing import Callable, Optional
+from typing import Callable, Optional, Dict, Any
 import threading
 import time
+from .config_manager import VADSettings
 
 class VoiceActivityDetector:
     def __init__(self, 
+                 vad_settings: VADSettings,
                  sample_rate: int = 16000,
-                 frame_duration: float = 0.03,
-                 silence_threshold: float = 0.01,
-                 pause_threshold: float = 1.5):
+                 frame_duration: float = 0.03):
         
         self.sample_rate = sample_rate
         self.frame_size = int(sample_rate * frame_duration)
-        self.silence_threshold = silence_threshold
-        self.pause_threshold = pause_threshold
+        # TODO: Implement sensitivity mapping to a float threshold
+        self.silence_threshold = vad_settings.custom_threshold or 0.01 
+        self.pause_threshold_seconds = vad_settings.pause_duration_ms / 1000.0
         
         # State tracking
         self.is_speaking = False
@@ -54,7 +55,7 @@ class VoiceActivityDetector:
                 
                 pause_duration = current_time - self.silence_start_time
                 
-                if pause_duration >= self.pause_threshold:
+                if pause_duration >= self.pause_threshold_seconds:
                     # Pause threshold reached
                     self.is_speaking = False
                     if self.on_pause_detected:

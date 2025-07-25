@@ -24,21 +24,29 @@ PersonalParakeet is a real-time dictation system featuring the **Dictation View*
 4. **Deployment**: PyInstaller single executable
 5. **State Management**: Flet reactive components
 
-### Development Focus
+### Development Focus - v3 Structure (ACTUAL)
 ```bash
-# New v3 structure
-personal-parakeet-flet/
-├── main.py                 # Flet app entry point
-├── audio_engine.py         # Producer-consumer audio
+# Current v3 structure (as-built)
+v3-flet/
+├── main.py                      # Flet app entry point ✅
+├── audio_engine.py              # Producer-consumer audio ✅
+├── config.py                    # Dataclass configuration ✅
 ├── ui/
-│   ├── dictation_view.py   # Main UI component
-│   └── components.py       # Reusable elements
+│   ├── dictation_view.py        # Main UI component ✅
+│   ├── components.py            # Reusable elements ✅
+│   └── theme.py                 # Material design theme ✅
 ├── core/
-│   ├── stt_processor.py    # Parakeet integration
-│   ├── clarity_engine.py   # Port from v2
-│   └── vad_engine.py       # Port from v2
-└── requirements.txt        # Simplified deps
+│   ├── stt_processor.py         # Parakeet integration ✅
+│   ├── clarity_engine.py        # Text corrections ✅
+│   ├── vad_engine.py            # Voice activity detection ✅
+│   ├── injection_manager.py     # Basic text injection ✅
+│   └── thought_linker.py        # Placeholder ⭕
+├── tests/                       # v3 test suite ✅
+├── requirements-v3.txt          # Python-only deps ✅
+└── README.md                    # v3 architecture docs ✅
 ```
+
+**File Status Legend**: ✅ Working | 🚧 In Progress | ⭕ Placeholder | ❌ Missing
 
 ### Implementation Priorities
 1. **Week 1**: Core Flet app + audio pipeline
@@ -61,25 +69,58 @@ The v2 system uses a problematic two-process architecture:
 
 ## Essential Commands
 
-### For v3 Development (Flet)
+### For v3 Development (Flet) - ACTIVE DEVELOPMENT
 ```bash
-# Setup
+# Setup v3 environment
+cd v3-flet/
 python -m venv .venv
-.venv\Scripts\activate  # Windows
-pip install flet sounddevice numpy torch nemo_toolkit
+source .venv/bin/activate  # Linux/WSL
+# OR: .venv\Scripts\activate  # Windows
+pip install -r requirements-v3.txt
 
-# Run
+# Run v3 app
 python main.py
 
-# Package
+# Run v3 tests
+python run_tests.py
+python test_injection.py  # Test text injection specifically
+
+# Package v3 (when mature)
 pyinstaller --onefile --windowed main.py
 ```
 
-### For v2 Maintenance Only
+### For v2 (DEPRECATED - DO NOT USE)
 ```bash
-# DO NOT use for new development
-python start_dictation_view.py  # Broken due to npm issues
-python start_integrated.py      # Attempted fix
+# v2 commands are broken - DO NOT USE for new development
+python start_dictation_view.py  # Broken due to npm/Tauri issues
+```
+
+### Testing Commands
+```bash
+# Run comprehensive test suite
+python tests/run_all_tests.py
+
+# Test specific components
+pytest tests/unit/         # Unit tests
+pytest tests/integration/  # Integration tests (may require hardware)
+pytest -m "not hardware"   # Skip hardware-dependent tests
+
+# v3-specific testing
+cd v3-flet/
+python -m pytest tests/    # v3 component tests
+```
+
+### Development Tools
+```bash
+# Code formatting
+black personalparakeet/ v3-flet/ --line-length 100
+isort personalparakeet/ v3-flet/ --profile black
+
+# Type checking
+mypy personalparakeet/ --ignore-missing-imports
+
+# Linting
+flake8 personalparakeet/ v3-flet/
 ```
 
 ## Core Features to Preserve
@@ -139,16 +180,39 @@ class DictationView:
         await self.page.update_async()
 ```
 
-## Migration Notes
+## Key v2 Source Files for Migration
+
+**Critical v2 modules to port to v3** (located in `personalparakeet/`):
+
+### ✅ Already Ported
+- `clarity_engine.py` → `v3-flet/core/clarity_engine.py`
+- `vad_engine.py` → `v3-flet/core/vad_engine.py`  
+- `dictation.py` → `v3-flet/core/stt_processor.py`
+- `basic_injection.py` → `v3-flet/core/injection_manager.py` (basic only)
+
+### 🚧 Currently Being Ported (Week 2 Priority)
+- `application_detection_enhanced.py` → `v3-flet/core/application_detector.py`
+- `text_injection_enhanced.py` → enhance existing `injection_manager.py`
+- `config_manager.py` → enhance existing `v3-flet/config.py`
+
+### ❌ Not Yet Started (Weeks 3-4)
+- `command_mode.py` → `v3-flet/core/command_processor.py`
+- `thought_linking.py` → `v3-flet/core/thought_linker.py`
+- `audio_devices.py` → `v3-flet/core/audio_manager.py`
+- `dictation_enhanced.py` → `v3-flet/core/enhanced_dictation.py`
+
+### Platform-Specific (Week 5)
+- `windows_injection.py`, `linux_injection.py`, `kde_injection.py`
+- `windows_clipboard_manager.py`, `linux_clipboard_manager.py`
+
+## Migration Guidelines
 
 When migrating v2 code to v3:
-1. **Remove all WebSocket code**
-2. **Replace React components with Flet widgets**
-3. **Use Flet's event system instead of WebSocket messages**
-4. **Preserve core logic from:
-   - clarity_engine.py
-   - vad_engine.py  
-   - dictation.py (Parakeet integration)
+1. **Remove all WebSocket code** - No more `websockets` imports or async WebSocket handlers
+2. **Replace subprocess calls** - Direct function calls instead of process communication
+3. **Use Flet's event system** - `page.update_async()` instead of WebSocket messages
+4. **Preserve core business logic** - The algorithms work, just change the integration layer
+5. **Use dataclass configuration** - Replace dict-based config with type-safe dataclasses
 
 ## Testing Requirements
 
@@ -166,12 +230,36 @@ v3 must achieve:
 - All v2 features working
 - <100MB executable
 
-## Current Work
+## Current Work (Week 2 - Critical Foundation)
 
-Focus on Phase 1 of the implementation plan:
-1. Create basic Flet window
-2. Implement audio producer-consumer
-3. Display mock transcriptions
-4. Test threading patterns
+**Migration Progress**: 35% Complete  
+**Current Phase**: Enhanced application detection and multi-strategy text injection
+
+**Active Development Tasks**:
+1. ⭐⭐⭐ **Enhanced Application Detection** - Port from `personalparakeet/application_detection_enhanced.py` 
+2. ⭐⭐⭐ **Multi-Strategy Text Injection** - Complete injection system beyond basic keyboard simulation
+3. ⭐⭐⭐ **Configuration Profiles** - Runtime switching without restart
+
+**Key Files Currently Being Worked On**:
+- `v3-flet/core/application_detector.py` (needs creation)
+- `v3-flet/core/injection_manager.py` (needs enhancement)
+- `v3-flet/config.py` (needs profile support)
+
+See [V3_FEATURE_MIGRATION_STATUS.md](docs/V3_FEATURE_MIGRATION_STATUS.md) for detailed progress tracking.
+
+## Architecture Constraints (CRITICAL)
+
+**❌ FORBIDDEN PATTERNS** - These will break the v3 architecture:
+- WebSocket servers or clients
+- subprocess calls for UI components  
+- Multi-process architecture
+- Direct cross-thread UI access
+- Any Tauri/React/Node.js dependencies
+
+**✅ REQUIRED PATTERNS** - Single-process Flet architecture:
+- Producer-consumer with `queue.Queue`
+- `asyncio.run_coroutine_threadsafe()` for UI updates
+- Dataclass-based configuration
+- Direct function calls between components
 
 Remember: **Simpler is better**. One process, one language, one executable.
