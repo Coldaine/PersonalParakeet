@@ -8,6 +8,7 @@ import asyncio
 import websockets
 import json
 import logging
+import re
 from typing import Optional
 from dataclasses import dataclass, asdict
 import threading
@@ -18,6 +19,8 @@ from personalparakeet.dictation import SimpleDictation
 from personalparakeet.clarity_engine import ClarityEngine, CorrectionResult
 from personalparakeet.vad_engine import VoiceActivityDetector
 from personalparakeet.config_manager import get_config, VADSettings
+from personalparakeet.thought_linking import create_thought_linker, LinkingDecision
+from personalparakeet.command_mode import create_command_mode_engine, CommandMatch
 import sounddevice as sd
 import numpy as np
 
@@ -31,6 +34,15 @@ class TranscriptionMessage:
     corrected_text: Optional[str] = None
     correction_time_ms: Optional[float] = None
     corrections_made: Optional[list] = None
+
+
+@dataclass
+class CommandMessage:
+    command: str
+    parameters: Optional[dict] = None
+    status: str = "executed"  # executed, failed, recognized
+    result: Optional[str] = None
+    type: str = "command"
 
 
 class DictationWebSocketBridge:
@@ -77,10 +89,36 @@ class DictationWebSocketBridge:
         )
         self.vad.on_pause_detected = self.handle_pause_detected
         
+        # Initialize Intelligent Thought Linker
+        self.logger.info("Initializing Intelligent Thought Linker...")
+        self.thought_linker = create_thought_linker(
+            cursor_movement_threshold=100,
+            similarity_threshold=0.3,
+            timeout_threshold=30.0
+        )
+        
+        # Initialize Command Mode Engine
+        self.logger.info("Initializing Command Mode Engine...")
+        self.command_engine = create_command_mode_engine(
+            activation_phrase="parakeet command",
+            activation_confidence_threshold=0.8,
+            command_timeout=5.0
+        )
+        
+        # Set up command mode callbacks
+        self.command_engine.on_activation_detected = self.handle_command_activation
+        self.command_engine.on_command_executed = self.handle_command_execution
+        self.command_engine.on_command_timeout = self.handle_command_timeout
+        self.command_engine.on_state_changed = self.handle_command_state_change
+        
         # Current transcription state
         self.current_text = ""
         self.is_listening = False
         self.clarity_enabled = True
+        self.command_mode_enabled = True
+        
+        # Command mode is now handled by the Command Mode Engine
+        # (Old command patterns removed in favor of new system)
         
     async def register(self, websocket):
         """Register a new client"""
@@ -129,10 +167,28 @@ class DictationWebSocketBridge:
             await self.commit_current_text()
         elif command == "clear_text":
             await self.clear_current_text()
+        elif command == "enable_clarity":
+            await self.set_clarity_enabled(True)
+        elif command == "disable_clarity":
+            await self.set_clarity_enabled(False)
+        elif command == "toggle_command_mode":
+            self.command_mode_enabled = not self.command_mode_enabled
+            await self.broadcast({
+                "type": "command_mode_status",
+                "enabled": self.command_mode_enabled
+            })
+        elif command == "register_user_action":
+            # Register user action for thought linking
+            action = data.get("action", "")
+            if action:
+                self.thought_linker.register_user_action(action)
+                self.logger.debug(f"User action registered for thought linking: {action}")
         elif command == "get_status":
             await websocket.send(json.dumps({
                 "type": "status",
-                "is_listening": self.is_listening
+                "is_listening": self.is_listening,
+                "clarity_enabled": self.clarity_enabled,
+                "command_mode_enabled": self.command_mode_enabled
             }))
             
     async def initialize_clarity_engine(self):
@@ -190,11 +246,32 @@ class DictationWebSocketBridge:
     async def commit_current_text(self):
         """Commit the current text and clear the dictation view"""
         if self.current_text.strip():
-            # Send final text to UI for injection
+            # Use Intelligent Thought Linking to determine commit action
+            decision, signals = self.thought_linker.should_link_thoughts(self.current_text)
+            
+            # Log the decision for debugging
+            signal_descriptions = [s.description for s in signals]
+            self.logger.info(f"Thought linking decision: {decision.value}")
+            if signal_descriptions:
+                self.logger.info(f"Signals considered: {', '.join(signal_descriptions)}")
+            
+            # Determine the commit action based on linking decision
+            commit_action = "commit_and_continue"  # Default
+            
+            if decision == LinkingDecision.APPEND_WITH_SPACE:
+                commit_action = "append_with_space"
+            elif decision == LinkingDecision.START_NEW_PARAGRAPH:
+                commit_action = "start_new_paragraph"
+            elif decision == LinkingDecision.START_NEW_THOUGHT:
+                commit_action = "start_new_thought"
+            
+            # Send final text to UI for injection with appropriate action
             await self.broadcast({
                 "type": "commit_text",
                 "text": self.current_text,
-                "action": "commit_and_continue"
+                "action": commit_action,
+                "linking_decision": decision.value,
+                "signals": [{"type": s.signal_type.value, "strength": s.strength, "description": s.description} for s in signals]
             })
             
             # Clear current text
@@ -205,9 +282,18 @@ class DictationWebSocketBridge:
         """Clear the current text without committing"""
         self.current_text = ""
         self.clarity_engine.clear_context()
+        self.thought_linker.clear_context()  # Clear thought linking context too
         
         await self.broadcast({
             "type": "clear_text"
+        })
+    
+    async def set_clarity_enabled(self, enabled: bool):
+        """Set clarity engine enabled state"""
+        self.clarity_enabled = enabled
+        await self.broadcast({
+            "type": "clarity_status",
+            "enabled": self.clarity_enabled
         })
             
     def audio_loop(self):
@@ -226,11 +312,9 @@ class DictationWebSocketBridge:
                 if status:
                     self.logger.warning(status)
                 vad_status = self.vad.process_audio_frame(indata)
-                asyncio.run_coroutine_threadsafe(
-                    self.broadcast({'type': 'vad_status', 'data': vad_status}),
-                    asyncio.get_event_loop()
-                )
-                self.dictation.process_audio(indata.tobytes())
+                # Skip VAD broadcasting from audio thread to avoid threading issues
+                # VAD status will be handled in the main process_transcription flow
+                self.dictation.audio_callback(indata, frames, time, status)
 
             # Set the callback if dictation supports it
             if hasattr(self.dictation, 'set_text_output_callback'):
@@ -258,7 +342,15 @@ class DictationWebSocketBridge:
                     self.dictation.stop_dictation()
     
     def process_transcription(self, text: str):
-        """Process transcription through Clarity Engine"""
+        """Process transcription through Command Mode and Clarity Engine"""
+        # Process through Command Mode Engine first if enabled
+        if self.command_mode_enabled:
+            command_match = self.command_engine.process_speech(text)
+            if command_match:
+                # Command processed - don't treat as regular transcription
+                # Command execution is handled by callbacks
+                return
+        
         # Update current text
         self.current_text = text
         
@@ -285,7 +377,7 @@ class DictationWebSocketBridge:
                 callback=self.on_correction_complete
             )
     
-    def on_correction_.pycomplete(self, result: CorrectionResult):
+    def on_correction_complete(self, result: CorrectionResult):
         """Callback when Clarity Engine completes correction"""
         # Send corrected text to UI
         corrected_message = TranscriptionMessage(
@@ -309,6 +401,137 @@ class DictationWebSocketBridge:
         # Log performance
         if result.processing_time_ms > 150:
             self.logger.warning(f"Correction took {result.processing_time_ms:.1f}ms (target: <150ms)")
+    
+    # Command Mode Engine Callbacks
+    
+    def handle_command_activation(self):
+        """Handle command mode activation"""
+        self.logger.info("Command mode activated - waiting for command")
+        
+        # Send activation feedback to UI with visual indicator
+        asyncio.run_coroutine_threadsafe(
+            self.broadcast({
+                "type": "command_mode_activated",
+                "message": "Command mode active - speak your command",
+                "visual_feedback": "border_flash_blue"
+            }),
+            asyncio.get_event_loop()
+        )
+    
+    def handle_command_execution(self, command_match: CommandMatch):
+        """Handle command execution"""
+        command_id = command_match.command_id
+        
+        # Send command recognition feedback to UI
+        recognition_message = CommandMessage(
+            command=command_id,
+            status="recognized",
+            result=f"Executing: {command_match.description}"
+        )
+        
+        asyncio.run_coroutine_threadsafe(
+            self.broadcast(asdict(recognition_message)),
+            asyncio.get_event_loop()
+        )
+        
+        # Execute the actual command
+        asyncio.run_coroutine_threadsafe(
+            self._execute_command_action(command_match),
+            asyncio.get_event_loop()
+        )
+    
+    def handle_command_timeout(self):
+        """Handle command mode timeout"""
+        self.logger.info("Command mode timeout")
+        
+        asyncio.run_coroutine_threadsafe(
+            self.broadcast({
+                "type": "command_mode_timeout",
+                "message": "Command mode timeout - returning to normal dictation"
+            }),
+            asyncio.get_event_loop()
+        )
+    
+    def handle_command_state_change(self, new_state):
+        """Handle command mode state changes"""
+        self.logger.debug(f"Command mode state changed to: {new_state.value}")
+        
+        asyncio.run_coroutine_threadsafe(
+            self.broadcast({
+                "type": "command_mode_state",
+                "state": new_state.value,
+                "is_active": new_state.value != "listening_for_activation"
+            }),
+            asyncio.get_event_loop()
+        )
+    
+    async def _execute_command_action(self, command_match: CommandMatch):
+        """Execute the actual command action"""
+        command_id = command_match.command_id
+        
+        try:
+            result = ""
+            
+            # Execute based on command ID
+            if command_id == 'commit_text':
+                await self.commit_current_text()
+                result = "Text committed"
+            elif command_id == 'clear_text':
+                await self.clear_current_text()
+                result = "Text cleared"
+            elif command_id == 'enable_clarity':
+                await self.set_clarity_enabled(True)
+                result = "Clarity enabled"
+            elif command_id == 'disable_clarity':
+                await self.set_clarity_enabled(False)
+                result = "Clarity disabled"
+            elif command_id == 'toggle_clarity':
+                await self.set_clarity_enabled(not self.clarity_enabled)
+                result = f"Clarity {'enabled' if self.clarity_enabled else 'disabled'}"
+            elif command_id == 'start_listening':
+                await self.start_dictation()
+                result = "Dictation started"
+            elif command_id == 'stop_listening':
+                await self.stop_dictation()
+                result = "Dictation stopped"
+            elif command_id == 'show_status':
+                status_info = {
+                    "listening": self.is_listening,
+                    "clarity_enabled": self.clarity_enabled,
+                    "command_mode_enabled": self.command_mode_enabled,
+                    "current_text_length": len(self.current_text)
+                }
+                result = f"Status: {status_info}"
+                await self.broadcast({
+                    "type": "system_status",
+                    "status": status_info
+                })
+            elif command_id == 'exit_command_mode':
+                self.command_engine.force_exit_command_mode()
+                result = "Exited command mode"
+            else:
+                result = f"Unknown command: {command_id}"
+                
+            # Send execution result to UI
+            execution_message = CommandMessage(
+                command=command_id,
+                status="executed",
+                result=result
+            )
+            
+            await self.broadcast(asdict(execution_message))
+            self.logger.info(f"Command executed: {command_id} - {result}")
+            
+        except Exception as e:
+            # Send error feedback to UI
+            error_message = CommandMessage(
+                command=command_id,
+                status="failed",
+                result=f"Error: {str(e)}"
+            )
+            
+            await self.broadcast(asdict(error_message))
+            self.logger.error(f"Command execution failed: {command_id} - {e}")
             
     async def start_server(self):
         """Start the WebSocket server"""

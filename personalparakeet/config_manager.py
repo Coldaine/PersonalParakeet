@@ -10,7 +10,7 @@ This module provides comprehensive configuration management including:
 import json
 import yaml
 import os
-from dataclasses import dataclass, asdict
+from dataclasses import dataclass, asdict, field
 from typing import Dict, Any, Optional, Union
 from pathlib import Path
 from .config import InjectionConfig
@@ -32,7 +32,7 @@ class VADSettings:
 class PersonalParakeetConfig:
     """Complete configuration for PersonalParakeet system"""
     injection: InjectionConfig
-    vad: VADSettings = VADSettings()
+    vad: VADSettings = field(default_factory=VADSettings)
     
     # Model settings
     model_name: str = "nvidia/parakeet-tdt-1.1b"
@@ -48,7 +48,7 @@ class PersonalParakeetConfig:
     
     # Application settings
     enable_application_detection: bool = True
-    application_profiles: Dict[str, Dict[str, Any]] = None
+    application_profiles: Dict[str, Dict[str, Any]] = field(default_factory=dict)
     
     # Monitoring settings
     enable_monitoring: bool = True
@@ -60,11 +60,7 @@ class PersonalParakeetConfig:
     
     def __post_init__(self):
         """Post-init processing"""
-        if self.application_profiles is None:
-            self.application_profiles = {}
-        
-        if self.vad is None:
-            self.vad = VADSettings()
+        # application_profiles and vad are now handled by default_factory
 
         # Sync audio settings with injection config
         if self.audio_device_index is not None:
