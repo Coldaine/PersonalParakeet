@@ -250,7 +250,7 @@ class ConfidenceBar:
                 self.progress_bar.color = ft.Colors.RED_500
             
             # Update text
-            if hasattr(self.container.content, 'controls'):
+            if self.container and self.container.content and hasattr(self.container.content, 'controls'):
                 text_widget = self.container.content.controls[0]
                 text_widget.value = f"Confidence: {confidence:.0%}"
 
