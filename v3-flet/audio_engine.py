@@ -168,8 +168,9 @@ class AudioEngine:
                 audio_chunk = self.audio_queue.get(timeout=0.5)
                 
                 # Process VAD
-                vad_status = self.vad_engine.process_audio_frame(audio_chunk)
-                self._update_vad_status(vad_status)
+                if self.vad_engine:
+                    vad_status = self.vad_engine.process_audio_frame(audio_chunk)
+                    self._update_vad_status(vad_status)
                 
                 # Check if audio is loud enough for STT
                 max_level = np.max(np.abs(audio_chunk))
@@ -186,17 +187,25 @@ class AudioEngine:
             except Exception as e:
                 logger.error(f"Audio processing error: {e}")
                 if self.on_error:
-                    asyncio.run_coroutine_threadsafe(
-                        self.on_error(f"Audio processing error: {e}"),
-                        asyncio.get_event_loop()
-                    )
+                    try:
+                        if asyncio.iscoroutinefunction(self.on_error):
+                            asyncio.run_coroutine_threadsafe(
+                                self.on_error(f"Audio processing error: {e}"),
+                                asyncio.get_event_loop()
+                            )
+                        else:
+                            self.on_error(f"Audio processing error: {e}")
+                    except Exception as callback_error:
+                        logger.error(f"Error callback failed: {callback_error}")
         
         logger.info("Audio processing loop stopped")
     
     def _process_stt_sync(self, audio_chunk: np.ndarray) -> Optional[str]:
         """Process audio through STT model"""
         try:
-            return self.stt_processor.transcribe(audio_chunk)
+            if self.stt_processor:
+                return self.stt_processor.transcribe(audio_chunk)
+            return None
         except Exception as e:
             logger.error(f"STT processing error: {e}")
             return None
@@ -207,13 +216,19 @@ class AudioEngine:
         
         # Send raw transcription to UI
         if self.on_raw_transcription:
-            asyncio.run_coroutine_threadsafe(
-                self.on_raw_transcription(text),
-                asyncio.get_event_loop()
-            )
+            try:
+                if asyncio.iscoroutinefunction(self.on_raw_transcription):
+                    asyncio.run_coroutine_threadsafe(
+                        self.on_raw_transcription(text),
+                        asyncio.get_event_loop()
+                    )
+                else:
+                    self.on_raw_transcription(text)
+            except Exception as e:
+                logger.error(f"Raw transcription callback failed: {e}")
         
         # Process through Clarity Engine if enabled
-        if self.clarity_enabled and self.clarity_engine.is_initialized:
+        if self.clarity_enabled and self.clarity_engine and hasattr(self.clarity_engine, 'is_initialized') and self.clarity_engine.is_initialized:
             self.clarity_engine.update_context(text)
             corrected_text = self.clarity_engine.correct_text_sync(text)
             if corrected_text != text:
@@ -222,6 +237,9 @@ class AudioEngine:
                     def __init__(self, original, corrected):
                         self.original_text = original
                         self.corrected_text = corrected
+                        self.processing_time_ms = 0.0
+                        self.confidence = 0.9
+                        self.corrections_made = [(original, corrected)] if original != corrected else []
                 
                 result = CorrectionResult(text, corrected_text)
                 asyncio.run_coroutine_threadsafe(
@@ -236,13 +254,19 @@ class AudioEngine:
         
         # Send corrected text to UI
         if self.on_corrected_transcription:
-            asyncio.run_coroutine_threadsafe(
-                self.on_corrected_transcription(result),
-                asyncio.get_event_loop()
-            )
+            try:
+                if asyncio.iscoroutinefunction(self.on_corrected_transcription):
+                    asyncio.run_coroutine_threadsafe(
+                        self.on_corrected_transcription(result),
+                        asyncio.get_event_loop()
+                    )
+                else:
+                    self.on_corrected_transcription(result)
+            except Exception as e:
+                logger.error(f"Corrected transcription callback failed: {e}")
         
         # Log performance
-        if result.processing_time_ms > 150:
+        if hasattr(result, 'processing_time_ms') and result.processing_time_ms > 150:
             logger.warning(f"Correction took {result.processing_time_ms:.1f}ms")
     
     def _handle_pause_detected(self, pause_duration: float):
@@ -251,18 +275,30 @@ class AudioEngine:
             logger.info(f"Pause detected ({pause_duration:.2f}s), triggering commit")
             
             if self.on_pause_detected:
-                asyncio.run_coroutine_threadsafe(
-                    self.on_pause_detected(pause_duration, self.current_text),
-                    asyncio.get_event_loop()
-                )
+                try:
+                    if asyncio.iscoroutinefunction(self.on_pause_detected):
+                        asyncio.run_coroutine_threadsafe(
+                            self.on_pause_detected(pause_duration, self.current_text),
+                            asyncio.get_event_loop()
+                        )
+                    else:
+                        self.on_pause_detected(pause_duration, self.current_text)
+                except Exception as e:
+                    logger.error(f"Pause detected callback failed: {e}")
     
     def _update_vad_status(self, vad_status: dict):
         """Update VAD status in UI"""
         if self.on_vad_status:
-            asyncio.run_coroutine_threadsafe(
-                self.on_vad_status(vad_status),
-                asyncio.get_event_loop()
-            )
+            try:
+                if asyncio.iscoroutinefunction(self.on_vad_status):
+                    asyncio.run_coroutine_threadsafe(
+                        self.on_vad_status(vad_status),
+                        asyncio.get_event_loop()
+                    )
+                else:
+                    self.on_vad_status(vad_status)
+            except Exception as e:
+                logger.error(f"VAD status callback failed: {e}")
     
     # Public control methods
     

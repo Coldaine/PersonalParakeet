@@ -5,6 +5,7 @@ Provides consistent styling across all UI components
 """
 
 import flet as ft
+from typing import Optional
 
 
 def get_dictation_theme() -> dict:
@@ -71,7 +72,7 @@ def get_dictation_theme() -> dict:
     }
 
 
-def apply_glass_morphism(container: ft.Container, theme: dict = None) -> ft.Container:
+def apply_glass_morphism(container: ft.Container, theme: Optional[dict] = None) -> ft.Container:
     """Apply glass morphism effect to a container"""
     if theme is None:
         theme = get_dictation_theme()
