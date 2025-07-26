@@ -39,6 +39,7 @@ class DictationView:
         self.is_listening = False
         self.is_connected = True
         self.clarity_enabled = True
+        self.command_mode_enabled = False
         self.vad_status = {
             'is_speech': False,
             'rms_energy': 0.0,
@@ -69,6 +70,10 @@ class DictationView:
         self.audio_engine.set_pause_detected_callback(self._on_pause_detected)
         self.audio_engine.set_vad_status_callback(self._on_vad_status)
         self.audio_engine.set_error_callback(self._on_error)
+        self.audio_engine.set_command_mode_status_callback(self._on_command_mode_status)
+        
+        # Set up command processor callbacks through audio engine
+        # These will be handled by the audio engine and forwarded to the UI as needed
     
     def _start_cursor_blink(self):
         """Start cursor blinking animation"""
@@ -91,10 +96,11 @@ class DictationView:
         self.vad_indicator = VADIndicator(self.vad_status)
         self.control_panel = ControlPanel(
             self.clarity_enabled,
-            False,  # command mode not yet implemented
+            self.command_mode_enabled,
             self._on_toggle_clarity,
             self._on_commit_text,
-            self._on_clear_text
+            self._on_clear_text,
+            self._on_toggle_command_mode
         )
         
         # Text display area
@@ -204,7 +210,7 @@ class DictationView:
             self.vad_indicator.update_status(self.vad_status)
         
         if self.control_panel:
-            self.control_panel.update_state(self.clarity_enabled, False)  # command mode TODO
+            self.control_panel.update_state(self.clarity_enabled, self.command_mode_enabled)
         
         if self.confidence_bar:
             self.confidence_bar.update_confidence(self.confidence)
@@ -242,6 +248,13 @@ class DictationView:
     def _on_clear_text(self):
         """Handle clear text button (sync)"""
         asyncio.create_task(self._clear_current_text())
+    
+    def _on_toggle_command_mode(self):
+        """Handle command mode toggle button (sync)"""
+        self.command_mode_enabled = not self.command_mode_enabled
+        self.audio_engine.set_command_mode_enabled(self.command_mode_enabled)
+        asyncio.create_task(self._update_ui_state())
+        logger.info(f"Command mode {'enabled' if self.command_mode_enabled else 'disabled'}")
     
     async def _clear_current_text(self):
         """Clear current text and reset state"""
@@ -307,6 +320,27 @@ class DictationView:
         
         # TODO: Show error in UI
         # For now, just log it
+    
+    async def _on_command_mode_status(self, is_active: bool):
+        """Handle command mode status changes"""
+        self.command_mode_enabled = is_active
+        logger.info(f"Command mode {'activated' if is_active else 'deactivated'}")
+        
+        # Update UI to reflect command mode status
+        if self.control_panel:
+            self.control_panel.update_state(self.clarity_enabled, is_active)
+        
+        # Update status indicator or add visual feedback for command mode
+        await self._update_ui_state()
+        
+        # Add visual feedback for command mode activation/deactivation
+        if is_active:
+            # Show a temporary message or change the UI appearance
+            # For now, we'll just log it - in a full implementation,
+            # this would show a visual indicator
+            logger.info("Showing command mode activation visual feedback")
+        else:
+            logger.info("Showing command mode deactivation visual feedback")
     
     async def _inject_text_async(self, text: str):
         """Inject text asynchronously using the injection manager"""

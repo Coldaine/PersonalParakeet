@@ -113,12 +113,14 @@ class ControlPanel:
     """Control panel with action buttons"""
     
     def __init__(self, clarity_enabled: bool, command_mode_enabled: bool,
-                 on_toggle_clarity: Callable, on_commit_text: Callable, on_clear_text: Callable):
+                 on_toggle_clarity: Callable, on_commit_text: Callable, on_clear_text: Callable,
+                 on_toggle_command_mode: Optional[Callable] = None):
         self.clarity_enabled = clarity_enabled
         self.command_mode_enabled = command_mode_enabled
         self.on_toggle_clarity = on_toggle_clarity
         self.on_commit_text = on_commit_text
         self.on_clear_text = on_clear_text
+        self.on_toggle_command_mode = on_toggle_command_mode
         
         self.clarity_btn = None
         self.command_btn = None
@@ -136,12 +138,12 @@ class ControlPanel:
             on_click=lambda _: self.on_toggle_clarity()
         )
         
-        # Command mode button (placeholder)
+        # Command mode button
         self.command_btn = ft.IconButton(
             icon=ft.Icons.RECORD_VOICE_OVER,
             icon_color=ft.Colors.PURPLE_500 if self.command_mode_enabled else ft.Colors.GREY_500,
             tooltip=f"Command Mode: {'ON' if self.command_mode_enabled else 'OFF'}",
-            disabled=True,  # Not implemented yet
+            on_click=lambda _: self._handle_toggle_command_mode()
         )
         
         # Commit button
@@ -184,6 +186,11 @@ class ControlPanel:
         if self.command_btn:
             self.command_btn.icon_color = ft.Colors.PURPLE_500 if command_mode_enabled else ft.Colors.GREY_500
             self.command_btn.tooltip = f"Command Mode: {'ON' if command_mode_enabled else 'OFF'}"
+    
+    def _handle_toggle_command_mode(self):
+        """Handle toggle command mode button click"""
+        if self.on_toggle_command_mode:
+            self.on_toggle_command_mode()
 
 
 class ConfidenceBar:

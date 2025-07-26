@@ -17,6 +17,7 @@ import numpy as np
 from core.stt_processor import STTProcessor
 from core.clarity_engine import ClarityEngine
 from core.vad_engine import VoiceActivityDetector
+from core.command_processor import CommandProcessor, create_command_processor
 from config import V3Config
 
 logger = logging.getLogger(__name__)
@@ -43,6 +44,7 @@ class AudioEngine:
         self.stt_processor = None
         self.clarity_engine = None
         self.vad_engine = None
+        self.command_processor = None
         
         # Callbacks for UI updates (set by DictationView)
         self.on_raw_transcription = None
@@ -50,6 +52,7 @@ class AudioEngine:
         self.on_pause_detected = None
         self.on_vad_status = None
         self.on_error = None
+        self.on_command_mode_status = None
         
         # State tracking
         self.current_text = ""
@@ -76,6 +79,33 @@ class AudioEngine:
                 pause_threshold=self.config.vad.pause_threshold
             )
             self.vad_engine.on_pause_detected = self._handle_pause_detected
+            
+            # Initialize Command Processor
+            self.command_processor = create_command_processor(
+                activation_phrase=self.config.command_mode.activation_phrase,
+                activation_confidence_threshold=self.config.command_mode.confidence_threshold,
+                command_timeout=self.config.command_mode.timeout
+            )
+            
+            # Set up command processor callbacks
+            self.command_processor.on_command_mode_status_changed = self._on_command_mode_status_changed
+            self.command_processor.on_activation_detected = self._on_command_activation_detected
+            self.command_processor.on_command_executed = self._on_command_executed
+            self.command_processor.on_command_timeout = self._on_command_timeout
+            
+            # Set up audio/visual feedback callbacks
+            self.command_processor.on_audio_feedback = self._on_audio_feedback
+            self.command_processor.on_visual_feedback = self._on_visual_feedback
+            
+            # Set up confirmation callback
+            self.command_processor.on_confirmation_request = self._on_confirmation_request
+            
+            # Set up specific command callbacks
+            self.command_processor.on_commit_text = self._on_commit_text_command
+            self.command_processor.on_clear_text = self._on_clear_text_command
+            self.command_processor.on_toggle_clarity = self._on_toggle_clarity_command
+            self.command_processor.on_enable_clarity = self._on_enable_clarity_command
+            self.command_processor.on_disable_clarity = self._on_disable_clarity_command
             
             self.is_running = True
             logger.info("AudioEngine initialized successfully")
@@ -203,6 +233,13 @@ class AudioEngine:
     
     def _handle_transcription(self, text: str):
         """Handle raw transcription from STT"""
+        # Process through Command Processor first if enabled
+        if self.command_processor and self.config.command_mode.enabled:
+            command_match = self.command_processor.process_speech(text)
+            if command_match:
+                # Command was processed, don't continue with normal transcription
+                return
+        
         self.current_text = text
         
         # Send raw transcription to UI
@@ -297,3 +334,101 @@ class AudioEngine:
     
     def set_error_callback(self, callback: Callable[[str], None]):
         self.on_error = callback
+    
+    def set_command_mode_status_callback(self, callback: Callable[[bool], None]):
+        """Set callback for command mode status changes"""
+        self.on_command_mode_status = callback
+    
+    # Command processor callbacks
+    
+    def _on_command_mode_status_changed(self, is_active: bool):
+        """Handle command mode status changes"""
+        if self.on_command_mode_status:
+            asyncio.run_coroutine_threadsafe(
+                self.on_command_mode_status(is_active),
+                asyncio.get_event_loop()
+            )
+    
+    def _on_command_activation_detected(self):
+        """Handle command activation detection"""
+        # This could trigger a UI update to show command mode is active
+        logger.info("Command mode activated - waiting for command")
+    
+    def _on_command_executed(self, command_match):
+        """Handle command execution"""
+        logger.info(f"Command executed: {command_match.command_id}")
+        # Handle specific commands that affect the audio engine directly
+        if command_match.command_id == "clear_text":
+            self.clear_current_text()
+        elif command_match.command_id == "commit_text":
+            # This would be handled by the UI, but we can log it
+            pass
+    
+    def _on_command_timeout(self):
+        """Handle command timeout"""
+        logger.info("Command mode timeout - returning to normal mode")
+    
+    def _on_audio_feedback(self, feedback_type: str):
+        """Handle audio feedback requests"""
+        logger.info(f"Audio feedback requested: {feedback_type}")
+        # For now, we'll just log the feedback request
+        # In a full implementation, this would play actual sounds
+        # using a library like pygame or playsound
+        if feedback_type == "activation":
+            logger.info("Playing activation sound")
+            # TODO: Play activation sound (e.g., double beep)
+        elif feedback_type == "command_executed":
+            logger.info("Playing command executed sound")
+            # TODO: Play command executed sound (e.g., single beep)
+        elif feedback_type == "return_to_normal":
+            logger.info("Playing return to normal sound")
+            # TODO: Play return to normal sound (e.g., descending tone)
+        elif feedback_type == "error":
+            logger.info("Playing error sound")
+            # TODO: Play error sound (e.g., low tone)
+    
+    def _on_visual_feedback(self, feedback_type: str):
+        """Handle visual feedback requests"""
+        logger.info(f"Visual feedback requested: {feedback_type}")
+        # TODO: Implement actual visual feedback
+        # This would typically trigger UI updates through callbacks
+    
+    def _on_confirmation_request(self, command_id: str, description: str):
+        """Handle confirmation requests for destructive commands"""
+        logger.info(f"Confirmation requested for command '{command_id}': {description}")
+        # TODO: Implement actual confirmation mechanism
+        # This would typically trigger a UI dialog or voice prompt
+    
+    # Specific command callbacks
+    
+    def _on_commit_text_command(self):
+        """Handle commit text command"""
+        logger.info("Commit text command received")
+        # This will be handled by the UI, but we can log it
+    
+    def _on_clear_text_command(self):
+        """Handle clear text command"""
+        logger.info("Clear text command received")
+        self.clear_current_text()
+    
+    def _on_toggle_clarity_command(self):
+        """Handle toggle clarity command"""
+        logger.info("Toggle clarity command received")
+        self.set_clarity_enabled(not self.clarity_enabled)
+    
+    def _on_enable_clarity_command(self):
+        """Handle enable clarity command"""
+        logger.info("Enable clarity command received")
+        self.set_clarity_enabled(True)
+    
+    def _on_disable_clarity_command(self):
+        """Handle disable clarity command"""
+        logger.info("Disable clarity command received")
+        self.set_clarity_enabled(False)
+    
+    # Public methods for command mode control
+    
+    def set_command_mode_enabled(self, enabled: bool):
+        """Enable/disable command mode"""
+        self.config.command_mode.enabled = enabled
+        logger.info(f"Command mode {'enabled' if enabled else 'disabled'}")

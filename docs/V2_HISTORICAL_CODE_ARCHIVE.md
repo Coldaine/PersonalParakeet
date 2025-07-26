@@ -1,7 +1,31 @@
-# PersonalParakeet v3 Proven Code Library
-## Battle-Tested Implementation Patterns for Flet Architecture
+# ⚠️ HISTORICAL CODE ARCHIVE - V2 IMPLEMENTATION REFERENCE ⚠️
 
-This document contains all proven working code patterns from PersonalParakeet v2 that MUST be preserved in v3. Each pattern includes the working implementation, performance characteristics, and guidance for Flet integration.
+**THIS IS A HISTORICAL REPOSITORY - DO NOT ADD NEW CODE HERE**
+
+---
+
+## Purpose
+This document serves as a **read-only historical archive** of proven code patterns from PersonalParakeet v2. It exists solely as a reference for v3 development.
+
+## Usage Guidelines
+- ✅ **DO**: Reference this archive when implementing v3 features
+- ✅ **DO**: Copy and adapt patterns for the Flet architecture
+- ✅ **DO**: Learn from the error handling and performance optimizations
+- ❌ **DO NOT**: Add new code to this file
+- ❌ **DO NOT**: Modify existing code examples
+- ❌ **DO NOT**: Use this code directly - it must be adapted for v3
+
+## Archive Status
+- **Created**: July 2025 during v2→v3 migration
+- **Content**: Frozen snapshot of working v2 implementations
+- **Updates**: This file should never be updated with new code
+
+---
+
+# PersonalParakeet v2 Historical Code Archive
+## Battle-Tested Implementation Patterns from the WebSocket/Tauri Architecture
+
+This archive contains proven working code patterns from PersonalParakeet v2. Each pattern includes the original implementation, performance characteristics, and notes for v3 Flet adaptation.
 
 ---
 

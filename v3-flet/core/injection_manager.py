@@ -1,6 +1,6 @@
 """
 Text Injection Manager for PersonalParakeet v3
-Simplified Windows text injection with multiple fallback strategies
+Enhanced text injection with application-aware strategy selection
 """
 
 import logging
@@ -8,6 +8,8 @@ import time
 import threading
 from typing import Optional, List, Dict, Any
 from enum import Enum, auto
+
+from .application_detector import EnhancedApplicationDetector, ApplicationInfo, ApplicationProfile
 
 logger = logging.getLogger(__name__)
 
@@ -315,27 +317,34 @@ class WindowsTextInjector:
 
 class InjectionManager:
     """
-    Main injection manager for PersonalParakeet v3
-    Handles text injection with proper threading and error handling
+    Enhanced injection manager for PersonalParakeet v3
+    Handles text injection with application-aware strategy selection
     """
     
     def __init__(self):
         self.injector = WindowsTextInjector()
+        self.app_detector = EnhancedApplicationDetector()
         self.injection_thread = None
         self.injection_lock = threading.Lock()
         self.injection_count = 0
+        self.performance_stats = {
+            'total_injections': 0,
+            'successful_injections': 0,
+            'strategy_usage': {},
+            'app_type_stats': {}
+        }
         
-        logger.info("InjectionManager initialized")
+        logger.info("Enhanced InjectionManager initialized with application detection")
     
     def inject_text(self, text: str) -> bool:
         """
-        Inject text into the active application
+        Inject text into the active application with application-aware optimization
         
         Args:
             text: Text to inject
             
         Returns:
-            True if injection was attempted (may complete asynchronously)
+            True if injection succeeded, False otherwise
         """
         if not text or not text.strip():
             logger.warning("Attempted to inject empty text")
@@ -345,12 +354,35 @@ class InjectionManager:
         with self.injection_lock:
             try:
                 self.injection_count += 1
-                logger.info(f"Injecting text (#{self.injection_count}): '{text.strip()[:50]}...'")
+                self.performance_stats['total_injections'] += 1
+                
+                # Detect current application
+                app_info = self.app_detector.detect_current_application()
+                if app_info:
+                    logger.info(f"Injecting text (#{self.injection_count}) into {app_info.name}: '{text.strip()[:50]}...'")
+                    
+                    # Get optimized strategy order for this application
+                    strategy_order = self.app_detector.get_optimized_strategy_order(app_info)
+                    app_profile = self.app_detector.get_application_profile(app_info)
+                    
+                    # Update injector strategy order
+                    self._update_strategy_order(strategy_order)
+                    
+                    # Apply application-specific timing
+                    self._apply_application_profile(app_profile)
+                    
+                    # Update stats
+                    app_type_name = app_info.app_type.name
+                    self.performance_stats['app_type_stats'][app_type_name] = \
+                        self.performance_stats['app_type_stats'].get(app_type_name, 0) + 1
+                else:
+                    logger.info(f"Injecting text (#{self.injection_count}) into unknown app: '{text.strip()[:50]}...'")
                 
                 # Perform injection (blocking call)
                 success = self.injector.inject(text)
                 
                 if success:
+                    self.performance_stats['successful_injections'] += 1
                     logger.info(f"✓ Text injection #{self.injection_count} completed successfully")
                 else:
                     logger.error(f"❌ Text injection #{self.injection_count} failed")
@@ -384,9 +416,79 @@ class InjectionManager:
             logger.error(f"Failed to start async injection: {e}")
             return False
     
-    def get_status(self) -> Dict[str, Any]:
-        """Get injection manager status"""
+    def _update_strategy_order(self, strategy_names: List[str]):
+        """Update injector strategy order based on application preferences"""
+        # Map strategy names to enum values
+        strategy_map = {
+            'keyboard': InjectionStrategy.KEYBOARD,
+            'clipboard': InjectionStrategy.CLIPBOARD,
+            'win32_sendinput': InjectionStrategy.WIN32_SENDINPUT
+        }
+        
+        # Build new strategy order
+        new_order = []
+        for name in strategy_names:
+            if name in strategy_map and self.injector._is_strategy_available(strategy_map[name]):
+                new_order.append(strategy_map[name])
+        
+        # Ensure we have at least one strategy
+        if not new_order:
+            new_order = [s for s in self.injector.strategy_order if self.injector._is_strategy_available(s)]
+        
+        if new_order:
+            self.injector.strategy_order = new_order
+            logger.debug(f"Updated strategy order: {[s.name for s in new_order]}")
+    
+    def _apply_application_profile(self, profile: ApplicationProfile):
+        """Apply application-specific timing and behavior settings"""
+        # Currently the WindowsTextInjector doesn't have configurable timing,
+        # but we can log the profile information for future enhancement
+        logger.debug(f"Applying profile for {profile.name}: "
+                    f"key_delay={profile.key_delay}, "
+                    f"focus_delay={profile.focus_delay}, "
+                    f"requires_slow_typing={profile.requires_slow_typing}")
+        
+        # TODO: In future enhancement, modify injector timing based on profile
+        # For now, this provides the framework for application-specific behavior
+    
+    def get_current_application(self) -> Optional[ApplicationInfo]:
+        """Get information about the currently active application"""
+        try:
+            return self.app_detector.detect_current_application()
+        except Exception as e:
+            logger.error(f"Failed to detect current application: {e}")
+            return None
+    
+    def get_application_profile(self, app_info: Optional[ApplicationInfo] = None) -> ApplicationProfile:
+        """Get the injection profile for the specified or current application"""
+        if not app_info:
+            app_info = self.get_current_application()
+        
+        if app_info:
+            return self.app_detector.get_application_profile(app_info)
+        else:
+            return self.app_detector._get_default_profile()
+    
+    def get_performance_stats(self) -> Dict[str, Any]:
+        """Get performance statistics"""
+        success_rate = 0.0
+        if self.performance_stats['total_injections'] > 0:
+            success_rate = (self.performance_stats['successful_injections'] / 
+                          self.performance_stats['total_injections']) * 100
+        
         return {
+            'total_injections': self.performance_stats['total_injections'],
+            'successful_injections': self.performance_stats['successful_injections'],
+            'success_rate_percent': round(success_rate, 1),
+            'app_type_distribution': self.performance_stats['app_type_stats'].copy(),
+            'detector_status': self.app_detector.get_detector_status()
+        }
+    
+    def get_status(self) -> Dict[str, Any]:
+        """Get comprehensive injection manager status"""
+        current_app = self.get_current_application()
+        
+        status = {
             'injection_count': self.injection_count,
             'has_keyboard': self.injector.has_keyboard,
             'has_clipboard': self.injector.has_clipboard, 
@@ -394,5 +496,13 @@ class InjectionManager:
             'available_strategies': [
                 strategy.name for strategy in self.injector.strategy_order
                 if self.injector._is_strategy_available(strategy)
-            ]
+            ],
+            'current_application': {
+                'name': current_app.name if current_app else 'Unknown',
+                'type': current_app.app_type.name if current_app else 'UNKNOWN',
+                'window_title': current_app.window_title if current_app else ''
+            },
+            'performance_stats': self.get_performance_stats()
         }
+        
+        return status
