@@ -241,19 +241,40 @@ class DictationView:
             
             # Inject text asynchronously
             if self.injection_manager:
-                asyncio.create_task(self._inject_text_async(final_text.strip()))
+                self.page.run_task(self._inject_text_async(final_text.strip()))
             
-            asyncio.create_task(self._clear_current_text())
+            self.page.run_task(self._clear_current_text())
     
     def _on_clear_text(self):
         """Handle clear text button (sync)"""
-        asyncio.create_task(self._clear_current_text())
+        try:
+            # Use the page's event loop if available
+            if hasattr(self, 'page') and self.page:
+                self.page.run_task(self._clear_current_text())
+            else:
+                # Fallback to direct update
+                self.current_text = ""
+                self.clarity_queue = []
+                self.confidence = 0.0
+                if self.text_display:
+                    self.page.update()
+        except Exception as e:
+            logger.error(f"Error clearing text: {e}")
     
     def _on_toggle_command_mode(self):
         """Handle command mode toggle button (sync)"""
         self.command_mode_enabled = not self.command_mode_enabled
         self.audio_engine.set_command_mode_enabled(self.command_mode_enabled)
-        asyncio.create_task(self._update_ui_state())
+        try:
+            if hasattr(self, 'page') and self.page:
+                self.page.run_task(self._update_ui_state())
+            else:
+                # Direct update
+                if self.control_panel:
+                    self.control_panel.update_command_mode(self.command_mode_enabled)
+                self.page.update()
+        except Exception as e:
+            logger.error(f"Error toggling command mode: {e}")
         logger.info(f"Command mode {'enabled' if self.command_mode_enabled else 'disabled'}")
     
     async def _clear_current_text(self):

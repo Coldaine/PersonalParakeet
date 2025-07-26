@@ -100,6 +100,16 @@ class PersonalParakeetV3:
     
     async def configure_window(self, page: ft.Page):
         """Configure the main window properties"""
+        # Add run_task helper for sync->async calls
+        def run_task(coro):
+            """Run an async task in the page's event loop"""
+            try:
+                asyncio.create_task(coro)
+            except RuntimeError as e:
+                logger.error(f"Failed to create task: {e}")
+        
+        page.run_task = run_task
+        
         # Window configuration for floating dictation view
         page.window_always_on_top = True
         page.window_frameless = True
