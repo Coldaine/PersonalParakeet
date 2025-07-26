@@ -1,12 +1,12 @@
-# PersonalParakeet
+# PersonalParakeet 🦜
 
-> ⚠️ **IMPORTANT**: PersonalParakeet is undergoing a major architectural refactor. 
-> - **v2 (Tauri/WebSocket)** - Current version has critical architectural issues
-> - **v3 (Flet)** - In active development, see [Implementation Plan](docs/Flet_Refactor_Implementation_Plan.md)
+> 🚀 **v3.0-alpha Available!** PersonalParakeet has been completely rewritten with a modern single-process architecture.
+> - **v2 (Deprecated)** - Tauri/WebSocket version with architectural issues
+> - **v3 (Active)** - Flet-based solution with enhanced features - [See Current Status](v3-flet/docs/CURRENT_V3_STATUS.md)
 > 
-> For the rationale behind this change, see [Architecture Decision Record](docs/Architecture_Decision_Record_Flet.md).
+> For the architectural decisions, see [Architecture Decision Record](docs/Architecture_Decision_Record_Flet.md).
 
-PersonalParakeet is a real-time dictation system featuring the **Dictation View** - a transparent, floating UI that provides live transcription feedback with real-time AI text corrections.
+PersonalParakeet is a real-time dictation system powered by NVIDIA's Parakeet-TDT 1.1B model, featuring the **Dictation View** - a transparent, floating UI that provides live transcription with AI-powered text corrections.
 
 ## 🎯 Core Innovation: The Dictation View
 
@@ -91,6 +91,10 @@ Three distinct actions for text finalization:
 - **`workshop-box-ui/`** - Tauri application with React components
 - **WebSocket communication** - Real-time updates from backend
 - **Modern UI** - TypeScript + Zustand state management
+
+### Platform Support
+- **Windows**: Primary supported platform.
+- **Linux**: Initial support for KDE Wayland environments.
 
 ### Key Components
 ```
