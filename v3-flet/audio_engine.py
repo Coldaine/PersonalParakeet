@@ -14,7 +14,7 @@ from typing import Callable, Optional
 import sounddevice as sd
 import numpy as np
 
-from core.stt_processor import STTProcessor
+from core.stt_processor_mock import STTProcessor  # Using mock for testing without NeMo
 from core.clarity_engine import ClarityEngine
 from core.vad_engine import VoiceActivityDetector
 from core.command_processor import CommandProcessor, create_command_processor

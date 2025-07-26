@@ -17,10 +17,10 @@ sys.path.append(str(Path(__file__).parent.parent))
 
 from audio_engine import AudioEngine
 from ui.dictation_view import DictationView
-from core.stt_processor import STTProcessor
+from core.stt_processor_mock import STTProcessor  # Using mock for testing without NeMo
 from core.clarity_engine import ClarityEngine 
 from core.vad_engine import VoiceActivityDetector
-from core.injection_manager import InjectionManager
+from core.injection_manager_enhanced import EnhancedInjectionManager
 from config import V3Config
 
 # Setup comprehensive logging
@@ -67,7 +67,7 @@ class PersonalParakeetV3:
             
             # Initialize text injection manager
             logger.info("Initializing text injection manager...")
-            self.injection_manager = InjectionManager()
+            self.injection_manager = EnhancedInjectionManager()
             logger.info("Text injection manager initialized successfully")
             
             # Initialize dictation view

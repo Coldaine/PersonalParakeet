@@ -273,13 +273,22 @@ class EnhancedApplicationDetector:
                 
                 # Parse properties
                 window_title = self._extract_xprop_value(properties, 'WM_NAME')
-                window_class = self._extract_xprop_value(properties, 'WM_CLASS')
+                window_class_raw = self._extract_xprop_value(properties, 'WM_CLASS')
                 
-                # Get process name from window class or title
-                if window_class:
-                    process_name = window_class.split(',')[-1].strip('"').lower()
-                else:
-                    process_name = "unknown"
+                # Parse WM_CLASS properly - it's "instance", "class"
+                window_class = ""
+                process_name = "unknown"
+                if window_class_raw:
+                    # Split on comma and take first part (instance)
+                    parts = window_class_raw.split(',')
+                    if parts:
+                        window_class = parts[0].strip().strip('"')
+                        process_name = window_class.lower()
+                    if len(parts) > 1:
+                        # Use the class name if available
+                        class_name = parts[1].strip().strip('"')
+                        if class_name:
+                            window_class = class_name
                 
                 # Classify application
                 app_type = self._classify_application(process_name, window_title, window_class)
