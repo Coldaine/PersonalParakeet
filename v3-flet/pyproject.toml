@@ -1,0 +1,63 @@
+[tool.poetry]
+name = "personalparakeet-v3"
+version = "0.1.0"
+description = "PersonalParakeet v3 - Real-time dictation with Flet UI"
+authors = ["PersonalParakeet Team"]
+readme = "README.md"
+packages = [{include = "personalparakeet"}]
+
+[tool.poetry.dependencies]
+python = "^3.11"
+flet = "^0.28.3"
+sounddevice = "^0.4.6"
+numpy = "^1.24.0"
+scipy = "^1.10.0"
+soundfile = "^0.12.0"
+pyaudio = "^0.2.11"
+python-dotenv = "^1.0.0"
+dataclasses-json = "^0.6.0"
+keyboard = "^0.13.5"
+pynput = "^1.8.1"
+pyperclip = "^1.9.0"
+
+[tool.poetry.group.dev.dependencies]
+pytest = "^7.0.0"
+pytest-asyncio = "^0.21.0"
+black = "^23.0.0"
+isort = "^5.12.0"
+flake8 = "^6.0.0"
+mypy = "^1.0.0"
+
+[tool.poetry.group.ml]
+optional = true
+
+[tool.poetry.group.ml.dependencies]
+# ML dependencies for real STT (optional group - install with: poetry install --with ml)
+nemo-toolkit = {version = "^1.23.0", extras = ["asr"]}
+torch = "^2.1.0"
+torchaudio = "^2.1.0"
+# Additional dependencies that NeMo might need
+hydra-core = "^1.3.0"
+omegaconf = "^2.3.0"
+pytorch-lightning = "^2.0.0"
+
+[build-system]
+requires = ["poetry-core"]
+build-backend = "poetry.core.masonry.api"
+
+[tool.poetry.scripts]
+personalparakeet = "main:main"
+
+[tool.black]
+line-length = 100
+target-version = ['py311']
+
+[tool.isort]
+profile = "black"
+line_length = 100
+
+[tool.mypy]
+python_version = "3.11"
+warn_return_any = true
+warn_unused_configs = true
+ignore_missing_imports = true

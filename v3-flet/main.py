@@ -17,7 +17,6 @@ sys.path.append(str(Path(__file__).parent.parent))
 
 from audio_engine import AudioEngine
 from ui.dictation_view import DictationView
-from core.stt_processor_mock import STTProcessor  # Using mock for testing without NeMo
 from core.clarity_engine import ClarityEngine 
 from core.vad_engine import VoiceActivityDetector
 from core.injection_manager_enhanced import EnhancedInjectionManager
@@ -220,12 +219,77 @@ async def main(page: ft.Page):
     
     page.on_window_event = on_window_event
     
-    # Initialize application
-    await app.initialize(page)
-    
-    # Keep application running
-    logger.info("PersonalParakeet v3 is ready!")
-    logger.info("Use the UI controls or voice commands to interact")
+    try:
+        # Initialize application
+        await app.initialize(page)
+        
+        # Keep application running
+        logger.info("PersonalParakeet v3 is ready!")
+        logger.info("Use the UI controls or voice commands to interact")
+        
+    except RuntimeError as e:
+        # Show critical error dialog for STT failures
+        error_message = str(e)
+        
+        # Create error dialog
+        dlg = ft.AlertDialog(
+            modal=True,
+            title=ft.Text("Critical Error - STT Not Available", color=ft.colors.RED),
+            content=ft.Container(
+                content=ft.Column([
+                    ft.Text(
+                        "PersonalParakeet cannot start without speech recognition.",
+                        weight=ft.FontWeight.BOLD
+                    ),
+                    ft.Text(""),
+                    ft.Text(error_message, size=12),
+                ], scroll=ft.ScrollMode.AUTO),
+                width=500,
+                height=300,
+            ),
+            actions=[
+                ft.TextButton("Exit", on_click=lambda e: page.window_destroy()),
+            ],
+            actions_alignment=ft.MainAxisAlignment.END,
+        )
+        
+        page.dialog = dlg
+        dlg.open = True
+        await page.update_async()
+        
+        # Log the error
+        logger.error(f"Application cannot start: {e}")
+        
+    except Exception as e:
+        # Show generic error dialog
+        import traceback
+        error_details = traceback.format_exc()
+        
+        dlg = ft.AlertDialog(
+            modal=True,
+            title=ft.Text("Initialization Error", color=ft.colors.RED),
+            content=ft.Container(
+                content=ft.Column([
+                    ft.Text(f"Failed to initialize: {str(e)}", weight=ft.FontWeight.BOLD),
+                    ft.Text(""),
+                    ft.Text("Details:", size=12, weight=ft.FontWeight.BOLD),
+                    ft.Text(error_details, size=10),
+                ], scroll=ft.ScrollMode.AUTO),
+                width=600,
+                height=400,
+            ),
+            actions=[
+                ft.TextButton("Exit", on_click=lambda e: page.window_destroy()),
+            ],
+            actions_alignment=ft.MainAxisAlignment.END,
+        )
+        
+        page.dialog = dlg
+        dlg.open = True
+        await page.update_async()
+        
+        logger.error(f"Application initialization failed: {e}")
+        logger.error(error_details)
 
 
 def run_app():

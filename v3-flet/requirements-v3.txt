@@ -1,0 +1,27 @@
+# PersonalParakeet v3 Dependencies
+# Core Flet UI framework
+flet>=0.21.0
+
+# Audio processing
+sounddevice>=0.4.6
+numpy>=1.24.0
+scipy>=1.10.0
+soundfile>=0.12.0
+
+# Optional: Alternative audio (fallback)
+pyaudio>=0.2.11
+
+# Configuration and utilities
+python-dotenv>=1.0.0
+dataclasses-json>=0.6.0
+
+# ML dependencies for real STT (optional - install manually if needed)
+# Note: These are heavy dependencies requiring CUDA setup
+# To install: pip install nemo-toolkit[asr] torch torchaudio --index-url https://download.pytorch.org/whl/cu118
+# nemo-toolkit[asr]>=1.23.0
+# torch>=2.1.0
+# torchaudio>=2.1.0
+
+# Development and testing
+pytest>=7.0.0
+pytest-asyncio>=0.21.0
