@@ -20,6 +20,7 @@
 - **Clarity Engine**: Built-in corrections for homophones and technical jargon
 - **Voice Activity Detection**: Pause-based automatic commit functionality
 - **Configuration System**: JSON-based settings management
+- **KDE Wayland Support**: Robust text injection and window detection on KDE Wayland via the new `KDEWaylandManager`.
 
 ## 🚀 Quick Start
 
