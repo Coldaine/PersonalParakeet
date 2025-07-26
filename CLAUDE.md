@@ -6,9 +6,11 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 PersonalParakeet is a real-time dictation system featuring the **Dictation View** - a transparent, floating UI that provides live transcription feedback with real-time AI text corrections. The system uses NVIDIA Parakeet-TDT 1.1B model with direct NeMo integration.
 
-### Current Status (July 2025)
-- **v2 (Tauri/WebSocket)**: Current but deprecated - has critical architectural issues
+### Current Status (July 26, 2025)
+- **v2 (Tauri/WebSocket)**: Deprecated - has critical architectural issues
 - **v3 (Flet)**: In active development - single-process Python solution
+
+**REALITY CHECK**: Previous 35% completion estimate was overly optimistic and based on file count rather than working functionality.
 
 **IMPORTANT**: All new development should focus on the v3 Flet refactor. See:
 - [Implementation Plan](docs/Flet_Refactor_Implementation_Plan.md)
@@ -28,25 +30,27 @@ PersonalParakeet is a real-time dictation system featuring the **Dictation View*
 ```bash
 # Current v3 structure (as-built)
 v3-flet/
-├── main.py                      # Flet app entry point ✅
-├── audio_engine.py              # Producer-consumer audio ✅
-├── config.py                    # Dataclass configuration ✅
+├── main.py                      # Flet app entry point 🚧
+├── audio_engine.py              # Producer-consumer audio 🚧
+├── config.py                    # Dataclass configuration 🚧
 ├── ui/
-│   ├── dictation_view.py        # Main UI component ✅
+│   ├── dictation_view.py        # Main UI component 🚧
 │   ├── components.py            # Reusable elements ✅
 │   └── theme.py                 # Material design theme ✅
 ├── core/
-│   ├── stt_processor.py         # Parakeet integration ✅
+│   ├── stt_processor.py         # MOCK ONLY - no real NeMo ⭕
 │   ├── clarity_engine.py        # Text corrections ✅
 │   ├── vad_engine.py            # Voice activity detection ✅
-│   ├── injection_manager.py     # Basic text injection ✅
+│   ├── injection_manager.py     # Basic text injection 🚧
 │   └── thought_linker.py        # Placeholder ⭕
-├── tests/                       # v3 test suite ✅
+├── tests/                       # v3 test suite 🚧
 ├── requirements-v3.txt          # Python-only deps ✅
 └── README.md                    # v3 architecture docs ✅
 ```
 
 **File Status Legend**: ✅ Working | 🚧 In Progress | ⭕ Placeholder | ❌ Missing
+
+**CRITICAL**: Most components are incomplete or mocked. No proven end-to-end functionality.
 
 ### Implementation Priorities
 1. **Week 1**: Core Flet app + audio pipeline
@@ -71,23 +75,39 @@ The v2 system uses a problematic two-process architecture:
 
 ### For v3 Development (Flet) - ACTIVE DEVELOPMENT
 ```bash
-# Setup v3 environment
+# Setup v3 environment with Poetry (RECOMMENDED)
 cd v3-flet/
+poetry install
+poetry install --with ml  # For real STT (NeMo/PyTorch)
+poetry shell
+
+# Alternative: Manual venv setup (if Poetry not available)
 python -m venv .venv
 source .venv/bin/activate  # Linux/WSL
 # OR: .venv\Scripts\activate  # Windows
 pip install -r requirements-v3.txt
 
+# Check ML stack (NEW)
+python ml_stack_check.py
+
 # Run v3 app
-python main.py
+poetry run python main.py
+# OR: python main.py  (if in poetry shell or venv)
 
 # Run v3 tests
-python run_tests.py
-python test_injection.py  # Test text injection specifically
+poetry run python run_tests.py
+poetry run python test_injection.py  # Test text injection specifically
+poetry run python test_stt_integration.py  # Test STT integration
 
 # Package v3 (when mature)
-pyinstaller --onefile --windowed main.py
+poetry run pyinstaller --onefile --windowed main.py
 ```
+
+**STT Configuration**: 
+- Default: Real STT (requires ML deps)
+- Testing: Set `"use_mock_stt": true` in config.json
+
+**IMPORTANT**: Never use `--break-system-packages`. Use Poetry or virtual environments to avoid breaking system Python.
 
 ### For v2 (DEPRECATED - DO NOT USE)
 ```bash
@@ -230,20 +250,35 @@ v3 must achieve:
 - All v2 features working
 - <100MB executable
 
-## Current Work (Week 2 - Critical Foundation)
+## Current Work (July 26, 2025 - Reality Check)
 
-**Migration Progress**: 35% Complete  
-**Current Phase**: Enhanced application detection and multi-strategy text injection
+**ACTUAL Migration Progress**: 15-20% Complete (Functional System)
+**Previous Estimate**: 35% was based on file count, not working functionality
 
-**Active Development Tasks**:
-1. ⭐⭐⭐ **Enhanced Application Detection** - Port from `personalparakeet/application_detection_enhanced.py` 
-2. ⭐⭐⭐ **Multi-Strategy Text Injection** - Complete injection system beyond basic keyboard simulation
-3. ⭐⭐⭐ **Configuration Profiles** - Runtime switching without restart
+### Realistic Progress Assessment:
+- **Foundation**: 60% complete (Flet UI structure, basic architecture)
+- **Core Features**: 25% complete (some components ported but not integrated)
+- **Advanced Features**: 5% complete (mostly placeholders)
+- **Overall Functional System**: **15-20% complete**
 
-**Key Files Currently Being Worked On**:
-- `v3-flet/core/application_detector.py` (needs creation)
-- `v3-flet/core/injection_manager.py` (needs enhancement)
-- `v3-flet/config.py` (needs profile support)
+### What Actually Works ✅:
+- Clarity Engine (fully ported from v2)
+- VAD Engine (fully ported from v2)
+- Basic Flet UI components and theme
+- Enhanced Injection Manager (recently added, needs verification)
+
+### Recently Completed ✅ (July 26, 2025):
+- **Real STT Integration** - NeMo/PyTorch integration with smart fallback
+- **STT Factory Pattern** - Dynamic loading with error handling
+- **CUDA Compatibility** - RTX 5090 detection and fixes
+- **ML Dependencies** - Poetry optional group configuration
+
+### Still Missing/Incomplete ❌:
+- **Audio Pipeline** - basic structure but needs end-to-end testing
+- **Application Detection** - file exists but functionality unverified
+- **End-to-End Testing** - no proven full pipeline functionality
+
+**Current Phase**: Foundation building - need working STT integration before claiming higher completion
 
 See [V3_FEATURE_MIGRATION_STATUS.md](docs/V3_FEATURE_MIGRATION_STATUS.md) for detailed progress tracking.
 
