@@ -1,12 +1,12 @@
-# PersonalParakeet
+# PersonalParakeet 🦜
 
-> ⚠️ **IMPORTANT**: PersonalParakeet is undergoing a major architectural refactor. 
-> - **v2 (Tauri/WebSocket)** - Current version has critical architectural issues
-> - **v3 (Flet)** - In active development, see [Implementation Plan](docs/Flet_Refactor_Implementation_Plan.md)
+> 🚀 **v3.0-alpha Available!** PersonalParakeet has been completely rewritten with a modern single-process architecture.
+> - **v2 (Deprecated)** - Tauri/WebSocket version with architectural issues
+> - **v3 (Active)** - Flet-based solution with enhanced features - [See Current Status](v3-flet/docs/CURRENT_V3_STATUS.md)
 > 
-> For the rationale behind this change, see [Architecture Decision Record](docs/Architecture_Decision_Record_Flet.md).
+> For the architectural decisions, see [Architecture Decision Record](docs/Architecture_Decision_Record_Flet.md).
 
-PersonalParakeet is a real-time dictation system featuring the **Dictation View** - a transparent, floating UI that provides live transcription feedback with real-time AI text corrections.
+PersonalParakeet is a real-time dictation system powered by NVIDIA's Parakeet-TDT 1.1B model, featuring the **Dictation View** - a transparent, floating UI that provides live transcription with AI-powered text corrections.
 
 ## 🎯 Core Innovation: The Dictation View
 
@@ -18,36 +18,44 @@ The Dictation View is a semi-transparent, always-on-top UI element that serves a
 - **Adaptive sizing** - Grows/shrinks based on content length
 - **Commit & Control** - Explicit user control over text finalization
 
-## 🚀 Quick Start
+## 🚀 Quick Start (v3)
 
 ### Prerequisites
-- **Windows 10/11** with NVIDIA GPU (RTX 3090/5090 recommended)
-- **CUDA 12.1+** drivers installed
-- **Node.js** (for Tauri UI)
-- **Rust** (for Tauri compilation)
+- **Python 3.11+**
+- **NVIDIA GPU** (recommended) or CPU-only mode
+- **CUDA 11.8+** for GPU acceleration
+- **Poetry** (recommended) or pip
 
 ### Installation
 ```bash
-# Clone and install dependencies
+# Clone repository
 git clone <repository>
-cd PersonalParakeet
-pip install -r requirements.txt
+cd PersonalParakeet/v3-flet
 
-# Install UI dependencies
-cd workshop-box-ui
-npm install
-cd ..
+# Install with Poetry (recommended)
+poetry install
+poetry install --with ml  # For real STT
+
+# Or with pip
+python -m venv .venv
+source .venv/bin/activate  # Linux/Mac
+# .venv\Scripts\activate  # Windows
+pip install -r requirements-v3.txt
 ```
 
 ### Usage
 ```bash
-# Start Dictation View (checks prerequisites automatically)
-python start_dictation_view.py
+# Check ML dependencies
+python ml_stack_check.py
 
-# Or run components separately:
-python dictation_websocket_bridge.py  # Backend
-cd dictation-view-ui && npm run tauri dev  # Frontend
+# Run the application
+poetry run python main.py
+# Or with venv: python main.py
 ```
+
+### Configuration
+- For testing without GPU: Set `"use_mock_stt": true` in config.json
+- See [ML Installation Guide](v3-flet/docs/ML_INSTALLATION_GUIDE.md) for GPU setup
 
 ## ✨ Key Features
 
@@ -91,6 +99,10 @@ Three distinct actions for text finalization:
 - **`workshop-box-ui/`** - Tauri application with React components
 - **WebSocket communication** - Real-time updates from backend
 - **Modern UI** - TypeScript + Zustand state management
+
+### Platform Support
+- **Windows**: Primary supported platform.
+- **Linux**: Initial support for KDE Wayland environments.
 
 ### Key Components
 ```

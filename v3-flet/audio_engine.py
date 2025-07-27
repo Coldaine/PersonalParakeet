@@ -14,7 +14,7 @@ from typing import Callable, Optional
 import sounddevice as sd
 import numpy as np
 
-from core.stt_processor_mock import STTProcessor  # Using mock for testing without NeMo
+from core.stt_factory import STTFactory
 from core.clarity_engine import ClarityEngine
 from core.vad_engine import VoiceActivityDetector
 from core.command_processor import CommandProcessor, create_command_processor
@@ -63,9 +63,17 @@ class AudioEngine:
         try:
             logger.info("Initializing AudioEngine...")
             
-            # Initialize STT processor
-            self.stt_processor = STTProcessor(self.config)
+            # Initialize STT processor using factory
+            logger.info("Creating STT processor using factory...")
+            self.stt_processor = STTFactory.create_stt_processor(self.config)
             await self.stt_processor.initialize()
+            
+            # Log STT info
+            stt_info = STTFactory.get_stt_info()
+            logger.info(f"STT Backend: {stt_info['backend']}")
+            if stt_info.get('cuda_available'):
+                logger.info(f"Device: {stt_info['device_name']}")
+                logger.info(f"CUDA Version: {stt_info['cuda_version']}")
             
             # Initialize Clarity Engine
             self.clarity_engine = ClarityEngine(enable_rule_based=True)

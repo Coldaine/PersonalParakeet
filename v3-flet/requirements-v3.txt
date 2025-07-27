@@ -1,31 +1,27 @@
-# PersonalParakeet v3 - Flet Architecture Dependencies
-# Simplified dependency list for single-process architecture
-
-# Core Flet framework
+# PersonalParakeet v3 Dependencies
+# Core Flet UI framework
 flet>=0.21.0
 
 # Audio processing
 sounddevice>=0.4.6
 numpy>=1.24.0
+scipy>=1.10.0
+soundfile>=0.12.0
 
-# STT Model (NeMo/Parakeet)
-torch>=2.0.0
-nemo_toolkit[asr]>=1.19.0
+# Optional: Alternative audio (fallback)
+pyaudio>=0.2.11
 
-# Text Injection (Windows)
-keyboard>=0.13.5
-pywin32>=306
-pyperclip>=1.8.2
+# Configuration and utilities
+python-dotenv>=1.0.0
+dataclasses-json>=0.6.0
 
-# CUDA support (RTX 5090 compatibility)
-# These are automatically handled by PyTorch CUDA installation
+# ML dependencies for real STT (optional - install manually if needed)
+# Note: These are heavy dependencies requiring CUDA setup
+# To install: pip install nemo-toolkit[asr] torch torchaudio --index-url https://download.pytorch.org/whl/cu118
+# nemo-toolkit[asr]>=1.23.0
+# torch>=2.1.0
+# torchaudio>=2.1.0
 
-# Optional: Development and testing
+# Development and testing
 pytest>=7.0.0
 pytest-asyncio>=0.21.0
-
-# Optional: Packaging and distribution
-pyinstaller>=5.0
-
-# Note: Removed all WebSocket, Tauri, Node.js, and React dependencies
-# The v3 architecture is Python-only with Flet for UI

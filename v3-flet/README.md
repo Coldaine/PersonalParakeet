@@ -14,47 +14,84 @@ PersonalParakeet v3 is a complete rewrite of the dictation system using Flet for
 ## Prerequisites
 
 - Python 3.11 or higher
-- CUDA-compatible GPU (recommended for best performance)
+- CUDA-compatible GPU (recommended for real-time STT)
+- NeMo toolkit and PyTorch (for real STT - see ML Installation Guide)
 
 ## Setup
 
-### 1. Create a Virtual Environment
+### Option 1: Using Poetry (Recommended)
+
+```bash
+# Install Poetry if not already installed
+curl -sSL https://install.python-poetry.org | python3 -
+
+# Install core dependencies (runs with mock STT)
+poetry install
+
+# Activate the environment
+poetry shell
+
+# For real STT with NeMo/PyTorch (recommended)
+poetry install --with ml
+
+# For GPU support, also run:
+poetry run pip install torch torchvision torchaudio --index-url https://download.pytorch.org/whl/cu118
+```
+
+### Option 2: Using Virtual Environment
 
 ```bash
 # Create virtual environment
-python -m venv v3-flet-env
+python -m venv .venv
 
 # Activate virtual environment
 # On Windows:
-v3-flet-env\Scripts\activate
+.venv\Scripts\activate
 # On macOS/Linux:
-source v3-flet-env/bin/activate
-```
+source .venv/bin/activate
 
-### 2. Install Dependencies
-
-```bash
 # Install core dependencies
 pip install -r requirements-v3.txt
-
-# Or install with Flet support using pyproject.toml
-pip install -e .[flet]
 ```
 
-### 3. Install PyTorch with CUDA Support
+**⚠️ Important**: Never use `--break-system-packages`. Always use Poetry or virtual environments.
 
-For RTX 5090 and other modern GPUs, install the latest PyTorch:
+### PyTorch with CUDA Support (Optional)
+
+For RTX 5090 and other modern GPUs:
 
 ```bash
+# With Poetry
+poetry add torch torchvision torchaudio --source https://download.pytorch.org/whl/nightly/cu128
+
+# With pip in venv
 pip3 install --pre torch torchvision torchaudio --index-url https://download.pytorch.org/whl/nightly/cu128
 ```
 
 ## Running the Application
 
 ```bash
-# Run the main application
+# With Poetry
+poetry run python main.py
+
+# With activated venv
 python main.py
 ```
+
+### First Run
+
+1. **Check ML Stack**: Verify your ML dependencies are properly installed:
+   ```bash
+   python ml_stack_check.py
+   ```
+
+2. **Configure STT Mode**: 
+   - For real STT (default): Ensure NeMo is installed
+   - For mock STT (testing): Set `"use_mock_stt": true` in config.json
+
+3. **Launch**: The app will show a clear error if ML dependencies are missing
+
+See [docs/ML_INSTALLATION_GUIDE.md](docs/ML_INSTALLATION_GUIDE.md) for detailed ML setup instructions.
 
 ## Project Structure
 
@@ -64,7 +101,10 @@ v3-flet/
 ├── config.py            # Configuration system
 ├── audio_engine.py      # Audio processing pipeline
 ├── core/                # Core processing modules
-│   ├── stt_processor.py # Speech-to-text processing
+│   ├── stt_processor.py # Real STT with NeMo/Parakeet
+│   ├── stt_processor_mock.py # Mock STT for testing
+│   ├── stt_factory.py   # STT factory with fallback
+│   ├── cuda_compatibility.py # CUDA/GPU detection
 │   ├── clarity_engine.py # Text correction engine
 │   ├── vad_engine.py    # Voice activity detection
 │   ├── command_processor.py # Voice command processing
@@ -85,21 +125,27 @@ The application uses a dataclass-based configuration system. Default settings ar
 ### Running Tests
 
 ```bash
-# Run all tests
-python -m pytest tests/
+# With Poetry
+poetry run pytest tests/
+poetry run pytest tests/test_command_processor.py
 
-# Run specific test
+# With activated venv
+python -m pytest tests/
 python -m pytest tests/test_command_processor.py
 ```
 
 ### Code Formatting
 
 ```bash
-# Format code with Black
-black .
+# With Poetry
+poetry run black .
+poetry run isort .
+poetry run mypy .
 
-# Sort imports with isort
+# With activated venv (after installing dev dependencies)
+black .
 isort .
+mypy .
 ```
 
 ## Troubleshooting

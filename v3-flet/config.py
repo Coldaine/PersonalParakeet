@@ -21,6 +21,12 @@ class AudioConfig:
     chunk_size: int = 8000  # 0.5s chunks for responsive processing
     device_index: Optional[int] = None
     silence_threshold: float = 0.01
+    
+    # STT-specific configuration
+    use_mock_stt: bool = False  # Force mock STT even if NeMo is available
+    stt_device: str = "cuda"  # Device for STT: "cuda" or "cpu"
+    stt_model_path: Optional[str] = None  # Path to cached model file
+    stt_audio_threshold: float = 0.01  # Threshold for filtering silent chunks
 
 
 @dataclass
@@ -112,6 +118,12 @@ class V3Config:
             self.audio.sample_rate = audio_data.get('sample_rate', self.audio.sample_rate)
             self.audio.device_index = audio_data.get('audio_device_index')  # Legacy key
             self.audio.silence_threshold = audio_data.get('silence_threshold', self.audio.silence_threshold)
+            
+            # STT configuration
+            self.audio.use_mock_stt = audio_data.get('use_mock_stt', self.audio.use_mock_stt)
+            self.audio.stt_device = audio_data.get('stt_device', self.audio.stt_device)
+            self.audio.stt_model_path = audio_data.get('stt_model_path', self.audio.stt_model_path)
+            self.audio.stt_audio_threshold = audio_data.get('stt_audio_threshold', self.audio.stt_audio_threshold)
         
         # Update VAD config
         if 'vad' in data:

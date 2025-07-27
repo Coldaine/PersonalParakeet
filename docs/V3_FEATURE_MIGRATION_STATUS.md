@@ -42,7 +42,7 @@ This document tracks the comprehensive migration of all PersonalParakeet v2 feat
 | **Thought Linking** | ✅ Working | ❌ **Not Started** | ⭐⭐ High | Medium | **Week 3** |
 | **Enhanced Audio Devices** | ✅ Working | ❌ **Not Started** | ⭐⭐ High | Medium | **Week 3** |
 | **Enhanced Dictation System** | ✅ Working | ❌ **Not Started** | ⭐ Medium | Medium | **Week 4** |
-| **Linux Platform Support** | ✅ Working | ❌ **Not Started** | ⭐ Low | High | **Week 5** |
+| **Linux Platform Support** | ✅ Working | 🟡 **Partially Complete** | ⭐ Low | High | **Week 5** |
 | **GPU Management** | ✅ Working | ❌ **Not Started** | ⭐ Low | Medium | **Week 5** |
 | **Enhanced Logging** | ✅ Working | ❌ **Not Started** | ⭐ Low | Low | **Week 6** |
 
@@ -212,15 +212,17 @@ success = config_manager.update_config(updates)
 
 ### **8. Linux Platform Support** ⭐
 **v2 Sources**: `personalparakeet/linux_injection.py`, `personalparakeet/linux_clipboard_manager.py`, `personalparakeet/kde_injection.py`  
-**v3 Target**: `v3-flet/platforms/linux/`
+**v3 Target**: `v3-flet/platforms/linux/`, `personalparakeet/kde_wayland_manager.py`
 
-**Status**: ❌ Not Started  
-**Completion**: 0%
+**Status**: 🟡 Partially Complete  
+**Completion**: 30%
 
 **Key Features to Port**:
-- [ ] X11/Wayland text injection methods
+- [x] KDE Wayland text injection and window detection (`KDEWaylandManager`)
+- [ ] X11 text injection methods
 - [ ] Linux clipboard management (xclip/wl-clipboard)
-- [ ] KDE-specific injection optimizations
+- [ ] GNOME Wayland support
+- [ ] wlroots-based (Sway, Hyprland) Wayland support
 - [ ] IBus integration for complex text input
 
 **Dependencies**: Enhanced Text Injection  
