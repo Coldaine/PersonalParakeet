@@ -1,0 +1,20 @@
+{
+  "audio": {
+    "use_mock_stt": true,
+    "stt_device": "cpu",
+    "sample_rate": 44100,
+    "audio_device_index": null
+  },
+  "vad": {
+    "threshold": 0.01,
+    "pause_duration_ms": 1500  
+  },
+  "clarity": {
+    "enabled": true
+  },
+  "ui": {
+    "window_opacity": 0.9,
+    "always_on_top": true,
+    "theme_mode": "dark"
+  }
+}
