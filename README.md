@@ -1,175 +1,56 @@
 # PersonalParakeet 🦜
 
-> 🚀 **v3.0-alpha Available!** PersonalParakeet has been completely rewritten with a modern single-process architecture.
-> - **v2 (Deprecated)** - Tauri/WebSocket version with architectural issues
-> - **v3 (Active)** - Flet-based solution with enhanced features - [See Current Status](v3-flet/docs/CURRENT_V3_STATUS.md)
-> 
-> For the architectural decisions, see [Architecture Decision Record](docs/Architecture_Decision_Record_Flet.md).
+**Real-time dictation with transparent floating UI and AI-powered corrections**
 
-PersonalParakeet is a real-time dictation system powered by NVIDIA's Parakeet-TDT 1.1B model, featuring the **Dictation View** - a transparent, floating UI that provides live transcription with AI-powered text corrections.
+PersonalParakeet v3 - Complete rewrite with single-process architecture using Flet.
 
-## 🎯 Core Innovation: The Dictation View
+## Quick Start
 
-The Dictation View is a semi-transparent, always-on-top UI element that serves as a "scratchpad" for live transcription:
-
-- **Real-time feedback** - See STT output and corrections as they happen
-- **Clarity Engine** - Built-in LLM corrections for homophones and technical jargon  
-- **Glass morphism UI** - Beautiful transparent interface with blur effects
-- **Adaptive sizing** - Grows/shrinks based on content length
-- **Commit & Control** - Explicit user control over text finalization
-
-## 🚀 Quick Start (v3)
-
-### Prerequisites
-- **Python 3.11+**
-- **NVIDIA GPU** (recommended) or CPU-only mode
-- **CUDA 11.8+** for GPU acceleration
-- **Poetry** (recommended) or pip
-
-### Installation
 ```bash
-# Clone repository
+# Clone and install
 git clone <repository>
 cd PersonalParakeet/v3-flet
+poetry install --with ml
 
-# Install with Poetry (recommended)
-poetry install
-poetry install --with ml  # For real STT
-
-# Or with pip
-python -m venv .venv
-source .venv/bin/activate  # Linux/Mac
-# .venv\Scripts\activate  # Windows
-pip install -r requirements-v3.txt
-```
-
-### Usage
-```bash
-# Check ML dependencies
-python ml_stack_check.py
-
-# Run the application
+# Run
 poetry run python main.py
-# Or with venv: python main.py
 ```
 
-### Configuration
-- For testing without GPU: Set `"use_mock_stt": true` in config.json
-- See [ML Installation Guide](v3-flet/docs/ML_INSTALLATION_GUIDE.md) for GPU setup
+See [**QUICKSTART.md**](docs/QUICKSTART.md) for detailed setup instructions.
 
-## ✨ Key Features
+## Key Features
 
-### 1. Dictation View UI
-- **Transparent interface** - Glass morphism with blur effects
-- **Draggable positioning** - Move anywhere on screen
-- **Adaptive sizing** - 3-state breathing system (Compact/Standard/Extended)
-- **Connection status** - Visual indicator (green=connected, red=disconnected)
-- **Always-on-top** - Stays visible over all applications
+- 🎯 **Floating UI** - Transparent, draggable dictation window
+- 🎤 **Real-time STT** - NVIDIA Parakeet-TDT 1.1B model
+- ✨ **Clarity Engine** - Automatic text corrections
+- 🔄 **Smart Injection** - Multi-strategy text input
+- 🖥️ **Cross-platform** - Windows/Linux support
 
-### 2. Clarity Engine Integration
-Real-time text corrections powered by rule-based engine:
-- `clod code` → `claude code`
-- `cloud code` → `claude code` 
-- `get hub` → `github`
-- `pie torch` → `pytorch`
-- `dock her` → `docker`
-- `colonel` → `kernel`
-- Plus homophone corrections (`too/to`, `your/you're`, etc.)
+## Documentation
 
-### 3. Voice Activity Detection
-- **Automatic commit** - Natural pause detection triggers text injection
-- **Configurable thresholds** - Customize silence and pause detection
-- **Visual feedback** - VAD status shown in UI
+- [**QUICKSTART.md**](docs/QUICKSTART.md) - Installation and first run
+- [**ARCHITECTURE.md**](docs/ARCHITECTURE.md) - Technical design decisions
+- [**DEVELOPMENT.md**](docs/DEVELOPMENT.md) - Contributing and API reference
+- [**STATUS.md**](docs/STATUS.md) - Current progress (20% complete)
 
-### 4. Commit & Control Logic
-Three distinct actions for text finalization:
-- **Commit & Continue** - Sustained pause (>1.5s) injects text and continues
-- **Commit & Execute** - Enter key injects text + Enter press
-- **Abort & Clear** - Escape key discards all text
+## Project Status
 
-## 🏗️ Architecture
+**v3.0.0-alpha** - Core functionality working, integration in progress.
 
-### Backend (Python)
-- **`workshop_websocket_bridge.py`** - Main WebSocket server
-- **`personalparakeet/dictation.py`** - Parakeet-TDT integration  
-- **`personalparakeet/clarity_engine.py`** - Real-time text corrections
-- **`personalparakeet/vad_engine.py`** - Voice activity detection
+| Component | Status | Description |
+|-----------|---------|-------------|
+| Architecture | ✅ Complete | Single-process Flet design |
+| Audio/STT | ✅ Complete | Real-time transcription |
+| UI | ✅ Complete | Floating transparent window |
+| Text Injection | 🚧 Testing | Multi-strategy system |
+| Integration | 🚧 In Progress | End-to-end validation |
 
-### Frontend (Tauri/React)
-- **`workshop-box-ui/`** - Tauri application with React components
-- **WebSocket communication** - Real-time updates from backend
-- **Modern UI** - TypeScript + Zustand state management
+## Requirements
 
-### Platform Support
-- **Windows**: Primary supported platform.
-- **Linux**: Initial support for KDE Wayland environments.
+- Python 3.11+
+- NVIDIA GPU (recommended) or CPU mode
+- 8GB RAM minimum
 
-### Key Components
-```
-PersonalParakeet v2/
-├── workshop_websocket_bridge.py     # Main backend server
-├── start_workshop_box.py            # Unified launcher
-├── personalparakeet/                # Core package
-│   ├── dictation.py                 # Parakeet integration
-│   ├── clarity_engine.py            # Text corrections  
-│   ├── vad_engine.py                # Voice activity detection
-│   └── config_manager.py            # Configuration system
-├── workshop-box-ui/                 # Tauri frontend
-│   ├── src/components/WorkshopBox.tsx
-│   ├── src/stores/transcriptionStore.ts  
-│   └── src-tauri/                   # Rust backend
-└── docs/                            # Documentation
-```
+## License
 
-## 🔧 Configuration
-
-Configuration via `config.json`:
-```json
-{
-  "audio_device_index": null,
-  "sample_rate": 16000,
-  "vad": {
-    "custom_threshold": 0.01,
-    "pause_duration_ms": 1500
-  },
-  "clarity": {
-    "enabled": true
-  }
-}
-```
-
-## 🎮 Controls
-
-- **F4** - Toggle dictation on/off (planned)
-- **Drag** - Move Dictation View position
-- **Escape** - Abort current transcription
-- **Enter** - Commit text with execute action
-- **Natural pause** - Auto-commit after 1.5 seconds
-
-## 📊 Current Status
-
-### ✅ Working Features
-- Dictation View UI with glass morphism effects
-- Real-time transcription display  
-- Clarity Engine text corrections
-- WebSocket communication
-- Voice activity detection
-- Basic commit & control logic
-
-### 🚧 In Development  
-- Command Mode ("Parakeet Command" activation)
-- Intelligent Thought-Linking
-- Enhanced pause detection
-- Session management
-
-### 🎯 Next Steps
-1. Implement Command Mode voice activation
-2. Add Intelligent Thought-Linking for multi-sentence composition
-3. Polish UI animations and effects
-4. Add comprehensive testing suite
-
-## 💡 Innovation
-
-PersonalParakeet v2 represents a paradigm shift in dictation UX. Instead of hiding the "messiness" of real-time STT behind complex algorithms, we expose it in a beautiful, controlled interface that gives users transparency and control while delivering perfectly clean results to their applications.
-
-The Dictation View turns the inherent uncertainty of real-time speech recognition into a feature, not a bug.
+MIT License - See LICENSE file for details.

@@ -19,44 +19,52 @@ PersonalParakeet v3 is a complete rewrite of the dictation system using Flet for
 
 ## Setup
 
-### Option 1: Using Poetry (Recommended)
+### Quick Installation (Recommended)
 
 ```bash
-# Install Poetry if not already installed
+# Run the installation script
+./install.sh  # Linux/Mac
+install.bat   # Windows
+```
+
+Choose:
+- **Option 1**: Full installation with ML/CUDA support (for real STT)
+- **Option 2**: Base installation with mock STT only (for development)
+
+### Manual Installation
+
+#### Step 1: Install Prerequisites
+
+```bash
+# Install Poetry
 curl -sSL https://install.python-poetry.org | python3 -
 
-# Install core dependencies (runs with mock STT)
-poetry install
-
-# Activate the environment
-poetry shell
-
-# For real STT with NeMo/PyTorch (recommended)
-poetry install --with ml
-
-# For GPU support, also run:
-poetry run pip install torch torchvision torchaudio --index-url https://download.pytorch.org/whl/cu118
+# Install Miniconda (if not already installed)
+# Download from: https://docs.conda.io/en/latest/miniconda.html
 ```
 
-### Option 2: Using Virtual Environment
+#### Step 2: Install Dependencies
 
 ```bash
-# Create virtual environment
-python -m venv .venv
+# Install Python dependencies
+poetry install
 
-# Activate virtual environment
-# On Windows:
-.venv\Scripts\activate
-# On macOS/Linux:
-source .venv/bin/activate
-
-# Install core dependencies
-pip install -r requirements-v3.txt
+# For ML support, also create conda environment
+conda env create -f environment.yml -n personalparakeet
 ```
 
-**⚠️ Important**: Never use `--break-system-packages`. Always use Poetry or virtual environments.
+#### Step 3: Activate Environments
 
-### PyTorch with CUDA Support (Optional)
+```bash
+# For development (mock STT)
+poetry shell
+
+# For production (real STT)
+poetry shell
+conda activate personalparakeet
+```
+
+**⚠️ Important**: ML dependencies are now managed by Conda for better CUDA compatibility.
 
 For RTX 5090 and other modern GPUs:
 

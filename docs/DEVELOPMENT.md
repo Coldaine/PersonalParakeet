@@ -523,4 +523,89 @@ poetry install
 
 ---
 
+## Component Reference
+
+### Core Components
+
+#### Clarity Engine
+Real-time text correction system (<150ms latency):
+- **Homophones**: `too/to`, `your/you're`, `there/their/they're`
+- **Technical Terms**: `clod code` → `claude code`, `get hub` → `github`
+- **Programming**: `pie torch` → `pytorch`, `dock her` → `docker`
+
+#### STT Processor
+NVIDIA Parakeet-TDT 1.1B with intelligent fallback:
+```python
+# Factory pattern for STT
+stt = STTFactory.create_processor(config)
+# Returns: RealSTTProcessor (GPU/CPU) or MockSTTProcessor
+```
+
+#### VAD Engine  
+Voice activity detection with pause detection:
+- Default threshold: 0.01 RMS
+- Default pause: 1.5 seconds
+- Auto-commit on natural pauses
+
+#### Text Injection
+Multi-strategy system with automatic fallback:
+1. UI Automation (Windows - most reliable)
+2. Win32 SendInput
+3. Keyboard injection
+4. Clipboard fallback
+
+### Platform-Specific Code
+
+#### Windows
+```python
+# UI Automation (preferred)
+import uiautomation as auto
+focused = auto.GetFocusedControl()
+focused.SendKeys(text)
+
+# Win32 API fallback
+import win32api
+win32api.keybd_event(vk_code, 0, 0, 0)
+```
+
+#### Linux
+```python
+# X11 injection
+from Xlib import X, display
+display.Display().get_input_focus().focus.send_event(...)
+
+# Wayland via KDE APIs
+subprocess.run(['qdbus', 'org.kde.klipper', ...])
+```
+
+### Performance Optimization
+
+#### GPU Memory Management
+```python
+# RTX 5090 optimizations
+model.to(dtype=torch.float16)  # Use FP16
+torch.backends.cudnn.benchmark = True
+
+# Clear cache on OOM
+try:
+    result = model.transcribe(chunk)
+except torch.cuda.OutOfMemoryError:
+    torch.cuda.empty_cache()
+```
+
+#### Threading Best Practices
+```python
+# Audio producer (minimal processing)
+def audio_callback(indata, frames, time, status):
+    audio_queue.put(indata.copy())
+
+# STT consumer (heavy processing)
+def stt_worker():
+    chunk = audio_queue.get()
+    text = model.transcribe(chunk)
+    asyncio.run_coroutine_threadsafe(update_ui(text), page.loop)
+```
+
+---
+
 **Last Updated**: July 26, 2025

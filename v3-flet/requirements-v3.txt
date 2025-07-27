@@ -15,12 +15,14 @@ pyaudio>=0.2.11
 python-dotenv>=1.0.0
 dataclasses-json>=0.6.0
 
-# ML dependencies for real STT (optional - install manually if needed)
-# Note: These are heavy dependencies requiring CUDA setup
-# To install: pip install nemo-toolkit[asr] torch torchaudio --index-url https://download.pytorch.org/whl/cu118
-# nemo-toolkit[asr]>=1.23.0
-# torch>=2.1.0
-# torchaudio>=2.1.0
+# Text injection and control
+keyboard>=0.13.5
+pynput>=1.8.1
+pyperclip>=1.9.0
+
+# ML dependencies moved to Conda (see environment.yml)
+# This provides better CUDA compatibility and easier GPU management
+# To install ML dependencies: conda env create -f environment.yml -n personalparakeet
 
 # Development and testing
 pytest>=7.0.0

@@ -1,204 +1,216 @@
 # PersonalParakeet v3 - ML Installation Guide
 
-This guide covers installing the ML dependencies (PyTorch, NeMo) for real STT functionality.
+This guide covers the modern hybrid approach using Poetry for Python dependencies and Conda for ML/CUDA dependencies. This separation provides better compatibility and easier GPU management.
 
-## Quick Start
+## 🚀 Quick Start
 
-### Option 1: CPU-Only Installation (No GPU)
+### Automated Installation (Recommended)
 ```bash
 cd v3-flet/
-poetry install --with ml
+./install.sh  # Linux/Mac
+# OR
+install.bat   # Windows
 ```
 
-### Option 2: GPU Installation (Recommended)
+Choose:
+- **Option 1**: Full installation with ML/CUDA support (for real STT)
+- **Option 2**: Base installation with mock STT only (for development/testing)
+
+## 📋 Prerequisites
+
+1. **Poetry** - Python dependency management
+   ```bash
+   curl -sSL https://install.python-poetry.org | python3 -
+   ```
+
+2. **Conda** - ML/CUDA dependency management
+   - Download Miniconda: https://docs.conda.io/en/latest/miniconda.html
+   - Or Anaconda: https://www.anaconda.com/products/individual
+
+## 🔧 Manual Installation
+
+### Step 1: Install Python Dependencies
 ```bash
-cd v3-flet/
-# First, install base dependencies
-poetry install
-
-# Then install ML dependencies with CUDA support
-poetry run pip install torch torchvision torchaudio --index-url https://download.pytorch.org/whl/cu118
-poetry install --with ml
-```
-
-## Detailed Installation Instructions
-
-### 1. Check Your System
-
-First, verify your system setup:
-```bash
-python ml_stack_check.py
-```
-
-This will tell you:
-- If you have a compatible GPU
-- Current CUDA version
-- What's already installed
-- Specific recommendations for your system
-
-### 2. Installation Paths
-
-#### A. Development without GPU (CPU-Only)
-
-Best for:
-- Testing UI and non-ML features
-- Development on laptops without NVIDIA GPU
-- Initial setup and testing
-
-```bash
-# Using Poetry (recommended)
-cd v3-flet/
-poetry install --with ml
-
-# OR using pip directly
-pip install -r requirements-v3.txt
-pip install nemo-toolkit[asr] torch torchaudio --index-url https://download.pytorch.org/whl/cpu
-```
-
-**Pros:**
-- Works on any system
-- Smaller download size
-- No CUDA requirements
-
-**Cons:**
-- Slower STT processing (5-10x slower)
-- Not suitable for real-time dictation
-- Will automatically fall back to mock STT if too slow
-
-#### B. Production with GPU (CUDA)
-
-Best for:
-- Real-time dictation
-- Production deployment
-- Systems with NVIDIA GPU
-
-**Standard CUDA 11.8 Installation:**
-```bash
-# Using Poetry
 cd v3-flet/
 poetry install
-poetry run pip install torch torchvision torchaudio --index-url https://download.pytorch.org/whl/cu118
-poetry install --with ml
-
-# OR using pip directly
-pip install torch torchvision torchaudio --index-url https://download.pytorch.org/whl/cu118
-pip install nemo-toolkit[asr]
 ```
 
-**CUDA 12.1 Installation (newer GPUs):**
+This installs all non-ML dependencies:
+- Flet (UI framework)
+- Audio libraries (sounddevice, numpy, scipy)
+- Utility libraries (keyboard, pyperclip, etc.)
+
+### Step 2: Install ML Dependencies (Optional)
+
+#### Create Conda Environment
 ```bash
-pip install torch torchvision torchaudio --index-url https://download.pytorch.org/whl/cu121
-pip install nemo-toolkit[asr]
+conda env create -f environment.yml -n personalparakeet
 ```
 
-#### C. RTX 5090 Special Instructions
+This installs:
+- PyTorch with CUDA 12.1 support
+- CUDA toolkit and cuDNN
+- NeMo toolkit for speech recognition
+- Audio processing libraries optimized for CUDA
 
-The RTX 5090 requires CUDA 12.8+ which may not be in stable PyTorch yet:
-
+#### Update Existing Environment
 ```bash
-# Install PyTorch nightly with CUDA 12.8 support
-pip install --pre torch torchvision torchaudio --index-url https://download.pytorch.org/whl/nightly/cu121
-
-# Then install NeMo
-pip install nemo-toolkit[asr]
-
-# If you encounter issues, try the cuda_fix script from v2:
-python ../v2_legacy_archive/personalparakeet/cuda_fix.py
+conda env update -f environment.yml -n personalparakeet
 ```
 
-### 3. Post-Installation Verification
+## 🎯 Usage
 
-After installation, verify everything works:
-
+### For Development (Mock STT)
 ```bash
-# Check ML stack
-python ml_stack_check.py
-
-# Test STT integration
-python test_stt_integration.py
-
-# Run the main app
+# Just use Poetry
+poetry shell
 python main.py
 ```
 
-### 4. Configuration Options
+### For Production (Real STT)
+```bash
+# Activate both environments
+poetry shell
+conda activate personalparakeet
+python main.py
 
-You can control STT behavior via configuration:
+# Don't forget to update config.json:
+# Set "use_mock_stt": false
+```
 
+## 🖥️ Platform-Specific Notes
+
+### RTX 5090 / Latest GPUs
+The environment.yml includes PyTorch 2.1.2 with CUDA 12.1. For RTX 5090:
+```bash
+# May need PyTorch nightly
+conda activate personalparakeet
+pip install --pre torch torchvision torchaudio --index-url https://download.pytorch.org/whl/nightly/cu121
+```
+
+### CPU-Only Installation
+To create a CPU-only environment:
+```bash
+# Edit environment.yml and remove:
+# - pytorch-cuda=12.1
+# - cudatoolkit=12.1
+# - cudnn=8.9.2
+# - onnxruntime-gpu (change to onnxruntime)
+
+conda env create -f environment.yml -n personalparakeet-cpu
+```
+
+### WSL2 / Linux
+Ensure NVIDIA drivers are properly installed:
+```bash
+nvidia-smi  # Should show your GPU
+```
+
+## ⚙️ Configuration
+
+### config.json Settings
 ```json
 {
   "audio": {
-    "use_mock_stt": false,    // Force mock STT even if NeMo available
+    "use_mock_stt": false,    // false for real STT, true for mock
     "stt_device": "cuda",     // "cuda" or "cpu"
-    "stt_model_path": null,   // Path to local model file
+    "stt_model_path": null,   // Path to local model (optional)
     "stt_audio_threshold": 0.01
   }
 }
 ```
 
-Or via environment variables:
+### Environment Variables
 ```bash
 # Force CPU even if CUDA available
 export PERSONALPARAKEET_STT_DEVICE=cpu
 
 # Force mock STT
 export PERSONALPARAKEET_USE_MOCK_STT=true
+
+# Custom model path
+export PERSONALPARAKEET_MODEL_PATH=/path/to/model
 ```
 
-### 5. Troubleshooting
+## 🔍 Verification
 
-#### Issue: "ImportError: No module named nemo"
-**Solution:** Install ML dependencies:
+### Check Installation
 ```bash
-poetry install --with ml
-# OR
-pip install nemo-toolkit[asr]
+# Verify ML stack
+python ml_stack_check.py
+
+# Expected output for full installation:
+# ✓ Python 3.11+
+# ✓ CUDA 12.1
+# ✓ PyTorch 2.1.2
+# ✓ NeMo available
+# ✓ GPU: NVIDIA GeForce RTX ...
 ```
 
-#### Issue: "CUDA out of memory"
-**Solutions:**
-1. Use float16 precision (already implemented)
-2. Reduce batch size in configuration
-3. Close other GPU applications
-4. Use CPU mode: `config.audio.stt_device = "cpu"`
-
-#### Issue: "PyTorch not compiled with CUDA"
-**Solution:** Reinstall PyTorch with correct CUDA version:
+### Test STT
 ```bash
-# First, uninstall existing PyTorch
-pip uninstall torch torchvision torchaudio
+# Test with real microphone
+python test_live_audio.py
 
-# Then install with correct CUDA
-pip install torch torchvision torchaudio --index-url https://download.pytorch.org/whl/cu118
+# Test full pipeline
+python test_full_pipeline.py
 ```
 
-#### Issue: Mock STT being used despite NeMo installed
-**Check:**
-1. Run `python ml_stack_check.py` to verify installation
-2. Check logs for import errors
-3. Ensure `use_mock_stt` is not set to `true` in config
+## 🐛 Troubleshooting
 
-### 6. Performance Expectations
+### "No module named 'torch'"
+You're in Poetry environment but not Conda:
+```bash
+conda activate personalparakeet
+```
 
-| Configuration | Latency | Accuracy | Hardware Requirements |
-|--------------|---------|----------|----------------------|
-| Mock STT | <50ms | N/A (simulated) | None |
-| CPU Real STT | 500-2000ms | High | 8GB+ RAM |
-| GPU Real STT | 50-200ms | High | NVIDIA GPU, 4GB+ VRAM |
+### "CUDA out of memory"
+Reduce batch size or use CPU:
+```bash
+export PERSONALPARAKEET_STT_DEVICE=cpu
+```
 
-### 7. Fallback Behavior
+### "RuntimeError: CUDA error"
+Check CUDA compatibility:
+```bash
+python -c "import torch; print(torch.cuda.is_available())"
+nvidia-smi  # Check driver version
+```
 
-The STT Factory automatically falls back to mock if:
-1. NeMo is not installed
-2. Import errors occur
-3. `use_mock_stt` is set to `true`
-4. Insufficient GPU memory
+### Conda Environment Issues
+```bash
+# List environments
+conda env list
 
-This ensures the app always runs, even without ML dependencies.
+# Remove and recreate
+conda env remove -n personalparakeet
+conda env create -f environment.yml -n personalparakeet
+```
 
-## Next Steps
+## 📊 Performance Expectations
 
-1. Run `ml_stack_check.py` to verify your setup
-2. Test with `python main.py`
-3. Configure settings in `config.json` as needed
-4. For production, consider using PyInstaller with custom hooks for NeMo
+| Configuration | STT Latency | GPU Memory | Suitable For |
+|--------------|-------------|------------|--------------|
+| RTX 4090/5090 | 50-100ms | 4-6GB | Real-time dictation |
+| RTX 3060-3090 | 100-200ms | 4-6GB | Real-time dictation |
+| GTX 1660/2060 | 200-400ms | 4GB | Casual use |
+| CPU (i7/i9) | 1-5s | N/A | Development only |
+| Mock STT | <10ms | N/A | Testing/Development |
+
+## 🔗 Additional Resources
+
+- [PyTorch Installation Guide](https://pytorch.org/get-started/locally/)
+- [Conda Cheat Sheet](https://docs.conda.io/projects/conda/en/latest/user-guide/cheatsheet.html)
+- [NeMo Documentation](https://docs.nvidia.com/deeplearning/nemo/user-guide/docs/en/stable/)
+- [Poetry Documentation](https://python-poetry.org/docs/)
+
+## 💡 Tips
+
+1. **Development Workflow**: Use mock STT during UI development, switch to real STT for testing
+2. **CI/CD**: Use base installation (Poetry only) for CI pipelines
+3. **Docker**: Consider using NVIDIA Container Toolkit for containerized deployments
+4. **Model Caching**: First run downloads ~4GB model, subsequent runs use cache
+
+---
+
+For issues or questions, see the [main README](../README.md) or open an issue on GitHub.

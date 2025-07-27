@@ -1,46 +1,42 @@
 # Documentation Archive
 
-This directory contains historical and superseded documentation that has been consolidated into the main documentation structure.
+Historical and reference documentation organized by category.
 
 ## Structure
 
-### `/v2/` - v2-Specific Documentation
-Historical documentation related to the deprecated v2 (Tauri/WebSocket) architecture.
+### `/consolidated/` - Merged Technical Documentation
+- `TECHNICAL_REFERENCE.md` - Component specs merged into DEVELOPMENT.md
+- `KNOWLEDGE_BASE.md` - Code patterns merged into DEVELOPMENT.md  
+- `LESSONS_AND_ANTI_PATTERNS.md` - Key insights merged into ARCHITECTURE.md
 
-### `/migration/` - Migration Planning Documents  
-Original migration plans and detailed feature tracking that have been superseded by the consolidated documentation.
+### `/legacy/` - v2/v3 Migration History
+- `V2_HISTORICAL_CODE_ARCHIVE.md` - v2 code reference
+- `V3_ARCHITECTURE_AND_MIGRATION.md` - Original migration plan
+- `V3_FEATURE_MIGRATION_STATUS.md` - Detailed feature tracking
+- `V3_PROVEN_CODE_LIBRARY.md` - Code patterns library
 
-### `/historical/` - Superseded Documentation
-Status reports and documents that have been replaced by the unified documentation structure.
+### `/reference/` - Specialized Guides
+- `CONFIGURATION_GUIDE.md` - Detailed config options
+- `Clarity_Engine_Technical_Spec.md` - Engine specifications
+- `RTX 5090 CUDA Compatibility Solutions_.md` - GPU setup
+- `WAYLAND_MIGRATION_PLAN.md` - Linux platform guide
+- `LLM_REFINEMENT_EXAMPLES.md` - LLM examples
+
+### `/historical/` - Outdated Status Reports
+- `CURRENT_STATUS.md` - Old status reports
+- `CURRENT_V3_STATUS.md` - Previous v3 status
 
 ## Current Documentation
 
-For up-to-date information, see the main documentation:
-- [README.md](../README.md) - Project overview
-- [ARCHITECTURE.md](../ARCHITECTURE.md) - Technical architecture  
-- [DEVELOPMENT.md](../DEVELOPMENT.md) - Setup and development guide
-- [STATUS.md](../STATUS.md) - Current progress and roadmap
-- [TECHNICAL_REFERENCE.md](../TECHNICAL_REFERENCE.md) - Component specifications
+**Only 4 main files to maintain:**
+- [QUICKSTART.md](../QUICKSTART.md) - Getting started
+- [ARCHITECTURE.md](../ARCHITECTURE.md) - Design decisions
+- [DEVELOPMENT.md](../DEVELOPMENT.md) - Complete guide
+- [STATUS.md](../STATUS.md) - Progress tracking
 
-## Archive Contents
+## Why Archive?
 
-| File | Original Location | Superseded By | Notes |
-|------|------------------|---------------|-------|
-| `v2/V2_HISTORICAL_CODE_ARCHIVE.md` | `/docs/` | N/A | Historical reference |
-| `historical/LESSONS_AND_ANTI_PATTERNS.md` | `/docs/` | `ARCHITECTURE.md` | Key insights preserved |
-| `historical/CURRENT_STATUS.md` | `/docs/` | `STATUS.md` | Outdated status |
-| `historical/CURRENT_V3_STATUS.md` | `/v3-flet/docs/` | `STATUS.md` | Consolidated status |
-| `migration/V3_ARCHITECTURE_AND_MIGRATION.md` | `/docs/` | `ARCHITECTURE.md` | Core decisions preserved |
-| `migration/V3_FEATURE_MIGRATION_STATUS.md` | `/docs/` | `STATUS.md` | Simplified roadmap |
-| `migration/KNOWLEDGE_BASE.md` | `/docs/` | `TECHNICAL_REFERENCE.md` | Patterns preserved |
-
-## Restoration
-
-If you need to restore any archived documentation:
-
-```bash
-# Example: Restore original migration plan
-cp docs/archive/migration/V3_ARCHITECTURE_AND_MIGRATION.md docs/
-```
-
-**Note**: Archived documents may contain outdated information. Always check the current documentation first.
+- **Reduced from 25 files to 4** - 84% reduction
+- **Single source of truth** - No conflicting information
+- **Easier maintenance** - Update one place only
+- **Preserved knowledge** - Nothing lost, just organized
