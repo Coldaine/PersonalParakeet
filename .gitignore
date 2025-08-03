@@ -81,7 +81,7 @@ models/
 secrets/
 keys/
 
-# Node.js
+# Node.js (legacy - no longer used)
 node_modules/
 **/node_modules/
 npm-debug.log*
@@ -89,5 +89,19 @@ yarn-debug.log*
 yarn-error.log*
 .npm
 
-# Tauri
-src-tauri/target/
+# Poetry
+# Note: poetry.lock should be committed for applications
+
+# Conda
+miniconda.sh
+miniconda3/
+
+# PersonalParakeet specific
+*.nemo
+*.onnx
+speech_models/
+test_output/
+.personalparakeet/
+
+# Development
+.mypy_cache/
