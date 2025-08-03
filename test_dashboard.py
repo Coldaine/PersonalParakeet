@@ -126,7 +126,20 @@ class TestDashboard:
                 # Stream output
                 for line in iter(process.stdout.readline, ''):
                     if line:
-                        self.output_text.value += line
+                        # Handle carriage return for live updates
+                        if '\r' in line and not line.endswith('\n'):
+                            # Update the last line instead of appending
+                            lines = self.output_text.value.split('\n')
+                            if lines:
+                                lines[-1] = line.rstrip('\r\n')
+                                self.output_text.value = '\n'.join(lines)
+                            else:
+                                self.output_text.value = line.rstrip('\r\n')
+                        else:
+                            self.output_text.value += line
+                        
+                        # Auto-scroll to bottom
+                        self.output_text.update()
                         self.page.update()
                 
                 process.wait()
