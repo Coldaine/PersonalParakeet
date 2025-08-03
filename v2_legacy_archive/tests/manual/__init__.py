@@ -1,1 +1,0 @@
-"""Manual testing scripts for PersonalParakeet"""
