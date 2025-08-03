@@ -142,11 +142,11 @@ personalparakeet/
 2.  **Scaffold**: Create the new `src-layout` directory structure.
 
 ### Phase 2: Code Migration
-1.  **Move Files**: Relocate files from `v3-flet/` to the new `src/personalparakeet/` structure.
+1.  **Move Files**: Relocate files from the legacy structure to the new `src/personalparakeet/` structure.
 2.  **Update Imports**: Change all imports to be absolute, reflecting the new structure (e.g., `from personalparakeet.core.module import ...`).
 
 ### Phase 3: Configuration Consolidation
-1.  **Create Unified `pyproject.toml`**: Merge settings from the root and `v3-flet` `pyproject.toml` files.
+1.  **Create Unified `pyproject.toml`**: Merge settings from the root and legacy `pyproject.toml` files.
 2.  **Setup Tooling**: Configure `black`, `isort`, `ruff`, and `mypy` in the unified `pyproject.toml`.
 
 ### Phase 4: CI/CD and Documentation

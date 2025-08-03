@@ -1,51 +1,44 @@
-[build-system]
-requires = ["setuptools>=61.0"]
-build-backend = "setuptools.build_meta"
-
-[project]
-name = "personal-parakeet"
+[tool.poetry]
+name = "personalparakeet"
 version = "3.0.0"
-description = "Real-time dictation with a transparent, floating UI."
+description = "Real-time dictation system with transparent floating UI"
+authors = ["PersonalParakeet Team"]
 readme = "README.md"
-requires-python = ">=3.10"
-classifiers = [
-    "Programming Language :: Python :: 3",
-    "License :: OSI Approved :: MIT License",
-    "Operating System :: OS Independent",
+packages = [{include = "personalparakeet", from = "src"}]
+include = [
+    "src/personalparakeet/models/*.onnx",
+    "src/personalparakeet/models/*.pt",
+    "src/personalparakeet/models/*.json",
+    "src/personalparakeet/assets/**/*"
 ]
 
-dependencies = [
-    "flet>=0.21.0",
-    "sounddevice>=0.4.6",
-    "numpy>=1.24.0",
-    "torch>=2.0.0",
-    "nemo-toolkit[asr]>=1.23.0",
-    "keyboard>=0.13.5",
-    "pyperclip>=1.8.2",
-    "webrtcvad>=2.0.10",
-    "scipy>=1.10.0",
-    "librosa>=0.10.0",
-]
+[tool.poetry.dependencies]
+python = "^3.11"
+flet = "^0.28.3"
+sounddevice = "^0.4.6"
+numpy = "^1.24.0"
+scipy = "^1.10.0"
+soundfile = "^0.12.0"
+pyaudio = "^0.2.11"
+python-dotenv = "^1.0.0"
+dataclasses-json = "^0.6.0"
+keyboard = "^0.13.5"
+pynput = "^1.8.1"
+pyperclip = "^1.9.0"
+networkx = "^3.5"
 
-[project.optional-dependencies]
-windows = [
-    "pywin32>=306",
-]
-linux = [
-    "python-xlib>=0.33",
-    "pynput>=1.7.6",
-    "pyaudio>=0.2.13",
-    "dbus-next>=0.2.3",
-]
-dev = [
-    "pytest>=7.0.0",
-    "pytest-asyncio>=0.21.0",
-    "pytest-mock>=3.10.0",
-    "pyinstaller>=5.0",
-]
+[tool.poetry.group.dev.dependencies]
+pytest = "^7.0.0"
+pytest-asyncio = "^0.21.0"
+pytest-cov = "^4.0.0"
+black = "^23.0.0"
+isort = "^5.12.0"
+flake8 = "^6.0.0"
+mypy = "^1.0.0"
 
-[project.scripts]
-parakeet = "personalparakeet.v3.main:main"
+[tool.poetry.scripts]
+personalparakeet = "personalparakeet.main:main"
 
-[tool.setuptools.packages.find]
-where = ["v3-flet"]
+[build-system]
+requires = ["poetry-core"]
+build-backend = "poetry.core.masonry.api"

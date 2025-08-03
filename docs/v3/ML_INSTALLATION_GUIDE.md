@@ -6,7 +6,7 @@ This guide covers the modern hybrid approach using Poetry for Python dependencie
 
 ### Automated Installation (Recommended)
 ```bash
-cd v3-flet/
+# From project root
 ./install.sh  # Linux/Mac
 # OR
 install.bat   # Windows
@@ -31,7 +31,7 @@ Choose:
 
 ### Step 1: Install Python Dependencies
 ```bash
-cd v3-flet/
+# From project root
 poetry install
 ```
 

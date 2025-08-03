@@ -14,10 +14,10 @@ from typing import Callable, Optional
 import sounddevice as sd
 import numpy as np
 
-from core.stt_processor import STTProcessor
-from core.clarity_engine import ClarityEngine
-from core.vad_engine import VoiceActivityDetector
-from config import V3Config
+from personalparakeet.core.stt_processor import STTProcessor
+from personalparakeet.core.clarity_engine import ClarityEngine
+from personalparakeet.core.vad_engine import VoiceActivityDetector
+from personalparakeet.config import V3Config
 
 logger = logging.getLogger(__name__)
 

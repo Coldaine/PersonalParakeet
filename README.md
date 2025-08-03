@@ -17,13 +17,21 @@ PersonalParakeet v3 is a complete rewrite with a single-process architecture usi
 ## Quick Start
 
 ```bash
-# Clone and install
-git clone <repository>
-cd PersonalParakeet/v3-flet
-poetry install --with ml
+# Clone repository
+git clone <repo>
+cd PersonalParakeet
 
-# Run
-poetry run python main.py
+# Create conda environment with ML dependencies
+conda env create -f environment.yml
+conda activate personalparakeet
+
+# Install application with Poetry
+poetry install
+
+# Run application
+poetry run personalparakeet
+# or
+python -m personalparakeet
 ```
 
 See [**QUICKSTART.md**](docs/QUICKSTART.md) for detailed setup instructions.

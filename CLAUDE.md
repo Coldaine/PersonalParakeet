@@ -2,6 +2,12 @@
 
 PersonalParakeet v3: Real-time dictation system with transparent floating UI.
 
+## Hardware Requirements
+- **Physical hardware ALWAYS present** - No mock tests allowed/required
+- Real microphone, GPU, and audio hardware available at all times
+- All STT testing uses actual speech recognition models
+- No mock/stub implementations needed for hardware components
+
 ## Current Status
 - **Architecture**: Single-process Python using Flet (no WebSocket/IPC)
 - **Progress**: 20% complete (realistic assessment)
@@ -9,9 +15,11 @@ PersonalParakeet v3: Real-time dictation system with transparent floating UI.
 
 ## Key Commands
 ```bash
-cd v3-flet/
-poetry install --with ml
-poetry run python main.py
+conda activate personalparakeet
+poetry install
+poetry run personalparakeet
+# or
+python -m personalparakeet
 ```
 
 ## Architecture Constraints

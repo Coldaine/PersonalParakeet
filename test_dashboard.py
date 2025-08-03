@@ -7,8 +7,8 @@ To run this dashboard:
 1. First install flet: pip install flet
 2. Then run: python test_dashboard.py
 
-Or from v3-flet directory:
-   poetry run python ../test_dashboard.py
+Or from project root:
+   poetry run python test_dashboard.py
 """
 
 import subprocess
@@ -23,7 +23,7 @@ try:
 except ImportError:
     print("Error: flet is not installed")
     print("Install it with: pip install flet")
-    print("Or run from v3-flet directory: poetry run python ../test_dashboard.py")
+    print("Or run from project root: poetry run python test_dashboard.py")
     sys.exit(1)
 
 class TestDashboard:
@@ -32,51 +32,51 @@ class TestDashboard:
         self.output_text = None
         self.current_process = None
         self.root_dir = Path(__file__).parent
-        self.v3_dir = self.root_dir / "v3-flet"
+        self.src_dir = self.root_dir / "src" / "personalparakeet"
         
         # Define tests with descriptions
         self.tests = [
             {
                 "name": "Live Audio Monitor",
-                "script": "v3-flet/tests/utilities/test_live_audio.py",
+                "script": "src/personalparakeet/tests/utilities/test_live_audio.py",
                 "description": "Monitor microphone levels in real-time. Speak or make noise to see audio levels.",
-                "icon": ft.icons.MIC
+                "icon": ft.Icons.MIC
             },
             {
                 "name": "Full Pipeline Test",
-                "script": "v3-flet/tests/utilities/test_full_pipeline.py",
+                "script": "src/personalparakeet/tests/utilities/test_full_pipeline.py",
                 "description": "Test complete audio → STT → injection pipeline. Speak to test speech recognition.",
-                "icon": ft.icons.RECORD_VOICE_OVER
+                "icon": ft.Icons.RECORD_VOICE_OVER
             },
             {
                 "name": "Microphone Test",
-                "script": "v3-flet/tests/utilities/test_microphone.py",
+                "script": "src/personalparakeet/tests/utilities/test_microphone.py",
                 "description": "Basic microphone functionality test. Checks if microphone is accessible.",
-                "icon": ft.icons.SETTINGS_VOICE
+                "icon": ft.Icons.SETTINGS_VOICE
             },
             {
                 "name": "Window Detection",
-                "script": "v3-flet/tests/utilities/test_detector.py",
+                "script": "src/personalparakeet/tests/utilities/test_detector.py",
                 "description": "Test window/application detection. Switch between windows to test detection.",
-                "icon": ft.icons.WINDOW
+                "icon": ft.Icons.WINDOW
             },
             {
                 "name": "Text Injection",
-                "script": "v3-flet/tests/utilities/test_injection.py",
+                "script": "src/personalparakeet/tests/utilities/test_injection.py",
                 "description": "Test text injection. Position cursor in a text field before running.",
-                "icon": ft.icons.KEYBOARD
+                "icon": ft.Icons.KEYBOARD
             },
             {
                 "name": "Enhanced Injection",
-                "script": "v3-flet/tests/utilities/test_enhanced_injection.py",
+                "script": "src/personalparakeet/tests/utilities/test_enhanced_injection.py",
                 "description": "Test advanced injection strategies. Position cursor in target application.",
-                "icon": ft.icons.KEYBOARD_DOUBLE_ARROW_RIGHT
+                "icon": ft.Icons.KEYBOARD_DOUBLE_ARROW_RIGHT
             },
             {
                 "name": "Quick Injection Test",
-                "script": "v3-flet/quick_injection_test.py",
+                "script": "src/personalparakeet/quick_injection_test.py",
                 "description": "Injects test text after 3-second delay. Position cursor where you want text.",
-                "icon": ft.icons.TIMER
+                "icon": ft.Icons.TIMER
             }
         ]
     
@@ -95,17 +95,17 @@ class TestDashboard:
                 self.output_text.value = f"Running {test_script}...\n"
                 self.page.update()
                 
-                # Set up environment with v3-flet in PYTHONPATH
+                # Set up environment with src in PYTHONPATH
                 env = os.environ.copy()
-                env['PYTHONPATH'] = str(self.v3_dir) + os.pathsep + env.get('PYTHONPATH', '')
+                env['PYTHONPATH'] = str(self.root_dir / "src") + os.pathsep + env.get('PYTHONPATH', '')
                 
                 # Determine if we should use poetry
-                use_poetry = (self.v3_dir / "pyproject.toml").exists()
+                use_poetry = (self.root_dir / "pyproject.toml").exists()
                 
                 if use_poetry:
-                    # Run with poetry from v3-flet directory
+                    # Run with poetry from project root
                     cmd = ["poetry", "run", "python", str(test_path.absolute())]
-                    cwd = self.v3_dir
+                    cwd = self.root_dir
                 else:
                     # Run directly
                     cmd = [sys.executable, str(test_path)]
@@ -173,7 +173,7 @@ class TestDashboard:
                     ft.Text(test["description"], size=14),
                     ft.ElevatedButton(
                         "Run Test" if test_exists else "Test Not Found",
-                        icon=ft.icons.PLAY_ARROW if test_exists else ft.icons.ERROR,
+                        icon=ft.Icons.PLAY_ARROW if test_exists else ft.Icons.ERROR,
                         on_click=lambda e, script=test["script"]: self.run_test(script),
                         disabled=not test_exists
                     )
@@ -213,8 +213,8 @@ class TestDashboard:
             min_lines=10,
             max_lines=20,
             read_only=True,
-            color=ft.colors.GREEN_400,
-            bgcolor=ft.colors.BLACK87,
+            color=ft.Colors.GREEN_400,
+            bgcolor=ft.Colors.BLACK87,
             text_style=ft.TextStyle(font_family="Consolas, monospace")
         )
         
@@ -223,14 +223,14 @@ class TestDashboard:
                 ft.Row([
                     ft.Text("Output", size=20, weight=ft.FontWeight.BOLD),
                     ft.IconButton(
-                        icon=ft.icons.STOP,
-                        icon_color=ft.colors.RED,
+                        icon=ft.Icons.STOP,
+                        icon_color=ft.Colors.RED,
                         tooltip="Stop running test",
                         on_click=self.stop_test
                     ),
                     ft.IconButton(
-                        icon=ft.icons.CLEAR,
-                        icon_color=ft.colors.BLUE,
+                        icon=ft.Icons.CLEAR,
+                        icon_color=ft.Colors.BLUE,
                         tooltip="Clear output",
                         on_click=self.clear_output
                     )
@@ -261,7 +261,7 @@ class TestDashboard:
         
         # Instructions
         page.overlay.append(
-            ft.Snackbar(
+            ft.SnackBar(
                 content=ft.Text("👋 Welcome! Click 'Run Test' on any card to start testing."),
                 open=True
             )

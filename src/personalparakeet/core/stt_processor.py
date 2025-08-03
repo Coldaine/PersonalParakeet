@@ -14,7 +14,7 @@ from pathlib import Path
 # Import NeMo for Parakeet model
 import nemo.collections.asr as nemo_asr
 
-from config import V3Config
+from personalparakeet.config import V3Config
 from .cuda_compatibility import CUDACompatibility, get_optimal_device
 
 logger = logging.getLogger(__name__)
@@ -45,8 +45,8 @@ class STTProcessor:
             self.device = get_optimal_device(force_cpu=force_cpu)
             logger.info(f"Using device: {self.device}")
             
-            # Check for local model file
-            model_path = self.config.audio.stt_model_path
+            # Get model path from config
+            model_path = self.config.audio.get_stt_model_path()
             
             # Load Parakeet model
             if model_path and Path(model_path).exists():

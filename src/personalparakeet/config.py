@@ -10,6 +10,7 @@ import logging
 import json
 from pathlib import Path
 import threading
+import importlib.resources
 
 logger = logging.getLogger(__name__)
 
@@ -25,8 +26,12 @@ class AudioConfig:
     # STT-specific configuration
     use_mock_stt: bool = False  # Force mock STT even if NeMo is available
     stt_device: str = "cuda"  # Device for STT: "cuda" or "cpu"
-    stt_model_path: Optional[str] = None  # Path to cached model file
     stt_audio_threshold: float = 0.01  # Threshold for filtering silent chunks
+
+    def get_stt_model_path(self) -> str:
+        """Get the path to the STT model using importlib.resources."""
+        with importlib.resources.files('personalparakeet.models').joinpath('stt_model.onnx') as path:
+            return str(path)
 
 
 @dataclass
@@ -97,7 +102,11 @@ class V3Config:
     
     def _load_from_file(self):
         """Load configuration from JSON file if it exists"""
-        config_path = Path("config.json")
+        config_dir = Path.home() / ".personalparakeet"
+        config_dir.mkdir(exist_ok=True)
+        config_path = config_dir / "config.json"
+        log_path = config_dir / "personalparakeet.log"
+
         if config_path.exists():
             try:
                 with open(config_path, 'r') as f:
@@ -122,7 +131,6 @@ class V3Config:
             # STT configuration
             self.audio.use_mock_stt = audio_data.get('use_mock_stt', self.audio.use_mock_stt)
             self.audio.stt_device = audio_data.get('stt_device', self.audio.stt_device)
-            self.audio.stt_model_path = audio_data.get('stt_model_path', self.audio.stt_model_path)
             self.audio.stt_audio_threshold = audio_data.get('stt_audio_threshold', self.audio.stt_audio_threshold)
         
         # Update VAD config

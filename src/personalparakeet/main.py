@@ -12,24 +12,23 @@ from pathlib import Path
 
 import flet as ft
 
-# Add parent directory to path for imports
-sys.path.append(str(Path(__file__).parent.parent))
-
-from audio_engine import AudioEngine
-from ui.dictation_view import DictationView
-from core.clarity_engine import ClarityEngine 
-from core.vad_engine import VoiceActivityDetector
-from core.injection_manager_enhanced import EnhancedInjectionManager
-from config import V3Config
+from personalparakeet.audio_engine import AudioEngine
+from personalparakeet.ui.dictation_view import DictationView
+from personalparakeet.core.clarity_engine import ClarityEngine
+from personalparakeet.core.vad_engine import VoiceActivityDetector
+from personalparakeet.core.injection_manager_enhanced import EnhancedInjectionManager
+from personalparakeet.config import V3Config
 
 # Setup comprehensive logging
 log_format = '%(asctime)s - %(name)s - %(levelname)s - %(message)s'
+log_dir = Path.home() / '.personalparakeet'
+log_dir.mkdir(exist_ok=True)
 logging.basicConfig(
     level=logging.INFO,
     format=log_format,
     handlers=[
         logging.StreamHandler(),
-        logging.FileHandler('personalparakeet_v3.log', mode='w')  # Overwrite log each run
+        logging.FileHandler(log_dir / 'personalparakeet.log', mode='w')  # Overwrite log each run
     ]
 )
 logger = logging.getLogger(__name__)
@@ -207,7 +206,7 @@ class PersonalParakeetV3:
             logger.error(f"Error during sync cleanup: {e}")
 
 
-async def main(page: ft.Page):
+async def app_main(page: ft.Page):
     """Main Flet application entry point"""
     app = PersonalParakeetV3()
     
@@ -292,13 +291,13 @@ async def main(page: ft.Page):
         logger.error(error_details)
 
 
-def run_app():
+def main():
     """Entry point for running the Flet application"""
     logger.info("Starting PersonalParakeet v3 Flet Application")
     
     # Run the Flet app
     ft.app(
-        target=main,
+        target=app_main,
         view=ft.FLET_APP,  # Native desktop application
         port=0,  # Auto-assign available port to avoid conflicts
         assets_dir="assets"
@@ -307,7 +306,7 @@ def run_app():
 
 if __name__ == "__main__":
     try:
-        run_app()
+        main()
     except KeyboardInterrupt:
         logger.info("Application interrupted by user")
     except Exception as e:

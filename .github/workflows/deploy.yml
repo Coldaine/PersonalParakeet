@@ -29,23 +29,21 @@ jobs:
     - name: Install dependencies
       run: |
         python -m pip install --upgrade pip
-        cd v3-flet
-        pip install -r requirements-v3.txt
+        pip install poetry
+        poetry install
         pip install pyinstaller
     
     - name: Run tests before build
       run: |
-        cd v3-flet
-        python run_tests.py
+        poetry run pytest tests/
     
     - name: Build executable with PyInstaller
       run: |
-        cd v3-flet
-        pyinstaller --name PersonalParakeet-v3 --onefile --windowed --add-data "assets;assets" main.py
+        poetry run pyinstaller --name PersonalParakeet-v3 --onefile --windowed --add-data "src/personalparakeet/assets;assets" src/personalparakeet/main.py
     
     - name: Test executable
       run: |
-        cd v3-flet/dist
+        cd dist
         # Quick smoke test - just verify it starts and exits cleanly
         timeout 10 ./PersonalParakeet-v3.exe || echo "Expected timeout"
     
@@ -53,7 +51,7 @@ jobs:
       uses: actions/upload-artifact@v3
       with:
         name: PersonalParakeet-v3-Windows
-        path: v3-flet/dist/PersonalParakeet-v3.exe
+        path: dist/PersonalParakeet-v3.exe
     
     - name: Create release notes
       run: |

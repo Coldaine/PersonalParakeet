@@ -20,64 +20,57 @@ This guide provides a complete overview of the setup, development, and contribut
 
 ### 1.3. Installation
 
-This project uses **Poetry** for dependency management. It is the recommended way to set up the development environment.
+This project uses a hybrid **Conda + Poetry** setup.
 
-1.  **Install Poetry**:
-
-    ```bash
-    curl -sSL https://install.python-poetry.org | python3 -
-    ```
-
-2.  **Clone and Install Dependencies**:
+1.  **Clone and Create Conda Environment**:
 
     ```bash
     git clone <repository>
-    cd PersonalParakeet/v3-flet
-
-    # Install core dependencies (includes mock STT)
-    poetry install
-
-    # To include ML dependencies for real STT
-    poetry install --with ml
-
-    # Activate the virtual environment
-    poetry shell
+    cd PersonalParakeet
+    conda env create -f environment.yml
+    conda activate personalparakeet
     ```
 
-### 1.4. GPU/CUDA Setup
+2.  **Install Application Dependencies with Poetry**:
 
-For modern GPUs like the RTX 5090, you may need a nightly build of PyTorch:
+    ```bash
+    poetry install
+    ```
 
-```bash
-# Install PyTorch with CUDA 12.1 support
-poetry run pip install torch torchvision torchaudio --index-url https://download.pytorch.org/whl/cu121
-```
+3.  **Activate the Virtual Environment**:
+
+    ```bash
+    poetry shell
+    ```
 
 ### 1.5. ML Stack Verification
 
 After installation, verify your setup:
 
 ```bash
-python ml_stack_check.py
+python -m personalparakeet.scripts.ml_stack_check
 ```
 
 ---
 
 ## 2. Project Structure
 
-The project follows the `src-layout` structure, which is not yet fully implemented but is the goal of the ongoing refactoring.
+The project follows the standard `src-layout` structure.
 
 ```
-v3-flet/
-├── main.py
-├── config.py
-├── core/
-│   ├── stt_processor.py
-│   ├── clarity_engine.py
-│   └── ...
-├── ui/
-│   └── dictation_view.py
-└── tests/
+src/
+└── personalparakeet/
+    ├── __main__.py
+    ├── main.py
+    ├── config.py
+    ├── core/
+    │   ├── stt_processor.py
+    │   ├── clarity_engine.py
+    │   └── ...
+    ├── ui/
+    │   └── dictation_view.py
+    └── ...
+tests/
 ```
 
 ---
@@ -88,10 +81,10 @@ v3-flet/
 
 ```bash
 # With Poetry
-poetry run python main.py
+poetry run personalparakeet
 
 # Or, within an activated poetry shell
-python main.py
+python -m personalparakeet
 ```
 
 ### 3.2. Running Tests
@@ -101,7 +94,7 @@ python main.py
 poetry run pytest
 
 # Run specific tests
-poetry run pytest tests/test_audio_headless.py
+poetry run pytest tests/test_audio_engine.py
 ```
 
 ### 3.3. Code Quality

@@ -13,24 +13,23 @@ Get PersonalParakeet v3 running in under 5 minutes.
 ### 1. Clone and Setup
 
 ```bash
-git clone <repository>
-cd PersonalParakeet/v3-flet
+# Clone repository
+git clone <repo>
+cd PersonalParakeet
 
-# Option A: With Poetry (recommended)
-poetry install --with ml
+# Create conda environment with ML dependencies
+conda env create -f environment.yml
+conda activate personalparakeet
 
-# Option B: With pip
-python -m venv .venv
-source .venv/bin/activate  # Linux/Mac
-# .venv\Scripts\activate   # Windows
-pip install -r requirements-v3.txt
+# Install application with Poetry
+poetry install
 ```
 
 ### 2. Verify Installation
 
 ```bash
 # Check system compatibility
-python ml_stack_check.py
+poetry run python -m personalparakeet.scripts.ml_stack_check
 
 # Expected output:
 # ✓ Python 3.11+
@@ -42,10 +41,10 @@ python ml_stack_check.py
 
 ```bash
 # With Poetry
-poetry run python main.py
+poetry run personalparakeet
 
-# With venv activated
-python main.py
+# or with python -m
+python -m personalparakeet
 ```
 
 ## First Time Setup

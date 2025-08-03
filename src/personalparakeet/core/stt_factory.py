@@ -6,7 +6,7 @@ Provides automatic fallback to mock STT if NeMo/PyTorch are not available
 
 import logging
 from typing import TYPE_CHECKING, Union
-from config import V3Config
+from personalparakeet.config import V3Config
 
 logger = logging.getLogger(__name__)
 
