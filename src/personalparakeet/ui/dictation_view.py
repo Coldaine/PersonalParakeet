@@ -9,6 +9,8 @@ import logging
 from typing import Optional, Callable
 import flet as ft
 
+from personalparakeet.core.thought_linker import LinkingDecision
+
 logger = logging.getLogger(__name__)
 
 
@@ -18,14 +20,16 @@ class DictationView:
     Manages visual feedback for dictation state and displays recognized text
     """
     
-    def __init__(self, config):
+    def __init__(self, config, profile_manager):
         self.config = config
+        self.profile_manager = profile_manager
         self.page: Optional[ft.Page] = None
         self.main_container: Optional[ft.Container] = None
         self.status_text: Optional[ft.Text] = None
         self.recognized_text: Optional[ft.Text] = None
         self.is_recording = False
-        
+        self.settings_dialog: Optional[ft.AlertDialog] = None
+
     async def initialize(self, page: ft.Page):
         """Initialize the Flet UI components"""
         self.page = page
@@ -58,10 +62,16 @@ class DictationView:
             max_lines=3
         )
         
+        settings_button = ft.IconButton(
+            icon=ft.icons.SETTINGS,
+            icon_color=ft.colors.WHITE,
+            on_click=self.open_settings_dialog,
+        )
+
         # Main container with semi-transparent background
         self.main_container = ft.Container(
             content=ft.Column([
-                self.status_text,
+                ft.Row([self.status_text, settings_button], alignment=ft.MainAxisAlignment.SPACE_BETWEEN),
                 ft.Divider(height=1, color=ft.colors.WHITE30),
                 self.recognized_text
             ]),
@@ -73,7 +83,61 @@ class DictationView:
         
         # Add to page
         await self.page.add_async(self.main_container)
-        
+
+    async def open_settings_dialog(self, e):
+        """Open the settings dialog."""
+        self.settings_dialog = ft.AlertDialog(
+            modal=True,
+            title=ft.Text("Settings"),
+            content=self.build_settings_content(),
+            actions=[
+                ft.TextButton("Close", on_click=self.close_settings_dialog),
+            ],
+            actions_alignment=ft.MainAxisAlignment.END,
+        )
+        self.page.dialog = self.settings_dialog
+        self.settings_dialog.open = True
+        await self.page.update_async()
+
+    def build_settings_content(self) -> ft.Column:
+        """Build the content for the settings dialog."""
+        thought_linking_switch = ft.Switch(
+            label="Enable Thought Linking",
+            value=self.config.thought_linking.enabled,
+            on_change=self.toggle_thought_linking,
+        )
+
+        vad_threshold_slider = ft.Slider(
+            min=0.5,
+            max=5.0,
+            divisions=9,
+            value=self.config.vad.pause_threshold,
+            label="VAD Pause Threshold: {value}s",
+            on_change=self.update_vad_threshold,
+        )
+
+        return ft.Column(
+            [
+                thought_linking_switch,
+                vad_threshold_slider,
+            ]
+        )
+
+    async def toggle_thought_linking(self, e):
+        """Toggle the thought linking feature."""
+        self.config.thought_linking.enabled = e.data == "true"
+        self.config.save_to_file()
+
+    async def update_vad_threshold(self, e):
+        """Update the VAD pause threshold."""
+        self.config.vad.pause_threshold = float(e.data)
+        self.config.save_to_file()
+
+    async def close_settings_dialog(self, e):
+        """Close the settings dialog."""
+        self.settings_dialog.open = False
+        await self.page.update_async()
+
     async def update_status(self, status: str, color: str = ft.colors.WHITE):
         """Update the status text"""
         if self.status_text:
@@ -81,10 +145,16 @@ class DictationView:
             self.status_text.color = color
             await self.page.update_async()
             
-    async def update_text(self, text: str):
+    async def update_text(self, text: str, decision: LinkingDecision = LinkingDecision.APPEND_WITH_SPACE):
         """Update the recognized text display"""
         if self.recognized_text:
             self.recognized_text.value = text
+            if decision == LinkingDecision.START_NEW_THOUGHT:
+                self.recognized_text.color = ft.colors.CYAN
+            elif decision == LinkingDecision.START_NEW_PARAGRAPH:
+                self.recognized_text.color = ft.colors.YELLOW
+            else:
+                self.recognized_text.color = ft.colors.WHITE
             await self.page.update_async()
             
     async def set_recording(self, is_recording: bool):

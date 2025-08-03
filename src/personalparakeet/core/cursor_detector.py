@@ -1,8 +1,6 @@
 #!/usr/bin/env python3
 """
-Cursor Detector - PLACEHOLDER IMPLEMENTATION (NOT ACTIVE)
-
-This module provides cursor position detection for thought linking.
+Cursor Detector - This module provides cursor position detection for thought linking.
 To activate: Enable thought_linking in config
 
 Detects significant cursor movements to help determine if user has
@@ -12,6 +10,7 @@ moved to a different input context.
 import logging
 import platform
 import math
+import time
 from typing import Optional, Tuple, Dict, Any
 from dataclasses import dataclass
 
@@ -29,7 +28,7 @@ class CursorPosition:
 
 class CursorDetector:
     """
-    Cross-platform cursor position detection - PLACEHOLDER (NOT ACTIVE)
+    Cross-platform cursor position detection.
     
     Detects cursor movements to inform thought linking decisions.
     """
@@ -50,7 +49,9 @@ class CursorDetector:
         self._platform_initialized = False
         
         logger.info(f"CursorDetector initialized (enabled={enabled}, platform={self.platform})")
-    
+        if self.enabled:
+            self._initialize_platform()
+
     def _initialize_platform(self):
         """Initialize platform-specific dependencies"""
         if self._platform_initialized or not self.enabled:
@@ -67,26 +68,46 @@ class CursorDetector:
                 logger.warning(f"Unsupported platform for cursor detection: {self.platform}")
                 self.enabled = False
                 
-            self._platform_initialized = True
+            if self.enabled:
+                self._platform_initialized = True
         except Exception as e:
             logger.error(f"Failed to initialize cursor detection: {e}")
             self.enabled = False
-    
+
     def _init_windows(self):
         """Initialize Windows-specific dependencies"""
-        # PLACEHOLDER: Would import win32api
-        logger.debug("Windows cursor detection initialized (placeholder)")
-    
+        try:
+            import win32api
+            self._win32api = win32api
+            logger.debug("Windows cursor detection initialized")
+        except ImportError:
+            logger.warning("pywin32 not installed. Run 'pip install pywin32' for cursor detection on Windows.")
+            self.enabled = False
+
     def _init_linux(self):
         """Initialize Linux-specific dependencies"""
-        # PLACEHOLDER: Would import Xlib or similar
-        logger.debug("Linux cursor detection initialized (placeholder)")
-    
+        try:
+            from Xlib import display
+            self._display = display.Display()
+            self._screen = self._display.screen()
+            logger.debug("Linux cursor detection initialized")
+        except ImportError:
+            logger.warning("python-xlib not installed. Run 'pip install python-xlib' for cursor detection on Linux.")
+            self.enabled = False
+        except Exception as e:
+            logger.error(f"Failed to initialize Xlib for cursor detection: {e}")
+            self.enabled = False
+
     def _init_macos(self):
         """Initialize macOS-specific dependencies"""
-        # PLACEHOLDER: Would import Quartz
-        logger.debug("macOS cursor detection initialized (placeholder)")
-    
+        try:
+            import Quartz
+            self._quartz = Quartz
+            logger.debug("macOS cursor detection initialized")
+        except ImportError:
+            logger.warning("pyobjc-framework-Quartz not installed. Run 'pip install pyobjc-framework-Quartz' for cursor detection on macOS.")
+            self.enabled = False
+
     def get_cursor_position(self) -> Optional[Tuple[int, int]]:
         """
         Get current cursor position
@@ -94,34 +115,40 @@ class CursorDetector:
         Returns:
             Tuple of (x, y) coordinates if successful, None if disabled or error
         """
-        if not self.enabled:
+        if not self.enabled or not self._platform_initialized:
             return None
-            
-        self._initialize_platform()
-        
-        # PLACEHOLDER: Platform-specific implementation
-        if self.platform == "windows":
-            return self._get_position_windows()
-        elif self.platform == "linux":
-            return self._get_position_linux()
-        elif self.platform == "darwin":
-            return self._get_position_macos()
-        else:
-            return None
-    
+
+        try:
+            if self.platform == "windows":
+                return self._get_position_windows()
+            elif self.platform == "linux":
+                return self._get_position_linux()
+            elif self.platform == "darwin":
+                return self._get_position_macos()
+        except Exception as e:
+            logger.error(f"Error getting cursor position on {self.platform}: {e}")
+            self.enabled = False # Disable on error to avoid repeated failures
+        return None
+
     def _get_position_windows(self) -> Optional[Tuple[int, int]]:
         """Get cursor position on Windows"""
-        # PLACEHOLDER: Would use win32api.GetCursorPos()
+        if hasattr(self, '_win32api'):
+            return self._win32api.GetCursorPos()
         return None
-    
+
     def _get_position_linux(self) -> Optional[Tuple[int, int]]:
         """Get cursor position on Linux"""
-        # PLACEHOLDER: Would use Xlib or similar
+        if hasattr(self, '_screen'):
+            pointer = self._screen.root.query_pointer()
+            return pointer.root_x, pointer.root_y
         return None
-    
+
     def _get_position_macos(self) -> Optional[Tuple[int, int]]:
         """Get cursor position on macOS"""
-        # PLACEHOLDER: Would use Quartz.CGEventGetLocation()
+        if hasattr(self, '_quartz'):
+            event = self._quartz.CGEventCreate(None)
+            location = self._quartz.CGEventGetLocation(event)
+            return int(location.x), int(location.y)
         return None
     
     def calculate_movement_distance(self, pos1: Tuple[int, int], pos2: Tuple[int, int]) -> float:
@@ -155,7 +182,7 @@ class CursorDetector:
             self._last_position = CursorPosition(
                 x=current_pos[0],
                 y=current_pos[1],
-                timestamp=0  # Would use time.time() in real implementation
+                timestamp=time.time()
             )
             return False, 0.0
             
@@ -171,7 +198,7 @@ class CursorDetector:
             self._last_position = CursorPosition(
                 x=current_pos[0],
                 y=current_pos[1],
-                timestamp=0  # Would use time.time() in real implementation
+                timestamp=time.time()
             )
             
         return is_significant, distance

@@ -63,10 +63,8 @@ class WindowConfig:
 
 @dataclass
 class ThoughtLinkingConfig:
-    """Thought linking configuration (future feature)"""
+    """Thought linking configuration"""
     enabled: bool = True
-    similarity_threshold: float = 0.3
-    timeout_threshold: float = 30.0
 
 
 @dataclass
@@ -112,12 +110,21 @@ class V3Config:
                 with open(config_path, 'r') as f:
                     data = json.load(f)
                 self._update_from_dict(data)
+                self.validate()
                 logger.info(f"Configuration loaded from {config_path}")
-            except Exception as e:
-                logger.warning(f"Failed to load config from {config_path}: {e}")
+            except (ValueError, json.JSONDecodeError) as e:
+                logger.warning(f"Failed to load or validate config from {config_path}: {e}")
                 logger.info("Using default configuration")
         else:
             logger.info("No config file found, using defaults")
+
+    def validate(self):
+        """Validate configuration values"""
+        if not self.audio.sample_rate > 0:
+            raise ValueError("Audio sample_rate must be positive")
+        if not 0.0 <= self.window.opacity <= 1.0:
+            raise ValueError("Window opacity must be between 0.0 and 1.0")
+        logger.debug("Configuration validated successfully")
     
     def _update_from_dict(self, data: Dict[str, Any]):
         """Update configuration from dictionary"""

@@ -1,8 +1,6 @@
 #!/usr/bin/env python3
 """
-Window Detector - PLACEHOLDER IMPLEMENTATION (NOT ACTIVE)
-
-This module provides window change detection for thought linking.
+Window Detector - This module provides window change detection for thought linking.
 To activate: Enable thought_linking in config
 
 Detects when user switches between applications to help determine
@@ -11,6 +9,7 @@ if text should be linked or treated as separate contexts.
 
 import logging
 import platform
+import time
 from typing import Optional, Dict, Any
 from dataclasses import dataclass
 
@@ -29,7 +28,7 @@ class WindowInfo:
 
 class WindowDetector:
     """
-    Cross-platform window detection - PLACEHOLDER (NOT ACTIVE)
+    Cross-platform window detection.
     
     Detects active window changes to inform thought linking decisions.
     """
@@ -39,11 +38,12 @@ class WindowDetector:
         self.platform = platform.system().lower()
         self._last_window_info: Optional[WindowInfo] = None
         
-        # Platform-specific imports (lazy loaded when enabled)
         self._platform_initialized = False
         
         logger.info(f"WindowDetector initialized (enabled={enabled}, platform={self.platform})")
-    
+        if self.enabled:
+            self._initialize_platform()
+
     def _initialize_platform(self):
         """Initialize platform-specific dependencies"""
         if self._platform_initialized or not self.enabled:
@@ -60,26 +60,52 @@ class WindowDetector:
                 logger.warning(f"Unsupported platform for window detection: {self.platform}")
                 self.enabled = False
                 
-            self._platform_initialized = True
+            if self.enabled:
+                self._platform_initialized = True
         except Exception as e:
             logger.error(f"Failed to initialize window detection: {e}")
             self.enabled = False
-    
+
     def _init_windows(self):
         """Initialize Windows-specific dependencies"""
-        # PLACEHOLDER: Would import win32gui, win32process, etc.
-        logger.debug("Windows window detection initialized (placeholder)")
-    
+        try:
+            import win32gui
+            import win32process
+            import psutil
+            self._win32gui = win32gui
+            self._win32process = win32process
+            self._psutil = psutil
+            logger.debug("Windows window detection initialized")
+        except ImportError:
+            logger.warning("pywin32 and psutil not installed. Run 'pip install pywin32 psutil' for window detection on Windows.")
+            self.enabled = False
+
     def _init_linux(self):
         """Initialize Linux-specific dependencies"""
-        # PLACEHOLDER: Would check for X11/Wayland and import appropriate libs
-        logger.debug("Linux window detection initialized (placeholder)")
-    
+        try:
+            from Xlib import display, X
+            import ewmh
+            self._display = display.Display()
+            self._ewmh = ewmh.EWMH(self._display)
+            self._X = X
+            logger.debug("Linux window detection initialized")
+        except ImportError:
+            logger.warning("python-xlib and ewmh not installed. Run 'pip install python-xlib ewmh' for window detection on Linux.")
+            self.enabled = False
+        except Exception as e:
+            logger.error(f"Failed to initialize Xlib/EWMH for window detection: {e}")
+            self.enabled = False
+
     def _init_macos(self):
         """Initialize macOS-specific dependencies"""
-        # PLACEHOLDER: Would import Quartz or AppKit
-        logger.debug("macOS window detection initialized (placeholder)")
-    
+        try:
+            from AppKit import NSWorkspace
+            self._ns_workspace = NSWorkspace.sharedWorkspace()
+            logger.debug("macOS window detection initialized")
+        except ImportError:
+            logger.warning("pyobjc-framework-Cocoa not installed. Run 'pip install pyobjc-framework-Cocoa' for window detection on macOS.")
+            self.enabled = False
+
     def get_current_window(self) -> Optional[WindowInfo]:
         """
         Get information about the currently active window
@@ -87,36 +113,95 @@ class WindowDetector:
         Returns:
             WindowInfo if successful, None if disabled or error
         """
-        if not self.enabled:
+        if not self.enabled or not self._platform_initialized:
             return None
-            
-        self._initialize_platform()
-        
-        # PLACEHOLDER: Platform-specific implementation
-        if self.platform == "windows":
-            return self._get_window_windows()
-        elif self.platform == "linux":
-            return self._get_window_linux()
-        elif self.platform == "darwin":
-            return self._get_window_macos()
-        else:
-            return None
-    
+
+        try:
+            if self.platform == "windows":
+                return self._get_window_windows()
+            elif self.platform == "linux":
+                return self._get_window_linux()
+            elif self.platform == "darwin":
+                return self._get_window_macos()
+        except Exception as e:
+            logger.error(f"Error getting window info on {self.platform}: {e}")
+            self.enabled = False # Disable on error
+        return None
+
     def _get_window_windows(self) -> Optional[WindowInfo]:
         """Get active window on Windows"""
-        # PLACEHOLDER: Would use win32gui.GetForegroundWindow()
-        return None
-    
+        hwnd = self._win32gui.GetForegroundWindow()
+        if not hwnd:
+            return None
+        
+        _, pid = self._win32process.GetWindowThreadProcessId(hwnd)
+        process_name = self._psutil.Process(pid).name()
+        window_title = self._win32gui.GetWindowText(hwnd)
+        window_class = self._win32gui.GetClassName(hwnd)
+        
+        return WindowInfo(
+            process_name=process_name,
+            window_title=window_title,
+            window_class=window_class,
+            window_id=hwnd
+        )
+
     def _get_window_linux(self) -> Optional[WindowInfo]:
         """Get active window on Linux"""
-        # PLACEHOLDER: Would use X11 or Wayland APIs
-        return None
-    
+        win = self._ewmh.getActiveWindow()
+        if not win:
+            return None
+
+        pid = self._ewmh.getWmPid(win)
+        process_name = "unknown"
+        if pid:
+            try:
+                import psutil
+                process_name = psutil.Process(pid).name()
+            except (ImportError, psutil.NoSuchProcess):
+                pass # psutil might not be installed or process is gone
+
+        window_title = self._ewmh.getWmName(win).decode('utf-8', 'ignore')
+        window_class = win.get_wm_class()
+        if window_class:
+            window_class = window_class[1]
+
+        return WindowInfo(
+            process_name=process_name,
+            window_title=window_title,
+            window_class=window_class or "",
+            window_id=win.id
+        )
+
     def _get_window_macos(self) -> Optional[WindowInfo]:
         """Get active window on macOS"""
-        # PLACEHOLDER: Would use Quartz.CGWindowListCopyWindowInfo()
-        return None
-    
+        active_app = self._ns_workspace.activeApplication()
+        if not active_app:
+            return None
+
+        process_name = active_app.get('NSApplicationName', 'unknown')
+        
+        # Getting window title is more complex and requires accessibility permissions
+        # This is a simplified approach
+        window_title = ""
+        try:
+            from Quartz import CGWindowListCopyWindowInfo, kCGWindowListOptionOnScreenOnly, kCGNullWindowID
+            options = kCGWindowListOptionOnScreenOnly
+            window_list = CGWindowListCopyWindowInfo(options, kCGNullWindowID)
+            for window in window_list:
+                if window.get('kCGWindowOwnerPID') == active_app.get('NSApplicationProcessIdentifier'):
+                    window_title = window.get('kCGWindowName', '')
+                    if window_title:
+                        break
+        except Exception as e:
+            logger.warning(f"Could not get window title on macOS: {e}")
+
+        return WindowInfo(
+            process_name=process_name,
+            window_title=window_title or f"{process_name} Window",
+            app_type=active_app.get('NSApplicationBundleIdentifier', '')
+        )
+
     def has_window_changed(self) -> bool:
         """
         Check if the active window has changed since last check
