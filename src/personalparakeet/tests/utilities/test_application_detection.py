@@ -14,8 +14,8 @@ from pathlib import Path
 # Add the current directory to Python path
 sys.path.insert(0, str(Path(__file__).parent))
 
-from core.application_detector import EnhancedApplicationDetector, ApplicationType
-from core.injection_manager import InjectionManager
+from personalparakeet.core.application_detector import EnhancedApplicationDetector, ApplicationType
+from personalparakeet.core.injection_manager import InjectionManager
 
 # Setup logging
 logging.basicConfig(

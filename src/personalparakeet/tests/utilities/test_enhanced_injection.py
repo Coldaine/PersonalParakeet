@@ -12,8 +12,8 @@ from pathlib import Path
 # Add parent directory to path
 sys.path.append(str(Path(__file__).parent.parent))
 
-from core.injection_manager_enhanced import EnhancedInjectionManager
-from core.application_detector import ApplicationInfo, ApplicationType
+from personalparakeet.core.injection_manager_enhanced import EnhancedInjectionManager
+from personalparakeet.core.application_detector import ApplicationInfo, ApplicationType
 
 # Setup logging
 logging.basicConfig(

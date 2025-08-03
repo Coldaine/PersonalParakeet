@@ -6,9 +6,9 @@ Quick live test to demonstrate working PersonalParakeet v3 system
 import asyncio
 import time
 from audio_engine import AudioEngine
-from core.stt_factory import STTFactory
-from core.clarity_engine import ClarityEngine
-from core.vad_engine import VoiceActivityDetector
+from personalparakeet.core.stt_factory import STTFactory
+from personalparakeet.core.clarity_engine import ClarityEngine
+from personalparakeet.core.vad_engine import VoiceActivityDetector
 from config import V3Config
 
 async def live_stt_test():

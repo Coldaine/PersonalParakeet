@@ -5,7 +5,7 @@ Quick injection test without user input
 
 import sys
 import time
-from core.injection_manager import InjectionManager
+from personalparakeet.core.injection_manager import InjectionManager
 
 def test_injection():
     """Test the text injection manager"""

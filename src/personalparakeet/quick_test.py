@@ -26,8 +26,8 @@ def test_imports():
         logger.info("- Config: OK")
         
         # Test core imports
-        from core.stt_processor import STTProcessor
-        from core.clarity_engine import ClarityEngine
+        from personalparakeet.core.stt_processor import STTProcessor
+        from personalparakeet.core.clarity_engine import ClarityEngine
         logger.info("- Core components: OK")
         
         # Test UI imports
@@ -47,8 +47,8 @@ def test_basic_initialization():
     
     try:
         from config import V3Config
-        from core.stt_processor import STTProcessor
-        from core.clarity_engine import ClarityEngine
+        from personalparakeet.core.stt_processor import STTProcessor
+        from personalparakeet.core.clarity_engine import ClarityEngine
         
         # Test config creation
         config = V3Config()

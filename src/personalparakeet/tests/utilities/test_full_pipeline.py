@@ -18,10 +18,10 @@ logging.basicConfig(
 logger = logging.getLogger(__name__)
 
 # Import components
-from audio_engine import AudioEngine
-from core.clarity_engine import ClarityEngine
-from core.injection_manager_enhanced import injection_manager
-from config import V3Config
+from personalparakeet.audio_engine import AudioEngine
+from personalparakeet.core.clarity_engine import ClarityEngine
+from personalparakeet.core.injection_manager_enhanced import injection_manager
+from personalparakeet.config import V3Config
 
 
 def test_clarity_engine():

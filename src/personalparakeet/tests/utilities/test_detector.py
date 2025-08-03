@@ -3,7 +3,7 @@
 Quick test of application detector
 """
 
-from core.application_detector import EnhancedApplicationDetector
+from personalparakeet.core.application_detector import EnhancedApplicationDetector
 
 detector = EnhancedApplicationDetector()
 app_info = detector.detect_current_application()
