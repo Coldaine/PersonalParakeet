@@ -17,6 +17,8 @@ from personalparakeet.ui.dictation_view import DictationView
 from personalparakeet.core.clarity_engine import ClarityEngine
 from personalparakeet.core.vad_engine import VoiceActivityDetector
 from personalparakeet.core.injection_manager_enhanced import EnhancedInjectionManager
+from personalparakeet.core.thought_linker import ThoughtLinker
+from personalparakeet.core.thought_linking_integration import ThoughtLinkingIntegration
 from personalparakeet.config import V3Config
 
 # Setup comprehensive logging
@@ -68,6 +70,23 @@ class PersonalParakeetV3:
             self.injection_manager = EnhancedInjectionManager()
             logger.info("Text injection manager initialized successfully")
             
+            # Initialize thought linker
+            logger.info("Initializing thought linker...")
+            self.thought_linker = ThoughtLinker(
+                enabled=self.config.thought_linking.enabled,
+                similarity_threshold=self.config.thought_linking.similarity_threshold,
+                timeout_threshold=self.config.thought_linking.timeout_threshold
+            )
+            logger.info(f"Thought linker initialized (enabled={self.thought_linker.enabled})")
+            
+            # Initialize thought linking integration
+            logger.info("Initializing thought linking integration...")
+            self.thought_linking_integration = ThoughtLinkingIntegration(
+                self.thought_linker,
+                self.injection_manager
+            )
+            logger.info("Thought linking integration initialized successfully")
+            
             # Initialize dictation view
             logger.info("Creating dictation view...")
             self.dictation_view = DictationView(page, self.audio_engine, self.injection_manager, self.config)
@@ -82,6 +101,10 @@ class PersonalParakeetV3:
             logger.info("Starting audio processing...")
             await self.audio_engine.start()
             self.is_running = True
+            
+            # Log thought linking status
+            logger.info(f"Thought linking status: enabled={self.config.thought_linking.enabled}")
+            logger.info(f"Thought linker instance created: enabled={self.thought_linker.enabled}")
             
             logger.info("PersonalParakeet v3 initialized successfully")
             

@@ -1,0 +1,61 @@
+# PersonalParakeet Test Configuration
+
+# Hardware profiles for different test environments
+profiles:
+  high_end:
+    gpu_memory: ">8GB"
+    expected_latency: "<100ms"
+    stt_model_size: "large-v3"
+    concurrent_tests: true
+    
+  standard:
+    gpu_memory: "4-8GB"
+    expected_latency: "<200ms"
+    stt_model_size: "base"
+    concurrent_tests: false
+    
+  minimum:
+    gpu_memory: "2-4GB" 
+    expected_latency: "<500ms"
+    stt_model_size: "tiny"
+    concurrent_tests: false
+
+# Test-specific settings
+audio:
+  sample_rates: [16000, 44100, 48000]
+  channels: 1
+  chunk_duration_ms: 30
+  silence_threshold: 0.01
+  
+stt:
+  models:
+    - "openai/whisper-tiny"
+    - "openai/whisper-base"
+  languages: ["en"]
+  compute_types:
+    cuda: "float16"
+    cpu: "float32"
+  
+# Timeout settings (seconds)
+timeouts:
+  hardware_init: 5.0
+  model_load: 30.0
+  audio_capture: 2.0
+  transcription: 10.0
+  cleanup: 5.0
+
+# Performance baselines
+baselines:
+  whisper_tiny:
+    rtf: 0.1  # Real-time factor
+    memory_mb: 500
+  whisper_base:
+    rtf: 0.2
+    memory_mb: 1000
+    
+# Test data paths
+fixtures:
+  audio_samples:
+    hello_world: "fixtures/audio/hello_world.wav"
+    commands: "fixtures/audio/commands.wav"
+    continuous: "fixtures/audio/continuous_speech.wav"

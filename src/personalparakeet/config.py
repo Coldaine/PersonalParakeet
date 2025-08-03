@@ -64,7 +64,7 @@ class WindowConfig:
 @dataclass
 class ThoughtLinkingConfig:
     """Thought linking configuration (future feature)"""
-    enabled: bool = False
+    enabled: bool = True
     similarity_threshold: float = 0.3
     timeout_threshold: float = 30.0
 
@@ -72,7 +72,7 @@ class ThoughtLinkingConfig:
 @dataclass
 class CommandModeConfig:
     """Command mode configuration (future feature)"""
-    enabled: bool = False
+    enabled: bool = True
     activation_phrase: str = "parakeet command"
     confidence_threshold: float = 0.8
     timeout: float = 5.0
@@ -143,6 +143,14 @@ class V3Config:
         if 'clarity' in data:
             clarity_data = data['clarity']
             self.clarity.enabled = clarity_data.get('enabled', self.clarity.enabled)
+        
+        # Update thought linking config
+        if 'thought_linking' in data:
+            thought_linking_data = data['thought_linking']
+            self.thought_linking.enabled = thought_linking_data.get('enabled', self.thought_linking.enabled)
+            self.thought_linking.similarity_threshold = thought_linking_data.get('similarity_threshold', self.thought_linking.similarity_threshold)
+            self.thought_linking.timeout_threshold = thought_linking_data.get('timeout_threshold', self.thought_linking.timeout_threshold)
+            logger.info(f"Thought linking config loaded: enabled={self.thought_linking.enabled}")
         
         # Handle legacy config format
         if 'audio_device_index' in data:
