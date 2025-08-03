@@ -31,6 +31,7 @@ mypy = "^1.0.0"
 
 # ML dependencies removed - now managed by Conda
 # See environment.yml for PyTorch, NeMo, and CUDA dependencies
+networkx = "^3.5"
 
 [build-system]
 requires = ["poetry-core"]

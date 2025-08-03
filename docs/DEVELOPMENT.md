@@ -519,7 +519,7 @@ poetry install
 - [Architecture Decisions](ARCHITECTURE.md)
 - [Current Status](STATUS.md)  
 - [Technical Reference](TECHNICAL_REFERENCE.md)
-- [ML Installation Guide](../v3-flet/docs/ML_INSTALLATION_GUIDE.md)
+- [ML Installation Guide](v3/ML_INSTALLATION_GUIDE.md)
 
 ---
 
