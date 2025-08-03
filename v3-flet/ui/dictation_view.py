@@ -247,19 +247,10 @@ class DictationView:
     
     def _on_clear_text(self):
         """Handle clear text button (sync)"""
-        try:
-            # Use the page's event loop if available
-            if hasattr(self, 'page') and self.page:
-                self.page.run_task(self._clear_current_text())
-            else:
-                # Fallback to direct update
-                self.current_text = ""
-                self.clarity_queue = []
-                self.confidence = 0.0
-                if self.text_display:
-                    self.page.update()
-        except Exception as e:
-            logger.error(f"Error clearing text: {e}")
+        if self.page:
+            self.page.run_task(self._clear_current_text())
+        else:
+            logger.warning("Cannot clear text: Flet page not available.")
     
     def _on_toggle_command_mode(self):
         """Handle command mode toggle button (sync)"""

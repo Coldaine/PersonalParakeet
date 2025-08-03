@@ -343,6 +343,9 @@ class ThoughtLinker:
         Returns:
             Similarity score from 0.0 to 1.0
         """
+        # NOTE: This is a heuristic-based similarity score, not a deep semantic
+        # comparison. It's designed to be fast and good enough for real-time decisions.
+        
         # 1. Sequence similarity
         seq_similarity = difflib.SequenceMatcher(None, text1, text2).ratio()
         

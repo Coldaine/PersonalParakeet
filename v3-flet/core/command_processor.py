@@ -436,6 +436,20 @@ class CommandProcessor:
         """Check if a command is destructive and requires confirmation"""
         destructive_commands = {"clear_text"}
         return command_id in destructive_commands
+
+    def _execute_command(self, command_match: CommandMatch):
+        """Execute a detected command with error recovery"""
+        self.state = CommandModeState.EXECUTING_COMMAND
+
+        # Check if this is a destructive command that requires confirmation
+        if self._is_destructive_command(command_match.command_id) and self.on_confirmation_request:
+            logger.info(f"Requesting confirmation for destructive command '{command_match.command_id}'")
+            self._create_monitored_task(
+                self.on_confirmation_request(command_match.command_id, command_match.description),
+                "confirmation_request"
+            )
+        else:
+            self.execute_confirmed_command(command_match)
     
     def execute_confirmed_command(self, command_match: CommandMatch):
         """Execute a command that has been confirmed by the user"""
@@ -528,116 +542,6 @@ class CommandProcessor:
         # Mark command as processed and return to normal mode
         self.command_processed = True
         self._return_to_normal_mode()
-    
-    def _execute_command(self, command_match: CommandMatch):
-        """Execute a detected command with error recovery"""
-        self.state = CommandModeState.EXECUTING_COMMAND
-        
-        # Check if this is a destructive command that requires confirmation
-        if self._is_destructive_command(command_match.command_id):
-            # Request confirmation for destructive commands
-            if self.on_confirmation_request:
-                logger.info(f"Requesting confirmation for destructive command '{command_match.command_id}'")
-                self._create_monitored_task(
-                    self.on_confirmation_request(command_match.command_id, command_match.description),
-                    "confirmation_request"
-                )
-                # Don't execute immediately, wait for confirmation
-                # The confirmed command will be executed via execute_confirmed_command
-                return
-            else:
-                logger.info(f"Destructive command '{command_match.command_id}' detected - no confirmation callback, executing directly")
-        
-        # Execute with retry mechanism
-        max_retries = 3
-        for attempt in range(max_retries):
-            try:
-                # Store result for callback
-                self.last_command_result = {
-                    "command_id": command_match.command_id,
-                    "confidence": command_match.confidence,
-                    "original_text": command_match.original_text,
-                    "status": "success",
-                    "description": command_match.description,
-                    "attempt": attempt + 1
-                }
-                
-                # Handle specific commands with direct callbacks
-                if command_match.command_id == "commit_text" and self.on_commit_text:
-                    if asyncio.iscoroutinefunction(self.on_commit_text):
-                        self._create_monitored_task(self.on_commit_text(), "commit_text")
-                    else:
-                        self.on_commit_text()
-                elif command_match.command_id == "clear_text" and self.on_clear_text:
-                    if asyncio.iscoroutinefunction(self.on_clear_text):
-                        self._create_monitored_task(self.on_clear_text(), "clear_text")
-                    else:
-                        self.on_clear_text()
-                elif command_match.command_id == "toggle_clarity" and self.on_toggle_clarity:
-                    if asyncio.iscoroutinefunction(self.on_toggle_clarity):
-                        self._create_monitored_task(self.on_toggle_clarity(), "toggle_clarity")
-                    else:
-                        self.on_toggle_clarity()
-                elif command_match.command_id == "enable_clarity" and self.on_enable_clarity:
-                    if asyncio.iscoroutinefunction(self.on_enable_clarity):
-                        self._create_monitored_task(self.on_enable_clarity(), "enable_clarity")
-                    else:
-                        self.on_enable_clarity()
-                elif command_match.command_id == "disable_clarity" and self.on_disable_clarity:
-                    if asyncio.iscoroutinefunction(self.on_disable_clarity):
-                        self._create_monitored_task(self.on_disable_clarity(), "disable_clarity")
-                    else:
-                        self.on_disable_clarity()
-                elif command_match.command_id == "start_listening" and self.on_toggle_listening:
-                    if asyncio.iscoroutinefunction(self.on_toggle_listening):
-                        self._create_monitored_task(self.on_toggle_listening(True), "start_listening")
-                    else:
-                        self.on_toggle_listening(True)
-                elif command_match.command_id == "stop_listening" and self.on_toggle_listening:
-                    if asyncio.iscoroutinefunction(self.on_toggle_listening):
-                        self._create_monitored_task(self.on_toggle_listening(False), "stop_listening")
-                    else:
-                        self.on_toggle_listening(False)
-                
-                # Trigger general execution callback
-                if self.on_command_executed:
-                    if asyncio.iscoroutinefunction(self.on_command_executed):
-                        self._create_monitored_task(self.on_command_executed(command_match), "command_executed")
-                    else:
-                        self.on_command_executed(command_match)
-                
-                # Audio/Visual feedback for command execution
-                if self.on_audio_feedback:
-                    self._create_monitored_task(self.on_audio_feedback("command_executed"), "audio_feedback_executed")
-                
-                if self.on_visual_feedback:
-                    self._create_monitored_task(self.on_visual_feedback("command_executed"), "visual_feedback_executed")
-                
-                self.logger.info(f"Command executed: {command_match.command_id}")
-                
-                # Success, break out of retry loop
-                break
-                
-            except Exception as e:
-                self.logger.error(f"Command execution failed (attempt {attempt + 1}/{max_retries}): {e}")
-                if attempt == max_retries - 1:
-                    # Last attempt failed, store error result
-                    self.last_command_result = {
-                        "command_id": command_match.command_id,
-                        "confidence": command_match.confidence,
-                        "original_text": command_match.original_text,
-                        "status": "error",
-                        "error": str(e),
-                        "attempts": max_retries
-                    }
-                else:
-                    # Retry after a short delay
-                    time.sleep(0.1)
-        
-        # Mark command as processed and return to normal mode
-        self.command_processed = True
-        self._return_to_normal_mode()
-    
     
     def _return_to_normal_mode(self):
         """Return to normal dictation mode"""

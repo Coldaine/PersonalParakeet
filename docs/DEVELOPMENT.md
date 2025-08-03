@@ -1,611 +1,179 @@
 # PersonalParakeet v3 - Development Guide
 
-Complete setup, development, and contribution guide for PersonalParakeet v3.
+This guide provides a complete overview of the setup, development, and contribution process for PersonalParakeet v3.
 
 ---
 
-## Prerequisites
+## 1. Environment Setup
 
-- **Python 3.11+**
-- **NVIDIA GPU** (recommended for real-time STT) or CPU-only mode
-- **CUDA 11.8+** for GPU acceleration
-- **Poetry** (recommended) or pip with virtual environments
+### 1.1. Prerequisites
 
----
+-   **Python**: 3.11+ is required.
+-   **GPU**: An NVIDIA GPU is recommended for real-time STT. CPU-only mode is supported for development.
+-   **CUDA**: CUDA 11.8+ for GPU acceleration.
+-   **Poetry**: For dependency management.
 
-## Environment Setup
+### 1.2. Python Version Considerations
 
-### Option 1: Poetry (Recommended)
+-   The project targets Python 3.11+ (as specified in `.python-version`).
+-   While the system may run on newer versions like 3.13, some ML packages (like NVIDIA NeMo) have strict version compatibility requirements. It is recommended to use a Python version as close to the target as possible.
 
-```bash
-# Install Poetry if not already installed
-curl -sSL https://install.python-poetry.org | python3 -
+### 1.3. Installation
 
-# Clone and setup
-git clone <repository>
-cd PersonalParakeet/v3-flet
+This project uses **Poetry** for dependency management. It is the recommended way to set up the development environment.
 
-# Install core dependencies (includes mock STT)
-poetry install
+1.  **Install Poetry**:
 
-# For real STT with NeMo/PyTorch
-poetry install --with ml
+    ```bash
+    curl -sSL https://install.python-poetry.org | python3 -
+    ```
 
-# Activate environment
-poetry shell
-```
+2.  **Clone and Install Dependencies**:
 
-### Option 2: Virtual Environment
+    ```bash
+    git clone <repository>
+    cd PersonalParakeet/v3-flet
 
-```bash
-# Clone repository
-git clone <repository>
-cd PersonalParakeet/v3-flet
+    # Install core dependencies (includes mock STT)
+    poetry install
 
-# Create virtual environment
-python -m venv .venv
+    # To include ML dependencies for real STT
+    poetry install --with ml
 
-# Activate virtual environment
-# Linux/WSL:
-source .venv/bin/activate
-# Windows:
-.venv\Scripts\activate
+    # Activate the virtual environment
+    poetry shell
+    ```
 
-# Install dependencies
-pip install -r requirements-v3.txt
-```
+### 1.4. GPU/CUDA Setup
 
-### Option 3: GPU/CUDA Setup
-
-For RTX 5090 and other modern GPUs:
+For modern GPUs like the RTX 5090, you may need a nightly build of PyTorch:
 
 ```bash
-# With Poetry - PyTorch with CUDA 12.1
+# Install PyTorch with CUDA 12.1 support
 poetry run pip install torch torchvision torchaudio --index-url https://download.pytorch.org/whl/cu121
-
-# With pip in venv - PyTorch with CUDA 12.1  
-pip install torch torchvision torchaudio --index-url https://download.pytorch.org/whl/cu121
-
-# Then install NeMo
-poetry install --with ml
-# OR: pip install nemo-toolkit[asr]
 ```
 
-### ML Stack Verification
+### 1.5. ML Stack Verification
+
+After installation, verify your setup:
 
 ```bash
-# Check your system compatibility
 python ml_stack_check.py
-
-# Expected output:
-# ✓ GPU: NVIDIA GeForce RTX 5090 (32GB VRAM)
-# ✓ CUDA: 12.1 compatible
-# ✓ PyTorch: 2.6.0+cu121
-# ✓ NeMo: Available
-# ✓ Audio: HyperX QuadCast detected
 ```
-
-**Important**: Never use `--break-system-packages`. Always use Poetry or virtual environments.
 
 ---
 
-## Project Structure
+## 2. Project Structure
+
+The project follows the `src-layout` structure, which is not yet fully implemented but is the goal of the ongoing refactoring.
 
 ```
 v3-flet/
-├── main.py                      # Entry point - Flet app
-├── config.py                    # Dataclass configuration system
-├── audio_engine.py              # Producer-consumer audio pipeline
-├── ml_stack_check.py            # System compatibility checker
-├── pyproject.toml               # Poetry configuration
-├── requirements-v3.txt          # Pip requirements
-├── ui/                          # Flet UI components
-│   ├── dictation_view.py        # Main floating UI window
-│   ├── components.py            # Reusable UI elements
-│   └── theme.py                 # Material Design theme
-├── core/                        # Core processing modules
-│   ├── stt_processor.py         # Real STT with NeMo/Parakeet  
-│   ├── stt_processor_mock.py    # Mock STT for testing
-│   ├── stt_factory.py           # STT factory with fallback
-│   ├── cuda_compatibility.py    # CUDA/GPU detection
-│   ├── clarity_engine.py        # Text correction engine
-│   ├── vad_engine.py            # Voice activity detection
-│   ├── injection_manager.py     # Text injection strategies
-│   ├── command_processor.py     # Voice command processing
-│   └── thought_linker.py        # Multi-sentence composition
-├── tests/                       # Test suite
-│   ├── test_ui_basic.py         # Basic UI component tests
-│   ├── test_audio_headless.py   # Audio pipeline tests
-│   ├── test_stt_integration.py  # STT integration tests
-│   └── test_live_audio.py       # Live microphone tests
-└── docs/                        # v3-specific documentation
-    └── ML_INSTALLATION_GUIDE.md # Detailed ML setup
+├── main.py
+├── config.py
+├── core/
+│   ├── stt_processor.py
+│   ├── clarity_engine.py
+│   └── ...
+├── ui/
+│   └── dictation_view.py
+└── tests/
 ```
 
 ---
 
-## Development Commands
+## 3. Development Commands
 
-### Running the Application
+### 3.1. Running the Application
 
 ```bash
 # With Poetry
 poetry run python main.py
 
-# With activated venv
+# Or, within an activated poetry shell
 python main.py
-
-# Check ML dependencies first
-python ml_stack_check.py
 ```
 
-### Testing
+### 3.2. Running Tests
 
 ```bash
 # Run all tests
-poetry run pytest tests/
+poetry run pytest
 
-# Run specific test categories
-python test_ui_basic.py          # UI components (no hardware)
-python test_audio_headless.py    # Audio pipeline (no microphone)
-python test_stt_integration.py   # STT integration (requires ML)
-python test_live_audio.py        # Live microphone test (requires hardware)
-
-# Skip hardware-dependent tests
-pytest -m "not hardware"
+# Run specific tests
+poetry run pytest tests/test_audio_headless.py
 ```
 
-### Code Quality
+### 3.3. Code Quality
 
 ```bash
 # Format code
 poetry run black . --line-length 100
 poetry run isort . --profile black
 
-# Type checking
-poetry run mypy . --ignore-missing-imports
-
-# Linting
-poetry run flake8 .
-```
-
-### Packaging (When Ready)
-
-```bash
-# Create executable
-poetry run pyinstaller --onefile --windowed main.py
-
-# Test package on clean system
-# (Copy dist/main.exe to system without Python)
+# Lint and type-check
+poetry run ruff check .
+poetry run mypy .
 ```
 
 ---
 
-## Configuration
+## 4. Configuration Profiles
 
-### Configuration Files
+The system uses configuration profiles to manage different sets of parameters for various use cases. This system is currently being ported from v2.
 
-The application uses a dataclass-based configuration system:
+### 4.1. Profile Definitions
 
-**Default Configuration** (`config.py`):
-```python
-@dataclass
-class AppConfig:
-    # Audio settings
-    audio_device_index: Optional[int] = None
-    sample_rate: int = 16000
-    
-    # STT settings  
-    use_mock_stt: bool = False
-    stt_device: str = "cuda"           # "cuda" or "cpu"
-    stt_model_path: Optional[str] = None
-    
-    # VAD settings
-    vad_threshold: float = 0.01
-    pause_duration_ms: int = 1500
-    
-    # Clarity settings
-    clarity_enabled: bool = True
-    
-    # UI settings
-    window_opacity: float = 0.9
-    always_on_top: bool = True
-    theme_mode: str = "dark"
-```
+-   **Fast Conversation**: Low latency, moderate accuracy.
+-   **Balanced**: Default settings for general use.
+-   **Accurate Document**: High accuracy, higher latency.
+-   **Low-Latency**: Minimal delay, for specific real-time applications.
 
-**User Configuration** (`config.json`):
-```json
-{
-  "audio": {
-    "use_mock_stt": false,
-    "stt_device": "cuda",
-    "sample_rate": 16000,
-    "audio_device_index": null
-  },
-  "vad": {
-    "threshold": 0.01,
-    "pause_duration_ms": 1500  
-  },
-  "clarity": {
-    "enabled": true
-  },
-  "ui": {
-    "window_opacity": 0.9,
-    "always_on_top": true,
-    "theme_mode": "dark"
-  }
-}
-```
+### 4.2. Profile Management
 
-### Environment Variables
+A `ProfileManager` class in `config.py` will handle loading, saving, and switching profiles at runtime. The UI will include a dropdown to select the active profile.
 
-```bash
-# Force CPU even if CUDA available
-export PERSONALPARAKEET_STT_DEVICE=cpu
+### 4.3. Runtime Switching
 
-# Force mock STT for testing
-export PERSONALPARAKEET_USE_MOCK_STT=true
-
-# Specify custom model path
-export PERSONALPARAKEET_MODEL_PATH=/path/to/model
-```
+-   Profile switching will be thread-safe.
+-   Components (audio, VAD, etc.) will be notified of configuration changes to adapt their behavior without a restart.
 
 ---
 
-## STT Configuration Options
+## 5. Development Patterns
 
-### Mock STT (Testing/Development)
-```bash
-# Set in config.json
-{"audio": {"use_mock_stt": true}}
+### 5.1. Threading Architecture
 
-# Or environment variable
-export PERSONALPARAKEET_USE_MOCK_STT=true
-```
-- **Pros**: No ML dependencies, instant startup, predictable output
-- **Cons**: Not real transcription, limited testing value
+-   **Producer-Consumer**: The audio engine is a producer that puts audio chunks into a queue. The STT processor is a consumer that takes chunks from the queue.
+-   **Thread-Safe UI Updates**: All UI updates from background threads **must** use `asyncio.run_coroutine_threadsafe(coro, page.loop)` to avoid race conditions.
 
-### CPU STT (Compatibility)
-```bash
-# Set in config.json  
-{"audio": {"stt_device": "cpu"}}
+### 5.2. Flet UI Patterns
 
-# Or environment variable
-export PERSONALPARAKEET_STT_DEVICE=cpu
-```
-- **Pros**: Works on any system, no GPU required
-- **Cons**: 5-10x slower, not suitable for real-time use
+-   UI components are defined in the `ui/` directory.
+-   The main UI is built in the `DictationView` class.
+-   UI updates should be done asynchronously via `await page.update_async()`.
 
-### GPU STT (Production)
-```bash
-# Default configuration - requires CUDA setup
-{"audio": {"stt_device": "cuda", "use_mock_stt": false}}
-```
-- **Pros**: Real-time performance, high accuracy
-- **Cons**: Requires NVIDIA GPU, larger setup
+### 5.3. Migration Guidelines (from v2)
+
+-   **Remove WebSocket Code**: Replace `websocket.send()` with direct function calls or async UI updates.
+-   **Replace `subprocess`**: Use `threading.Thread` for background tasks.
+-   **Use Flet State**: Replace React-style state management with Flet's reactive components.
 
 ---
 
-## Development Patterns
+## 6. Troubleshooting
 
-### Threading Architecture
-
-```python
-# Audio Producer (callback thread)
-def audio_callback(indata, frames, time, status):
-    """Runs in sounddevice thread - keep minimal"""
-    if status:
-        print(f"Audio callback status: {status}")
-    audio_queue.put(indata.copy())
-
-# STT Consumer (dedicated thread)  
-def stt_worker(page):
-    """Processes audio chunks - CPU/GPU intensive"""
-    while self.running:
-        try:
-            chunk = audio_queue.get(timeout=1.0)
-            text = stt_model.transcribe(chunk)
-            
-            # Thread-safe UI update
-            asyncio.run_coroutine_threadsafe(
-                update_ui(text), page.loop
-            )
-        except queue.Empty:
-            continue
-        except Exception as e:
-            logger.error(f"STT error: {e}")
-
-# Main Thread (Flet UI)
-async def update_ui(text):
-    """All UI updates must happen in main thread"""
-    transcript_display.value = text
-    await page.update_async()
-```
-
-### Flet UI Patterns
-
-```python
-class DictationView:
-    def __init__(self, page):
-        self.page = page
-        self.transcript = ft.Text("", selectable=True)
-        self.status_icon = ft.Icon(ft.icons.CIRCLE, color=ft.colors.GREEN)
-        
-    def build(self):
-        """Build UI component tree"""
-        return ft.Container(
-            content=ft.Column([
-                self.status_icon,
-                self.transcript,
-                self._build_controls()
-            ]),
-            bgcolor=ft.colors.with_opacity(0.1, ft.colors.BLACK),
-            border_radius=10,
-            padding=20
-        )
-        
-    async def update_transcript(self, text):
-        """Thread-safe transcript update"""
-        self.transcript.value = text
-        await self.page.update_async()
-```
-
-### Configuration Loading
-
-```python
-from config import AppConfig, load_config
-
-# Load with user overrides
-config = load_config()
-
-# Access typed settings
-if config.audio.use_mock_stt:
-    stt = MockSTTProcessor()
-else:
-    stt = RealSTTProcessor(device=config.audio.stt_device)
-```
+-   **CUDA Issues**: If you see `RuntimeError: No CUDA GPUs available`, verify your PyTorch and CUDA installation. Use `nvidia-smi` and `python -c "import torch; print(torch.cuda.is_available())"` to debug.
+-   **Audio Issues**: If you have no audio input, use `python -c "import sounddevice as sd; print(sd.query_devices())"` to list devices and check permissions.
+-   **Import Errors**: Ensure you have installed all dependencies with `poetry install` and that you are in the correct virtual environment (`poetry shell`).
 
 ---
 
-## Migration Guidelines
+## 7. Contributing
 
-When porting v2 code to v3:
-
-### 1. Remove WebSocket Code
-```python
-# OLD (v2)
-await websocket.send(json.dumps({
-    "type": "transcription", 
-    "data": {"text": text}
-}))
-
-# NEW (v3)
-await dictation_view.update_transcript(text)
-```
-
-### 2. Replace Process Calls
-```python
-# OLD (v2)  
-backend_proc = subprocess.Popen([...])
-
-# NEW (v3)
-stt_thread = threading.Thread(target=self.stt_worker, daemon=True)
-stt_thread.start()
-```
-
-### 3. Use Flet Reactive State
-```python
-# OLD (v2 - React/TypeScript)
-const [transcript, setTranscript] = useState('')
-
-# NEW (v3 - Flet/Python)
-self.transcript_text = ft.Text("")
-async def update_transcript(self, text):
-    self.transcript_text.value = text
-    await self.page.update_async()
-```
-
-### 4. Preserve Business Logic
-- **Keep**: Algorithm implementations, correction rules, detection logic
-- **Change**: Integration layer, communication methods, state management
-- **Test**: Ensure same outputs for same inputs
-
----
-
-## Troubleshooting
-
-### CUDA Issues
-
-**Problem**: `RuntimeError: No CUDA GPUs available`
-```bash
-# Check CUDA installation
-nvidia-smi
-
-# Verify PyTorch CUDA
-python -c "import torch; print(torch.cuda.is_available())"
-
-# Reinstall PyTorch with correct CUDA
-pip uninstall torch torchvision torchaudio
-pip install torch torchvision torchaudio --index-url https://download.pytorch.org/whl/cu121
-```
-
-**Problem**: RTX 5090 compatibility warnings
-```bash
-# Use PyTorch nightly for latest GPU support
-pip install --pre torch torchvision torchaudio --index-url https://download.pytorch.org/whl/nightly/cu121
-```
-
-### Audio Issues
-
-**Problem**: `OSError: No Default Input Device Available`
-```bash
-# List available devices
-python -c "import sounddevice as sd; print(sd.query_devices())"
-
-# Test microphone access
-python test_live_audio.py
-```
-
-**Problem**: Permission denied (Linux)
-```bash
-# Add user to audio group
-sudo usermod -a -G audio $USER
-# Logout and login again
-```
-
-### Import Errors
-
-**Problem**: `ImportError: No module named 'nemo'`
-```bash
-# Install ML dependencies
-poetry install --with ml
-# OR: pip install nemo-toolkit[asr]
-```
-
-**Problem**: `ImportError: No module named 'flet'`
-```bash
-# Install core dependencies
-poetry install
-# OR: pip install flet>=0.28.0
-```
-
-### Performance Issues
-
-**Problem**: High memory usage
-- Check GPU memory: `nvidia-smi`
-- Use CPU mode: `export PERSONALPARAKEET_STT_DEVICE=cpu`
-- Reduce batch size in configuration
-
-**Problem**: Audio dropouts
-- Check audio queue overflow in logs
-- Reduce audio device sample rate
-- Close other audio applications
-
----
-
-## Contributing
-
-### Development Workflow
-
-1. **Fork and clone** the repository
-2. **Create feature branch**: `git checkout -b feature/my-feature`
-3. **Install dependencies**: `poetry install --with ml`
-4. **Run tests**: `poetry run pytest`
-5. **Make changes** following patterns above
-6. **Test thoroughly** including hardware tests
-7. **Format code**: `poetry run black . && poetry run isort .`
-8. **Commit and push**: Standard git workflow
-9. **Create pull request** with clear description
-
-### Code Standards
-
-- **Black formatting** with 100-character line length
-- **Type hints** for all function signatures
-- **Docstrings** for public methods
-- **Error handling** with proper logging
-- **Thread safety** for concurrent code
-
-### Testing Requirements
-
-- **Unit tests** for all new components
-- **Integration tests** for end-to-end functionality
-- **Hardware tests** must not break on systems without hardware
-- **Cross-platform testing** on Windows and Linux
-
----
-
-## References
-
-- [Architecture Decisions](ARCHITECTURE.md)
-- [Current Status](STATUS.md)  
-- [Technical Reference](TECHNICAL_REFERENCE.md)
-- [ML Installation Guide](v3/ML_INSTALLATION_GUIDE.md)
-
----
-
-## Component Reference
-
-### Core Components
-
-#### Clarity Engine
-Real-time text correction system (<150ms latency):
-- **Homophones**: `too/to`, `your/you're`, `there/their/they're`
-- **Technical Terms**: `clod code` → `claude code`, `get hub` → `github`
-- **Programming**: `pie torch` → `pytorch`, `dock her` → `docker`
-
-#### STT Processor
-NVIDIA Parakeet-TDT 1.1B with intelligent fallback:
-```python
-# Factory pattern for STT
-stt = STTFactory.create_processor(config)
-# Returns: RealSTTProcessor (GPU/CPU) or MockSTTProcessor
-```
-
-#### VAD Engine  
-Voice activity detection with pause detection:
-- Default threshold: 0.01 RMS
-- Default pause: 1.5 seconds
-- Auto-commit on natural pauses
-
-#### Text Injection
-Multi-strategy system with automatic fallback:
-1. UI Automation (Windows - most reliable)
-2. Win32 SendInput
-3. Keyboard injection
-4. Clipboard fallback
-
-### Platform-Specific Code
-
-#### Windows
-```python
-# UI Automation (preferred)
-import uiautomation as auto
-focused = auto.GetFocusedControl()
-focused.SendKeys(text)
-
-# Win32 API fallback
-import win32api
-win32api.keybd_event(vk_code, 0, 0, 0)
-```
-
-#### Linux
-```python
-# X11 injection
-from Xlib import X, display
-display.Display().get_input_focus().focus.send_event(...)
-
-# Wayland via KDE APIs
-subprocess.run(['qdbus', 'org.kde.klipper', ...])
-```
-
-### Performance Optimization
-
-#### GPU Memory Management
-```python
-# RTX 5090 optimizations
-model.to(dtype=torch.float16)  # Use FP16
-torch.backends.cudnn.benchmark = True
-
-# Clear cache on OOM
-try:
-    result = model.transcribe(chunk)
-except torch.cuda.OutOfMemoryError:
-    torch.cuda.empty_cache()
-```
-
-#### Threading Best Practices
-```python
-# Audio producer (minimal processing)
-def audio_callback(indata, frames, time, status):
-    audio_queue.put(indata.copy())
-
-# STT consumer (heavy processing)
-def stt_worker():
-    chunk = audio_queue.get()
-    text = model.transcribe(chunk)
-    asyncio.run_coroutine_threadsafe(update_ui(text), page.loop)
-```
-
----
-
-**Last Updated**: July 26, 2025
+1.  Create a feature branch.
+2.  Install dependencies: `poetry install --with dev,ml`.
+3.  Make changes, following existing code patterns.
+4.  Run tests: `poetry run pytest`.
+5.  Format and lint your code.
+6.  Create a pull request.

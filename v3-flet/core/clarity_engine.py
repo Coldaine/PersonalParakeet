@@ -27,7 +27,11 @@ class CorrectionResult:
 class ClarityEngine:
     """
     Real-time text correction engine with rule-based corrections
-    Designed for <50ms latency with rule-based corrections only
+    
+    NOTE: This is a high-speed, heuristic-based engine, not a machine learning model.
+    It uses a dictionary of common speech-to-text errors and simple contextual
+    rules to provide corrections with minimal latency, which is critical for
+    a real-time dictation experience.
     """
     
     def __init__(self, enable_rule_based: bool = True):
