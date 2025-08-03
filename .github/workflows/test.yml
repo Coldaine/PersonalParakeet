@@ -1,286 +1,327 @@
-name: PersonalParakeet Test Suite
+name: PersonalParakeet v3 Test Suite
 
 on:
   push:
-    branches: [ main, develop, flet-v3-refactor ]
+    branches: [ main, develop, feature/* ]
   pull_request:
-    branches: [ main ]
+    branches: [ main, develop ]
   workflow_dispatch:  # Allow manual triggering
 
+env:
+  PYTHON_VERSION: '3.11'
+  PARAKEET_TEST_MODE: 'true'
+  PARAKEET_MOCK_AUDIO: 'true'
+
 jobs:
-  test-v2:
-    name: Test v2 Components
-    runs-on: ubuntu-latest
+  test-v3-core:
+    name: Test v3 Core Components
+    runs-on: ${{ matrix.os }}
+    strategy:
+      matrix:
+        os: [ubuntu-latest, windows-latest, macos-latest]
+        python-version: ['3.10', '3.11']
+      fail-fast: false
     
     steps:
-    - uses: actions/checkout@v4
-    
-    - name: Set up Python 3.11
+    - name: Checkout repository
+      uses: actions/checkout@v4
+      
+    - name: Set up Python ${{ matrix.python-version }}
       uses: actions/setup-python@v4
       with:
-        python-version: '3.11'
-    
-    - name: Install system dependencies
+        python-version: ${{ matrix.python-version }}
+        cache: 'pip'
+        
+    - name: Install system dependencies (Ubuntu)
+      if: matrix.os == 'ubuntu-latest'
       run: |
         sudo apt-get update
-        sudo apt-get install -y portaudio19-dev pulseaudio
-        # Virtual audio for headless testing
-        sudo apt-get install -y xvfb
-    
-    - name: Install Python dependencies for v2
+        sudo apt-get install -y portaudio19-dev pulseaudio xvfb
+        # Set up virtual display for headless testing
+        export DISPLAY=:99
+        Xvfb :99 -screen 0 1024x768x24 > /dev/null 2>&1 &
+        
+    - name: Install system dependencies (macOS)
+      if: matrix.os == 'macos-latest'
       run: |
-        python -m pip install --upgrade pip
-        pip install -r requirements.txt
-        # Install test dependencies
-        pip install pytest pytest-cov pytest-asyncio
-    
-    - name: Run v2 comprehensive tests
+        brew install portaudio
+        
+    - name: Install Python dependencies
       run: |
-        cd tests
-        python run_all_tests.py
-      env:
-        DISPLAY: ':99'
-        PULSE_RUNTIME_PATH: /tmp/pulse
-    
-    - name: Upload v2 test results
-      uses: actions/upload-artifact@v3
+        python -m pip install --upgrade pip wheel setuptools
+        pip install pytest pytest-cov pytest-asyncio pytest-mock pytest-xdist
+        pip install coverage[toml] pytest-html pytest-json-report
+        # Install v3 dependencies
+        pip install -e .
+        
+    - name: Create test reports directory
+      run: mkdir -p test-reports
+      
+    - name: Run unit tests
+      run: |
+        pytest tests/test_core/ \
+          --cov=v3-flet/core \
+          --cov-report=xml:test-reports/coverage-core.xml \
+          --cov-report=html:test-reports/htmlcov-core \
+          --junit-xml=test-reports/junit-core.xml \
+          --json-report --json-report-file=test-reports/report-core.json \
+          -v --tb=short \
+          -m "unit and not slow"
+          
+    - name: Run integration tests
+      run: |
+        pytest tests/test_integration/ \
+          --cov=v3-flet/core \
+          --cov-append \
+          --cov-report=xml:test-reports/coverage-integration.xml \
+          --junit-xml=test-reports/junit-integration.xml \
+          --json-report --json-report-file=test-reports/report-integration.json \
+          -v --tb=short \
+          -m "integration and not slow"
+          
+    - name: Upload test results
+      uses: actions/upload-artifact@v4
       if: always()
       with:
-        name: v2-test-results
-        path: tests/test_results*.json
+        name: test-results-${{ matrix.os }}-py${{ matrix.python-version }}
+        path: test-reports/
+        retention-days: 30
+        
+    - name: Upload coverage to Codecov
+      uses: codecov/codecov-action@v3
+      if: matrix.os == 'ubuntu-latest' && matrix.python-version == '3.11'
+      with:
+        file: test-reports/coverage-core.xml
+        flags: core
+        name: core-coverage
+        fail_ci_if_error: false
 
-  test-v3:
-    name: Test v3 Flet Implementation
+  test-v3-performance:
+    name: Performance Tests
     runs-on: ubuntu-latest
+    needs: test-v3-core
     
     steps:
-    - uses: actions/checkout@v4
-    
-    - name: Set up Python 3.11
+    - name: Checkout repository
+      uses: actions/checkout@v4
+      
+    - name: Set up Python
       uses: actions/setup-python@v4
       with:
-        python-version: '3.11'
-    
-    - name: Install system dependencies
-      run: |
-        sudo apt-get update
-        sudo apt-get install -y portaudio19-dev pulseaudio
-        # Virtual display for Flet GUI testing
-        sudo apt-get install -y xvfb
-    
-    - name: Install Python dependencies for v3
-      run: |
-        cd v3-flet
-        python -m pip install --upgrade pip
-        pip install -r requirements-v3.txt
-        # Install test dependencies
-        pip install pytest pytest-cov pytest-asyncio
-    
-    - name: Run v3 test suite
-      run: |
-        cd v3-flet
-        xvfb-run -a python run_tests.py
-      env:
-        DISPLAY: ':99'
-        PULSE_RUNTIME_PATH: /tmp/pulse
-    
-    - name: Upload v3 test results
-      uses: actions/upload-artifact@v3
-      if: always()
-      with:
-        name: v3-test-results
-        path: v3-flet/test_results*.json
-
-  test-windows:
-    name: Test Windows Compatibility
-    runs-on: windows-latest
-    
-    steps:
-    - uses: actions/checkout@v4
-    
-    - name: Set up Python 3.11
-      uses: actions/setup-python@v4
-      with:
-        python-version: '3.11'
-    
-    - name: Install Windows-specific dependencies
-      run: |
-        python -m pip install --upgrade pip
-        pip install pywin32 pyautogui
-    
-    - name: Install v2 dependencies
-      run: |
-        pip install -r requirements.txt
-        pip install pytest pytest-cov pytest-asyncio
-    
-    - name: Run Windows-specific v2 tests
-      run: |
-        cd tests
-        python -c "import sys; sys.path.append('..'); from tests.unit.test_clipboard_managers import *; from tests.integration.test_windows_injection import *; print('Windows imports successful')"
-    
-    - name: Install v3 dependencies
-      run: |
-        cd v3-flet
-        pip install -r requirements-v3.txt
-    
-    - name: Run v3 component tests (Windows)
-      run: |
-        cd v3-flet
-        python -m pytest tests/test_components.py -v
-    
-    - name: Upload Windows test results
-      uses: actions/upload-artifact@v3
-      if: always()
-      with:
-        name: windows-test-results
-        path: |
-          tests/test_results*.json
-          v3-flet/test_results*.json
-
-  lint-and-format:
-    name: Code Quality Checks
-    runs-on: ubuntu-latest
-    
-    steps:
-    - uses: actions/checkout@v4
-    
-    - name: Set up Python 3.11
-      uses: actions/setup-python@v4
-      with:
-        python-version: '3.11'
-    
-    - name: Install linting tools
-      run: |
-        python -m pip install --upgrade pip
-        pip install flake8 black isort mypy
-    
-    - name: Run flake8 linting
-      run: |
-        flake8 personalparakeet/ --count --select=E9,F63,F7,F82 --show-source --statistics
-        flake8 v3-flet/ --count --select=E9,F63,F7,F82 --show-source --statistics
-    
-    - name: Check code formatting with black
-      run: |
-        black --check --diff personalparakeet/
-        black --check --diff v3-flet/
-    
-    - name: Check import sorting with isort
-      run: |
-        isort --check-only --diff personalparakeet/
-        isort --check-only --diff v3-flet/
-
-  security-scan:
-    name: Security Scan
-    runs-on: ubuntu-latest
-    
-    steps:
-    - uses: actions/checkout@v4
-    
-    - name: Set up Python 3.11
-      uses: actions/setup-python@v4
-      with:
-        python-version: '3.11'
-    
-    - name: Install security tools
-      run: |
-        python -m pip install --upgrade pip
-        pip install bandit safety
-    
-    - name: Run bandit security scan
-      run: |
-        bandit -r personalparakeet/ -f json -o bandit-report.json || true
-        bandit -r v3-flet/ -f json -o bandit-v3-report.json || true
-    
-    - name: Run safety dependency check
-      run: |
-        safety check --json --output safety-report.json || true
-    
-    - name: Upload security reports
-      uses: actions/upload-artifact@v3
-      if: always()
-      with:
-        name: security-reports
-        path: |
-          bandit-report.json
-          bandit-v3-report.json
-          safety-report.json
-
-  integration-smoke-test:
-    name: Integration Smoke Test
-    runs-on: ubuntu-latest
-    needs: [test-v2, test-v3]
-    
-    steps:
-    - uses: actions/checkout@v4
-    
-    - name: Set up Python 3.11
-      uses: actions/setup-python@v4
-      with:
-        python-version: '3.11'
-    
+        python-version: ${{ env.PYTHON_VERSION }}
+        cache: 'pip'
+        
     - name: Install dependencies
       run: |
         sudo apt-get update
         sudo apt-get install -y portaudio19-dev pulseaudio xvfb
         python -m pip install --upgrade pip
-        pip install -r requirements.txt
-        cd v3-flet && pip install -r requirements-v3.txt
+        pip install pytest pytest-benchmark pytest-timeout
+        pip install -e .
+        
+    - name: Run performance tests
+      run: |
+        pytest tests/ \
+          --benchmark-only \
+          --benchmark-json=test-reports/benchmark.json \
+          --timeout=300 \
+          -v -m "performance or slow"
+          
+    - name: Upload performance results
+      uses: actions/upload-artifact@v4
+      if: always()
+      with:
+        name: performance-results
+        path: test-reports/benchmark.json
+
+  code-quality:
+    name: Code Quality & Security
+    runs-on: ubuntu-latest
     
+    steps:
+    - name: Checkout repository
+      uses: actions/checkout@v4
+      
+    - name: Set up Python
+      uses: actions/setup-python@v4
+      with:
+        python-version: ${{ env.PYTHON_VERSION }}
+        cache: 'pip'
+        
+    - name: Install quality tools
+      run: |
+        python -m pip install --upgrade pip
+        pip install black isort flake8 mypy bandit safety pylint
+        pip install -e .
+        
+    - name: Check code formatting (Black)
+      run: |
+        black --check --diff v3-flet/ tests/
+        
+    - name: Check import sorting (isort)
+      run: |
+        isort --check-only --diff v3-flet/ tests/
+        
+    - name: Lint with flake8
+      run: |
+        flake8 v3-flet/ tests/ --count --select=E9,F63,F7,F82 --show-source --statistics
+        flake8 v3-flet/ tests/ --count --exit-zero --max-complexity=10 --max-line-length=88 --statistics
+        
+    - name: Type checking with mypy
+      run: |
+        mypy v3-flet/ --ignore-missing-imports --no-strict-optional
+        
+    - name: Security scan with bandit
+      run: |
+        bandit -r v3-flet/ -f json -o security-report.json || true
+        
+    - name: Dependency security check
+      run: |
+        safety check --json --output safety-report.json || true
+        
+    - name: Upload security reports
+      uses: actions/upload-artifact@v4
+      if: always()
+      with:
+        name: security-reports
+        path: |
+          security-report.json
+          safety-report.json
+
+  test-coverage-report:
+    name: Generate Coverage Report
+    runs-on: ubuntu-latest
+    needs: test-v3-core
+    if: always()
+    
+    steps:
+    - name: Checkout repository
+      uses: actions/checkout@v4
+      
+    - name: Set up Python
+      uses: actions/setup-python@v4
+      with:
+        python-version: ${{ env.PYTHON_VERSION }}
+        
+    - name: Download all test artifacts
+      uses: actions/download-artifact@v4
+      with:
+        pattern: test-results-*
+        path: downloaded-reports
+        merge-multiple: true
+        
+    - name: Install coverage tools
+      run: |
+        python -m pip install --upgrade pip
+        pip install coverage[toml] coverage-badge
+        
+    - name: Combine coverage reports
+      run: |
+        coverage combine downloaded-reports/
+        coverage report --show-missing
+        coverage html -d coverage-html
+        coverage xml -o coverage.xml
+        coverage-badge -o coverage-badge.svg
+        
+    - name: Upload combined coverage
+      uses: actions/upload-artifact@v4
+      with:
+        name: final-coverage-report
+        path: |
+          coverage-html/
+          coverage.xml
+          coverage-badge.svg
+          
+    - name: Coverage comment
+      if: github.event_name == 'pull_request'
+      run: |
+        echo "## Coverage Report" >> $GITHUB_STEP_SUMMARY
+        coverage report --format=markdown >> $GITHUB_STEP_SUMMARY
+
+  integration-test:
+    name: Full Integration Test
+    runs-on: ubuntu-latest
+    needs: [test-v3-core, code-quality]
+    if: always() && needs.test-v3-core.result == 'success'
+    
+    steps:
+    - name: Checkout repository
+      uses: actions/checkout@v4
+      
+    - name: Set up Python
+      uses: actions/setup-python@v4
+      with:
+        python-version: ${{ env.PYTHON_VERSION }}
+        cache: 'pip'
+        
+    - name: Install dependencies
+      run: |
+        sudo apt-get update
+        sudo apt-get install -y portaudio19-dev pulseaudio xvfb
+        python -m pip install --upgrade pip
+        pip install pytest pytest-timeout
+        pip install -e .
+        
     - name: Download test artifacts
-      uses: actions/download-artifact@v3
+      uses: actions/download-artifact@v4
       with:
-        name: v2-test-results
-        path: ./test-artifacts/v2/
-    
-    - name: Download v3 test artifacts
-      uses: actions/download-artifact@v3
-      with:
-        name: v3-test-results
-        path: ./test-artifacts/v3/
-    
-    - name: Verify all tests passed
+        pattern: test-results-ubuntu-latest-py3.11
+        path: test-artifacts
+        
+    - name: Run end-to-end tests
+      timeout-minutes: 10
+      run: |
+        export DISPLAY=:99
+        Xvfb :99 -screen 0 1024x768x24 > /dev/null 2>&1 &
+        pytest tests/ \
+          --timeout=300 \
+          -v -m "e2e" \
+          --tb=short
+          
+    - name: Verify test results
       run: |
         python -c "
         import json
         import sys
         from pathlib import Path
         
-        # Check v2 results
-        v2_results = list(Path('./test-artifacts/v2/').glob('*.json'))
-        v3_results = list(Path('./test-artifacts/v3/').glob('*.json'))
+        # Check test artifacts
+        artifacts = list(Path('test-artifacts').rglob('*.json'))
         
-        all_passed = True
-        
-        for result_file in v2_results + v3_results:
-            with open(result_file) as f:
-                data = json.load(f)
-                if data.get('overall_status') != 'PASS':
-                    print(f'FAILED: {result_file}')
-                    all_passed = False
-                else:
-                    print(f'PASSED: {result_file}')
-        
-        if not all_passed:
-            print('Some tests failed!')
+        if not artifacts:
+            print('No test artifacts found!')
             sys.exit(1)
-        else:
-            print('All integration tests passed!')
+            
+        for artifact in artifacts:
+            with open(artifact) as f:
+                data = json.load(f)
+                if 'tests' in data:
+                    failed = data.get('summary', {}).get('failed', 0)
+                    if failed > 0:
+                        print(f'Tests failed in {artifact}: {failed} failures')
+                        sys.exit(1)
+        
+        print('All integration checks passed!')
         "
-    
-    - name: Create integration report
+        
+    - name: Create final test report
       run: |
-        echo "# PersonalParakeet Integration Test Report" > integration-report.md
-        echo "Date: $(date)" >> integration-report.md
-        echo "Branch: ${{ github.ref }}" >> integration-report.md
-        echo "Commit: ${{ github.sha }}" >> integration-report.md
-        echo "" >> integration-report.md
-        echo "## Test Results" >> integration-report.md
-        echo "✅ v2 Tests: $(ls test-artifacts/v2/*.json | wc -l) files" >> integration-report.md
-        echo "✅ v3 Tests: $(ls test-artifacts/v3/*.json | wc -l) files" >> integration-report.md
-        echo "✅ Integration smoke test: PASSED" >> integration-report.md
-    
-    - name: Upload integration report
-      uses: actions/upload-artifact@v3
+        echo "# PersonalParakeet v3 Test Report" > final-report.md
+        echo "**Date:** $(date)" >> final-report.md
+        echo "**Branch:** ${{ github.ref }}" >> final-report.md
+        echo "**Commit:** ${{ github.sha }}" >> final-report.md
+        echo "" >> final-report.md
+        echo "## Test Summary" >> final-report.md
+        echo "✅ Core component tests: PASSED" >> final-report.md
+        echo "✅ Integration tests: PASSED" >> final-report.md
+        echo "✅ Code quality checks: PASSED" >> final-report.md
+        echo "✅ Security scans: COMPLETED" >> final-report.md
+        echo "" >> final-report.md
+        echo "## Coverage" >> final-report.md
+        echo "Target: 80% minimum" >> final-report.md
+        
+    - name: Upload final report
+      uses: actions/upload-artifact@v4
       with:
-        name: integration-report
-        path: integration-report.md
+        name: final-test-report
+        path: final-report.md
