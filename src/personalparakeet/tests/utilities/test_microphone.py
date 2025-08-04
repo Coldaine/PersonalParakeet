@@ -4,13 +4,34 @@ Test microphone input for PersonalParakeet v3
 Checks audio device availability and captures sample audio
 """
 
-import sounddevice as sd
+import sys
+from pathlib import Path
+
+# Import dependency validation
+sys.path.append(str(Path(__file__).parent.parent.parent / "src"))
+from personalparakeet.utils.dependency_validation import get_validator
+
+# Check dependencies on initialization
+_validator = get_validator()
+AUDIO_DEPS_AVAILABLE = _validator.check_audio_dependencies()
+SOUNDDDEVICE_AVAILABLE = AUDIO_DEPS_AVAILABLE.get("sounddevice", False)
+
+# Optional imports for hardware dependencies
+if SOUNDDDEVICE_AVAILABLE:
+    import sounddevice as sd
+else:
+    sd = None
+
 import numpy as np
 import time
-import sys
 
 def list_audio_devices():
     """List all available audio devices"""
+    if not SOUNDDDEVICE_AVAILABLE:
+        print("✗ ERROR: sounddevice not available!")
+        print("  Install with: pip install sounddevice")
+        return []
+    
     print("=== Available Audio Devices ===")
     print("\nInput Devices:")
     print("-" * 50)
@@ -19,7 +40,7 @@ def list_audio_devices():
     input_devices = []
     
     for i, device in enumerate(devices):
-        if device['max_input_channels'] > 0:
+        if int(device['max_input_channels']) > 0:
             input_devices.append(i)
             print(f"[{i}] {device['name']}")
             print(f"    Channels: {device['max_input_channels']}")
@@ -31,6 +52,11 @@ def list_audio_devices():
 
 def test_microphone_input(device_id=None, duration=3):
     """Test microphone input by recording and analyzing audio"""
+    if not SOUNDDDEVICE_AVAILABLE:
+        print("✗ ERROR: sounddevice not available!")
+        print("  Install with: pip install sounddevice")
+        return False
+        
     print(f"\n=== Testing Microphone Input ===")
     
     # Audio parameters
@@ -111,6 +137,11 @@ def test_microphone_input(device_id=None, duration=3):
 
 def test_audio_stream_stability(device_id=None, duration=5):
     """Test audio stream stability over time"""
+    if not SOUNDDDEVICE_AVAILABLE:
+        print("✗ ERROR: sounddevice not available!")
+        print("  Install with: pip install sounddevice")
+        return False
+        
     print(f"\n=== Testing Audio Stream Stability ===")
     print(f"Testing for {duration} seconds...")
     
@@ -158,6 +189,11 @@ def test_audio_stream_stability(device_id=None, duration=5):
 
 def test_vad_levels(device_id=None, duration=10):
     """Test Voice Activity Detection levels"""
+    if not SOUNDDDEVICE_AVAILABLE:
+        print("✗ ERROR: sounddevice not available!")
+        print("  Install with: pip install sounddevice")
+        return False
+        
     print(f"\n=== Testing Voice Activity Detection Levels ===")
     print(f"Monitoring audio levels for {duration} seconds...")
     print("Try speaking and being silent to see level changes\n")
@@ -204,10 +240,7 @@ def main():
     print("=" * 60)
     
     # Check if sounddevice is available
-    try:
-        import sounddevice as sd
-        print("✓ sounddevice library is available")
-    except ImportError:
+    if not SOUNDDDEVICE_AVAILABLE:
         print("✗ ERROR: sounddevice not installed!")
         print("  Install with: pip install sounddevice")
         return

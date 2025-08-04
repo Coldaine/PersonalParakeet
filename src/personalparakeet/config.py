@@ -24,7 +24,7 @@ class AudioConfig:
     sample_rate: int = 16000          # Legacy compatibility
     
     chunk_size: int = 8000  # 0.5s chunks for responsive processing
-    device_index: Optional[int] = 8  # HyperX QuadCast
+    device_index: Optional[int] = 7  # HyperX QuadCast
     silence_threshold: float = 0.01
     
     # Resampling configuration

@@ -2,11 +2,29 @@
 
 import platform
 import subprocess
+import sys
 import time
+from pathlib import Path
 from typing import Any, Dict, List, Optional
 
-import pyaudio
 import torch
+
+# Import dependency validation
+sys.path.append(str(Path(__file__).parent.parent.parent / "src"))
+from personalparakeet.utils.dependency_validation import get_validator
+
+# Check dependencies on initialization
+_validator = get_validator()
+AUDIO_DEPS_AVAILABLE = _validator.check_audio_dependencies()
+PYAUDIO_AVAILABLE = AUDIO_DEPS_AVAILABLE.get("pyaudio", False)
+SOUNDDDEVICE_AVAILABLE = AUDIO_DEPS_AVAILABLE.get("sounddevice", False)
+SOUNDFILE_AVAILABLE = AUDIO_DEPS_AVAILABLE.get("soundfile", False)
+
+# Optional imports for hardware dependencies
+if PYAUDIO_AVAILABLE:
+    import pyaudio
+else:
+    pyaudio = None
 
 
 class HardwareValidator:
@@ -33,8 +51,14 @@ class HardwareValidator:
             "available": False,
             "devices": [],
             "default_device": None,
-            "sample_rates": []
+            "sample_rates": [],
+            "error": None
         }
+        
+        if not AUDIO_DEPS_AVAILABLE:
+            result["error"] = "Audio dependencies not available. Install with: pip install pyaudio"
+            self._validation_cache["audio"] = result
+            return result
         
         try:
             pa = pyaudio.PyAudio()
@@ -47,7 +71,7 @@ class HardwareValidator:
             for i in range(device_count):
                 try:
                     info = pa.get_device_info_by_index(i)
-                    if info.get("maxInputChannels", 0) > 0:
+                    if int(info.get("maxInputChannels", 0)) > 0:
                         result["devices"].append({
                             "index": i,
                             "name": info["name"],
@@ -56,8 +80,14 @@ class HardwareValidator:
                         })
                         
                         # Set default device
-                        if info.get("index") == pa.get_default_input_device_info()["index"]:
-                            result["default_device"] = i
+                        try:
+                            default_info = pa.get_default_input_device_info()
+                            if info.get("index") == default_info.get("index"):
+                                result["default_device"] = i
+                        except Exception:
+                            # If no default input device, use first available
+                            if result["default_device"] is None and len(result["devices"]) == 1:
+                                result["default_device"] = i
                 except Exception:
                     continue
             

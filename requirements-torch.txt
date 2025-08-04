@@ -1,0 +1,18 @@
+# PyTorch Requirements for RTX 5090 (CUDA 12.8)
+# Install with: pip install -r requirements-torch.txt
+# This file manages PyTorch separately from Poetry due to complex CUDA versioning
+
+# PyTorch nightly builds for RTX 5090 support (Blackwell architecture sm_120)
+# These packages MUST be installed from the nightly index for RTX 5090 compatibility
+--index-url https://download.pytorch.org/whl/nightly/cu128
+--extra-index-url https://pypi.org/simple
+
+# Core PyTorch stack with CUDA 12.8 support - ALL from nightly for compatibility
+torch>=2.9.0.dev20250804
+torchvision>=0.22.0.dev
+torchaudio>=2.7.0.dev
+
+# Note: After installing these, verify CUDA availability with:
+# python -c "import torch; print(f'CUDA available: {torch.cuda.is_available()}')"
+# python -c "import torch; print(f'CUDA version: {torch.version.cuda}')"
+# python -c "import torch; print(f'GPU: {torch.cuda.get_device_name(0) if torch.cuda.is_available() else \"None\"}')"

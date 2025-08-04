@@ -12,37 +12,25 @@ include = [
     "src/personalparakeet/assets/**/*"
 ]
 
-# Poetry source configuration for PyTorch with CUDA 12.8
-[[tool.poetry.source]]
-name = "pytorch-cu128"
-url = "https://download.pytorch.org/whl/cu128"
-priority = "explicit"  # Only specified packages use this source
-
-[[tool.poetry.source]]
-name = "pytorch-nightly"
-url = "https://download.pytorch.org/whl/nightly/cu128"
-priority = "explicit"  # For testing bleeding-edge builds
+# PyTorch sources removed - managed via requirements-torch.txt
+# Poetry's dependency resolver conflicts with PyTorch's versioning scheme
+# See requirements-torch.txt and SETUP.md for PyTorch installation
 
 [tool.poetry.dependencies]
 python = "^3.11"
 
-# PyTorch Stack - RTX 5090 (Blackwell sm_120) Support
-# These use the explicit pytorch-cu128 source for CUDA 12.8 compatibility
-torch = { version = "2.7.0", source = "pytorch-cu128" }
-torchvision = { version = "0.22.0", source = "pytorch-cu128" }
-torchaudio = { version = "2.7.0", source = "pytorch-cu128" }
-
-# Uncomment below to use nightly builds instead
-# torch = { version = "^2.9.0.dev20250804", source = "pytorch-nightly", allow-prereleases = true }
-# torchvision = { version = "*", source = "pytorch-nightly", allow-prereleases = true }
-# torchaudio = { version = "*", source = "pytorch-nightly", allow-prereleases = true }
+# PyTorch Stack - Managed via requirements-torch.txt for RTX 5090 support
+# Poetry cannot handle PyTorch's complex CUDA versioning properly, so we exclude it here
+# and manage it separately via pip install -r requirements-torch.txt
+# This approach is recommended by PyTorch team for projects requiring specific CUDA versions
 
 # ML/Audio Processing Stack
-numpy = "^1.26.0"  # Pinned for PyTorch 2.7 compatibility
+numpy = ">=1.26.0,<2.0"  # Pinned <2.0 for Numba compatibility (required by NeMo)
 scipy = "^1.11.0"
-nemo-toolkit = { version = "^2.4.0", extras = ["asr"] }
-pytorch-lightning = "^2.0.0"
-torchmetrics = "^0.11.0"
+# NeMo toolkit requires specific versions - managed via requirements-ml.txt
+# nemo-toolkit = { version = "^2.4.0", extras = ["asr"] }  # Moved to requirements-ml.txt
+# pytorch-lightning = "^2.0.0"  # Dependency of NeMo, managed via requirements-ml.txt
+# torchmetrics = "^0.11.0"  # Dependency of NeMo, managed via requirements-ml.txt
 hydra-core = "^1.3.2"
 omegaconf = "^2.3.0"
 
@@ -56,8 +44,6 @@ flet = "^0.28.3"
 
 # System Integration
 python-dotenv = "^1.0.0"
-keyboard = "^0.13.5"
-pynput = "^1.8.1"
 pyperclip = "^1.9.0"
 
 # Data & Configuration
@@ -65,6 +51,7 @@ dataclasses-json = "^0.6.0"
 networkx = "^3.5"
 packaging = "^25.0"
 cython = "^3.1.2"
+nvidia-ml-py3 = "^7.352.0"
 
 [tool.poetry.group.dev.dependencies]
 pytest = "^7.0.0"

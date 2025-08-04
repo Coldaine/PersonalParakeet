@@ -1,0 +1,51 @@
+PersonalParakeet Hardware Test Report
+==================================================
+Session ID: 20250804_143837
+Duration: 1.21 seconds
+Total Tests: 5
+
+Resource Usage:
+------------------------------
+  peak_cpu_percent: 48.50
+  peak_memory_mb: 543.36
+  peak_gpu_memory_mb: 0.00
+
+Performance Metrics:
+------------------------------
+  Min Duration: 0.205s
+  Max Duration: 0.308s
+  Avg Duration: 0.229s
+  Total Time: 1.144s
+
+Test Results:
+------------------------------
+
+  test_audio_device_enumeration:
+    Duration: 0.208s
+    CPU: 0.0% avg, 0.0% max
+    Memory: 541.3MB avg, 541.3MB max
+    GPU Memory: 0.0MB avg, 0.0MB max
+
+  test_audio_stream_creation:
+    Duration: 0.308s
+    CPU: 24.2% avg, 48.5% max
+    Memory: 541.3MB avg, 541.3MB max
+    GPU Memory: 0.0MB avg, 0.0MB max
+
+  test_audio_capture_quality:
+    Duration: 0.212s
+    CPU: 0.0% avg, 0.0% max
+    Memory: 541.3MB avg, 541.3MB max
+    GPU Memory: 0.0MB avg, 0.0MB max
+
+  test_audio_latency:
+    Duration: 0.205s
+    CPU: 0.0% avg, 0.0% max
+    Memory: 543.1MB avg, 543.1MB max
+    GPU Memory: 0.0MB avg, 0.0MB max
+
+  test_continuous_capture_stability:
+    Duration: 0.211s
+    CPU: 0.0% avg, 0.0% max
+    Memory: 543.4MB avg, 543.4MB max
+    GPU Memory: 0.0MB avg, 0.0MB max

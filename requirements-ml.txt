@@ -1,0 +1,24 @@
+# ML Dependencies for NeMo Toolkit
+# Install AFTER requirements-torch.txt: pip install -r requirements-ml.txt
+# These packages have specific version requirements for NeMo compatibility
+
+# Pin fsspec for NeMo compatibility
+fsspec==2024.12.0
+
+# NeMo toolkit and its dependencies
+# Note: NeMo has strict version requirements, these are tested to work together
+nemo-toolkit[asr]==2.4.0
+pytorch-lightning>=2.0.0,<2.3.0
+torchmetrics>=0.11.0,<1.5.0
+
+# Additional ML utilities that may have version conflicts
+# Install these AFTER NeMo to ensure compatibility
+numba>=0.60.0  # Required by some NeMo components
+librosa>=0.10.0  # Audio processing, required by NeMo ASR
+
+# Note: If you encounter conflicts, try installing in this order:
+# 1. conda activate personalparakeet
+# 2. pip install -r requirements-torch.txt
+# 3. pip install fsspec==2024.12.0
+# 4. pip install nemo-toolkit[asr]==2.4.0
+# 5. pip install -r requirements-ml.txt --no-deps (if needed)

@@ -1,0 +1,243 @@
+{
+  "summary": {
+    "session_id": "20250804_143838",
+    "start_time": 1754336318.8254194,
+    "end_time": 1754336330.687544,
+    "duration": 11.862126350402832,
+    "total_tests": 5,
+    "hardware_tests": 0,
+    "resource_summary": {
+      "peak_cpu_percent": 1865.1,
+      "peak_memory_mb": 895.015625,
+      "peak_gpu_memory_mb": 42.2412109375
+    },
+    "performance_metrics": {
+      "min_duration": 0.204087495803833,
+      "max_duration": 10.170647144317627,
+      "avg_duration": 2.361835765838623,
+      "total_duration": 11.809178829193115
+    }
+  },
+  "test_results": [
+    {
+      "test_name": "test_cuda_availability",
+      "start_time": 1754336318.8687356,
+      "hardware_state": {
+        "timestamp": 1754336318.8687387,
+        "gpu": {
+          "memory_allocated": 0.0,
+          "memory_reserved": 0.0
+        },
+        "system": {
+          "cpu_percent": 44.3,
+          "memory_percent": 24.8
+        }
+      },
+      "duration": 0.204087495803833,
+      "resource_usage": {
+        "duration": 0.10319042205810547,
+        "sample_count": 1,
+        "monitoring_available": {
+          "cpu": true,
+          "memory": true,
+          "gpu": true
+        },
+        "cpu_percent": {
+          "min": 0.0,
+          "max": 0.0,
+          "avg": 0.0,
+          "samples": 1
+        },
+        "memory_mb": {
+          "min": 543.640625,
+          "max": 543.640625,
+          "avg": 543.640625,
+          "samples": 1
+        },
+        "gpu_memory_mb": {
+          "min": 0.0,
+          "max": 0.0,
+          "avg": 0.0,
+          "samples": 1
+        }
+      },
+      "end_time": 1754336319.0728679
+    },
+    {
+      "test_name": "test_gpu_memory_allocation",
+      "start_time": 1754336319.0749505,
+      "hardware_state": {
+        "timestamp": 1754336319.0749547,
+        "gpu": {
+          "memory_allocated": 0.0,
+          "memory_reserved": 0.0
+        },
+        "system": {
+          "cpu_percent": 45.2,
+          "memory_percent": 24.8
+        }
+      },
+      "duration": 0.4097869396209717,
+      "resource_usage": {
+        "duration": 0.30806398391723633,
+        "sample_count": 3,
+        "monitoring_available": {
+          "cpu": true,
+          "memory": true,
+          "gpu": true
+        },
+        "cpu_percent": {
+          "min": 0.0,
+          "max": 96.1,
+          "avg": 61.43333333333334,
+          "samples": 3
+        },
+        "memory_mb": {
+          "min": 545.66015625,
+          "max": 656.62109375,
+          "avg": 599.9140625,
+          "samples": 3
+        },
+        "gpu_memory_mb": {
+          "min": 0.0,
+          "max": 3.81494140625,
+          "avg": 1.2716471354166667,
+          "samples": 3
+        }
+      },
+      "end_time": 1754336319.4848156
+    },
+    {
+      "test_name": "test_gpu_computation_speed",
+      "start_time": 1754336319.4874606,
+      "hardware_state": {
+        "timestamp": 1754336319.4874663,
+        "gpu": {
+          "memory_allocated": 0.02097152,
+          "memory_reserved": 0.02097152
+        },
+        "system": {
+          "cpu_percent": 48.4,
+          "memory_percent": 25.0
+        }
+      },
+      "duration": 0.6106152534484863,
+      "resource_usage": {
+        "duration": 0.5084576606750488,
+        "sample_count": 5,
+        "monitoring_available": {
+          "cpu": true,
+          "memory": true,
+          "gpu": true
+        },
+        "cpu_percent": {
+          "min": 0.0,
+          "max": 1865.1,
+          "avg": 1034.1399999999999,
+          "samples": 5
+        },
+        "memory_mb": {
+          "min": 659.17578125,
+          "max": 851.43359375,
+          "avg": 760.86875,
+          "samples": 5
+        },
+        "gpu_memory_mb": {
+          "min": 20.0,
+          "max": 40.0,
+          "avg": 32.0,
+          "samples": 5
+        }
+      },
+      "end_time": 1754336320.0981019
+    },
+    {
+      "test_name": "test_gpu_data_transfer",
+      "start_time": 1754336320.0992925,
+      "hardware_state": {
+        "timestamp": 1754336320.0992947,
+        "gpu": {
+          "memory_allocated": 0.029942272,
+          "memory_reserved": 0.04194304
+        },
+        "system": {
+          "cpu_percent": 39.9,
+          "memory_percent": 25.2
+        }
+      },
+      "duration": 0.41404199600219727,
+      "resource_usage": {
+        "duration": 0.3128049373626709,
+        "sample_count": 3,
+        "monitoring_available": {
+          "cpu": true,
+          "memory": true,
+          "gpu": true
+        },
+        "cpu_percent": {
+          "min": 0.0,
+          "max": 108.9,
+          "avg": 68.5,
+          "samples": 3
+        },
+        "memory_mb": {
+          "min": 775.515625,
+          "max": 895.015625,
+          "avg": 838.015625,
+          "samples": 3
+        },
+        "gpu_memory_mb": {
+          "min": 28.55517578125,
+          "max": 38.55517578125,
+          "avg": 35.221842447916664,
+          "samples": 3
+        }
+      },
+      "end_time": 1754336320.5133657
+    },
+    {
+      "test_name": "test_gpu_stress",
+      "start_time": 1754336320.514773,
+      "hardware_state": {
+        "timestamp": 1754336320.5147758,
+        "gpu": {
+          "memory_allocated": 0.029942272,
+          "memory_reserved": 0.04194304
+        },
+        "system": {
+          "cpu_percent": 43.2,
+          "memory_percent": 25.4
+        }
+      },
+      "duration": 10.170647144317627,
+      "resource_usage": {
+        "duration": 10.069273710250854,
+        "sample_count": 98,
+        "monitoring_available": {
+          "cpu": true,
+          "memory": true,
+          "gpu": true
+        },
+        "cpu_percent": {
+          "min": 0.0,
+          "max": 117.4,
+          "avg": 99.31326530612246,
+          "samples": 98
+        },
+        "memory_mb": {
+          "min": 794.93359375,
+          "max": 871.06640625,
+          "avg": 868.4859693877551,
+          "samples": 98
+        },
+        "gpu_memory_mb": {
+          "min": 8.55517578125,
+          "max": 42.2412109375,
+          "avg": 12.680659080038266,
+          "samples": 98
+        }
+      },
+      "end_time": 1754336330.68566
+    }
+  ]
+}

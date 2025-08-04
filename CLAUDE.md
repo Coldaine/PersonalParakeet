@@ -6,6 +6,10 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 PersonalParakeet v3: Real-time dictation system with transparent floating UI.
 
+## ⚠️ CRITICAL REQUIREMENT FOR ALL AGENTS ⚠️
+**ALWAYS run `conda activate personalparakeet` before ANY other command!**
+This project uses conda environment management and will fail without proper activation.
+
 ## Hardware Requirements
 - **Physical hardware ALWAYS present** - No mock tests allowed/required
 - Real microphone, GPU, and audio hardware available at all times
@@ -19,23 +23,26 @@ PersonalParakeet v3: Real-time dictation system with transparent floating UI.
 
 ## Key Commands
 ```bash
-# Environment setup
+# CRITICAL: Environment setup - ALWAYS activate conda first!
+# ⚠️  ALL AGENTS MUST RUN THIS COMMAND BEFORE ANY OTHER COMMANDS ⚠️
 conda activate personalparakeet
+
+# Install dependencies
 poetry install
 
 # IMPORTANT: Install PyTorch nightly for RTX 5090
 poetry run pip install -r requirements-torch.txt
 
-# Run application
+# Run application (after conda activate!)
 poetry run personalparakeet
 # or
 python -m personalparakeet
 
-# Run tests
+# Run tests (after conda activate!)
 poetry run pytest
 poetry run pytest tests/integration/test_full_pipeline.py  # Specific test
 
-# Code quality
+# Code quality (after conda activate!)
 poetry run black . --line-length 100
 poetry run isort . --profile black
 poetry run ruff check .

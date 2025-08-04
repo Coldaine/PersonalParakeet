@@ -6,13 +6,29 @@ Replaces WebSocket architecture with direct function calls
 
 import asyncio
 import logging
-import threading
 import queue
+import sys
+import threading
 import time
+from pathlib import Path
 from typing import Callable, Optional
 
-import sounddevice as sd
 import numpy as np
+
+# Import dependency validation
+sys.path.append(str(Path(__file__).parent.parent / "src"))
+from personalparakeet.utils.dependency_validation import get_validator
+
+# Check dependencies on initialization
+_validator = get_validator()
+AUDIO_DEPS_AVAILABLE = _validator.check_audio_dependencies()
+SOUNDDDEVICE_AVAILABLE = AUDIO_DEPS_AVAILABLE.get("sounddevice", False)
+
+# Optional imports for hardware dependencies
+if SOUNDDDEVICE_AVAILABLE:
+    import sounddevice as sd
+else:
+    sd = None
 
 from personalparakeet.core.stt_factory import STTFactory
 from personalparakeet.core.clarity_engine import ClarityEngine
@@ -102,6 +118,9 @@ class AudioEngine:
         """Start audio processing"""
         if not self.is_running:
             raise RuntimeError("AudioEngine not initialized")
+        
+        if not SOUNDDDEVICE_AVAILABLE:
+            raise RuntimeError("sounddevice library not available. Install with: pip install sounddevice")
         
         if self.is_listening:
             logger.warning("Already listening")
