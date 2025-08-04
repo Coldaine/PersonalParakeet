@@ -18,10 +18,18 @@ logger = logging.getLogger(__name__)
 @dataclass
 class AudioConfig:
     """Audio processing configuration"""
-    sample_rate: int = 16000
+    # Dual sample rate support
+    capture_sample_rate: int = 44100  # Hardware capture rate (mic native)
+    model_sample_rate: int = 16000    # STT model requirement
+    sample_rate: int = 16000          # Legacy compatibility
+    
     chunk_size: int = 8000  # 0.5s chunks for responsive processing
-    device_index: Optional[int] = None
+    device_index: Optional[int] = 8  # HyperX QuadCast
     silence_threshold: float = 0.01
+    
+    # Resampling configuration
+    enable_resampling: bool = True
+    resample_quality: str = "high"  # "fast", "balanced", "high"
     
     # STT-specific configuration
     use_mock_stt: bool = False  # Force mock STT even if NeMo is available
@@ -65,6 +73,9 @@ class WindowConfig:
 class ThoughtLinkingConfig:
     """Thought linking configuration"""
     enabled: bool = True
+    similarity_threshold: float = 0.3
+    timeout_threshold: float = 30.0
+    cursor_movement_threshold: int = 100
 
 
 @dataclass
@@ -155,8 +166,9 @@ class V3Config:
         if 'thought_linking' in data:
             thought_linking_data = data['thought_linking']
             self.thought_linking.enabled = thought_linking_data.get('enabled', self.thought_linking.enabled)
-            self.thought_linking.similarity_threshold = thought_linking_data.get('similarity_threshold', self.thought_linking.similarity_threshold)
-            self.thought_linking.timeout_threshold = thought_linking_data.get('timeout_threshold', self.thought_linking.timeout_threshold)
+            self.thought_linking.similarity_threshold = thought_linking_data.get('similarity_threshold', 0.3)
+            self.thought_linking.timeout_threshold = thought_linking_data.get('timeout_threshold', 30.0)
+            self.thought_linking.cursor_movement_threshold = thought_linking_data.get('cursor_movement_threshold', 100)
             logger.info(f"Thought linking config loaded: enabled={self.thought_linking.enabled}")
         
         # Handle legacy config format

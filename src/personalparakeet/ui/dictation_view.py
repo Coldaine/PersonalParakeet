@@ -38,8 +38,8 @@ class DictationView:
         self.page.title = "PersonalParakeet v3"
         self.page.window_always_on_top = True
         self.page.window_frameless = True
-        self.page.window_bgcolor = ft.colors.TRANSPARENT
-        self.page.bgcolor = ft.colors.TRANSPARENT
+        self.page.window_bgcolor = ft.Colors.TRANSPARENT
+        self.page.bgcolor = ft.Colors.TRANSPARENT
         
         # Set window size and position
         self.page.window_width = 400
@@ -51,20 +51,20 @@ class DictationView:
         self.status_text = ft.Text(
             "Ready",
             size=14,
-            color=ft.colors.WHITE,
+            color=ft.Colors.WHITE,
             weight=ft.FontWeight.BOLD
         )
         
         self.recognized_text = ft.Text(
             "",
             size=16,
-            color=ft.colors.WHITE,
+            color=ft.Colors.WHITE,
             max_lines=3
         )
         
         settings_button = ft.IconButton(
-            icon=ft.icons.SETTINGS,
-            icon_color=ft.colors.WHITE,
+            icon=ft.Icons.SETTINGS,
+            icon_color=ft.Colors.WHITE,
             on_click=self.open_settings_dialog,
         )
 
@@ -72,17 +72,17 @@ class DictationView:
         self.main_container = ft.Container(
             content=ft.Column([
                 ft.Row([self.status_text, settings_button], alignment=ft.MainAxisAlignment.SPACE_BETWEEN),
-                ft.Divider(height=1, color=ft.colors.WHITE30),
+                ft.Divider(height=1, color=ft.Colors.WHITE30),
                 self.recognized_text
             ]),
-            bgcolor=ft.colors.with_opacity(0.8, ft.colors.BLACK),
+            bgcolor=ft.Colors.with_opacity(0.8, ft.Colors.BLACK),
             border_radius=10,
             padding=15,
             expand=True
         )
         
         # Add to page
-        await self.page.add_async(self.main_container)
+        self.page.add(self.main_container)
 
     async def open_settings_dialog(self, e):
         """Open the settings dialog."""
@@ -97,7 +97,7 @@ class DictationView:
         )
         self.page.dialog = self.settings_dialog
         self.settings_dialog.open = True
-        await self.page.update_async()
+        await self.page.update()
 
     def build_settings_content(self) -> ft.Column:
         """Build the content for the settings dialog."""
@@ -136,43 +136,43 @@ class DictationView:
     async def close_settings_dialog(self, e):
         """Close the settings dialog."""
         self.settings_dialog.open = False
-        await self.page.update_async()
+        await self.page.update()
 
-    async def update_status(self, status: str, color: str = ft.colors.WHITE):
+    async def update_status(self, status: str, color: str = ft.Colors.WHITE):
         """Update the status text"""
         if self.status_text:
             self.status_text.value = status
             self.status_text.color = color
-            await self.page.update_async()
+            await self.page.update()
             
     async def update_text(self, text: str, decision: LinkingDecision = LinkingDecision.APPEND_WITH_SPACE):
         """Update the recognized text display"""
         if self.recognized_text:
             self.recognized_text.value = text
             if decision == LinkingDecision.START_NEW_THOUGHT:
-                self.recognized_text.color = ft.colors.CYAN
+                self.recognized_text.color = ft.Colors.CYAN
             elif decision == LinkingDecision.START_NEW_PARAGRAPH:
-                self.recognized_text.color = ft.colors.YELLOW
+                self.recognized_text.color = ft.Colors.YELLOW
             else:
-                self.recognized_text.color = ft.colors.WHITE
-            await self.page.update_async()
+                self.recognized_text.color = ft.Colors.WHITE
+            await self.page.update()
             
     async def set_recording(self, is_recording: bool):
         """Update recording state visual feedback"""
         self.is_recording = is_recording
         if is_recording:
-            await self.update_status("Recording...", ft.colors.RED)
+            await self.update_status("Recording...", ft.Colors.RED)
             if self.main_container:
-                self.main_container.border = ft.border.all(2, ft.colors.RED)
+                self.main_container.border = ft.border.all(2, ft.Colors.RED)
         else:
-            await self.update_status("Ready", ft.colors.GREEN)
+            await self.update_status("Ready", ft.Colors.GREEN)
             if self.main_container:
                 self.main_container.border = None
-        await self.page.update_async()
+        await self.page.update()
         
     async def show_error(self, error: str):
         """Display error message"""
-        await self.update_status(f"Error: {error}", ft.colors.ORANGE)
+        await self.update_status(f"Error: {error}", ft.Colors.ORANGE)
         
     def cleanup(self):
         """Cleanup UI resources"""

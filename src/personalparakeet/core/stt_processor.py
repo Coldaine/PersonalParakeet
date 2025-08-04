@@ -110,6 +110,13 @@ class STTProcessor:
                 if audio_chunk.dtype != np.float32:
                     audio_chunk = audio_chunk.astype(np.float32)
                 
+                # Log audio chunk info for debugging
+                logger.debug(f"Audio chunk shape: {audio_chunk.shape}, dtype: {audio_chunk.dtype}, max: {np.max(np.abs(audio_chunk)):.4f}")
+                
+                # Ensure 1D array (Parakeet expects list of 1D arrays)
+                if audio_chunk.ndim > 1:
+                    audio_chunk = audio_chunk.flatten()
+                
                 # Transcribe with Parakeet
                 result = self.model.transcribe([audio_chunk])
                 text = result[0].text if result and result[0].text else ""

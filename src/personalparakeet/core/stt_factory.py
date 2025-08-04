@@ -1,11 +1,11 @@
 #!/usr/bin/env python3
 """
-STT Factory - Dynamic STT processor selection with graceful fallback
-Provides automatic fallback to mock STT if NeMo/PyTorch are not available
+STT Factory - Creates real STT processors with hardware requirements
+Real hardware always present - no mock implementations allowed
 """
 
 import logging
-from typing import TYPE_CHECKING, Union
+from typing import TYPE_CHECKING
 from personalparakeet.config import V3Config
 
 logger = logging.getLogger(__name__)
@@ -13,11 +13,10 @@ logger = logging.getLogger(__name__)
 # Type hints without importing at module level
 if TYPE_CHECKING:
     from .stt_processor import STTProcessor
-    from .stt_processor_mock import STTProcessor as MockSTTProcessor
 
 
 class STTFactory:
-    """Factory for creating STT processors with automatic fallback"""
+    """Factory for creating STT processors with real hardware"""
     
     _nemo_available = None  # Cache availability check
     
@@ -44,50 +43,42 @@ class STTFactory:
             return True
             
         except ImportError as e:
-            logger.warning(f"✗ ML dependencies not available: {e}")
-            logger.warning("  Falling back to mock STT processor")
-            logger.info("  To enable real STT: poetry install --with ml")
+            logger.error(f"✗ ML dependencies not available: {e}")
+            logger.error("  Real hardware is required - no mock implementations allowed")
+            logger.info("  To enable real STT: install NeMo toolkit")
             cls._nemo_available = False
             return False
     
     @classmethod
-    def create_stt_processor(cls, config: V3Config) -> Union['STTProcessor', 'MockSTTProcessor']:
+    def create_stt_processor(cls, config: V3Config) -> 'STTProcessor':
         """
-        Create appropriate STT processor based on availability and configuration
+        Create real STT processor - hardware always present per CLAUDE.md
         
         Args:
             config: V3 configuration object
             
         Returns:
-            Either real STTProcessor or MockSTTProcessor
+            Real STTProcessor only
             
         Raises:
-            RuntimeError: If NeMo is not available and mock mode not explicitly requested
+            RuntimeError: If NeMo is not available (violates hardware requirements)
         """
-        # Check if user explicitly wants mock STT
-        use_mock = getattr(config.audio, 'use_mock_stt', False)
-        
-        if use_mock:
-            logger.info("Using mock STT processor (explicitly configured)")
-            from .stt_processor_mock import STTProcessor as MockSTTProcessor
-            return MockSTTProcessor(config)
-        
-        # User expects real STT - check if available
+        # Real hardware always present - check if ML dependencies available
         if not cls.check_nemo_availability():
             error_msg = (
                 "CRITICAL: NeMo/PyTorch not available for real STT!\n"
                 "PersonalParakeet requires ML dependencies for speech recognition.\n"
+                "Real hardware is always present - no mock implementations allowed.\n"
                 "\n"
                 "To fix this:\n"
-                "1. Install ML dependencies: poetry install --with ml\n"
-                "2. Or force mock mode: set 'use_mock_stt': true in config\n"
+                "1. Install NeMo toolkit: pip install nemo_toolkit[all]\n"
                 "\n"
                 "See docs/ML_INSTALLATION_GUIDE.md for detailed instructions."
             )
             logger.error(error_msg)
             raise RuntimeError(error_msg)
         
-        # Try to create real STT processor
+        # Create real STT processor
         try:
             logger.info("Creating real STT processor with NeMo")
             from .stt_processor import STTProcessor
@@ -103,8 +94,6 @@ class STTFactory:
                 "- Insufficient GPU memory\n"
                 "- CUDA version mismatch\n"
                 "- Corrupted model download\n"
-                "\n"
-                "To use mock mode instead, set 'use_mock_stt': true in config."
             )
             logger.error(error_msg)
             raise RuntimeError(error_msg) from e

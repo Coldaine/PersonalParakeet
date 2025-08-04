@@ -8,6 +8,7 @@ import asyncio
 import logging
 import threading
 import sys
+import os
 from pathlib import Path
 
 import flet as ft
@@ -25,13 +26,24 @@ from personalparakeet.config import V3Config
 log_format = '%(asctime)s - %(name)s - %(levelname)s - %(message)s'
 log_dir = Path.home() / '.personalparakeet'
 log_dir.mkdir(exist_ok=True)
-logging.basicConfig(
-    level=logging.INFO,
-    format=log_format,
-    handlers=[
+
+# Configure logging based on environment
+if os.environ.get('PERSONALPARAKEET_BACKGROUND'):
+    # Background mode - only file logging
+    handlers = [
+        logging.FileHandler(log_dir / 'personalparakeet.log', mode='a')
+    ]
+else:
+    # Normal mode - both console and file
+    handlers = [
         logging.StreamHandler(),
         logging.FileHandler(log_dir / 'personalparakeet.log', mode='w')  # Overwrite log each run
     ]
+
+logging.basicConfig(
+    level=logging.INFO,
+    format=log_format,
+    handlers=handlers
 )
 logger = logging.getLogger(__name__)
 
@@ -75,7 +87,8 @@ class PersonalParakeetV3:
             self.thought_linker = ThoughtLinker(
                 enabled=self.config.thought_linking.enabled,
                 similarity_threshold=self.config.thought_linking.similarity_threshold,
-                timeout_threshold=self.config.thought_linking.timeout_threshold
+                timeout_threshold=self.config.thought_linking.timeout_threshold,
+                cursor_movement_threshold=self.config.thought_linking.cursor_movement_threshold
             )
             logger.info(f"Thought linker initialized (enabled={self.thought_linker.enabled})")
             
@@ -89,13 +102,16 @@ class PersonalParakeetV3:
             
             # Initialize dictation view
             logger.info("Creating dictation view...")
-            self.dictation_view = DictationView(page, self.audio_engine, self.injection_manager, self.config)
+            self.dictation_view = DictationView(self.config, None)  # profile_manager not implemented yet
             
-            # Add UI to page
-            logger.info("Building and adding UI to page...")
-            ui_container = self.dictation_view.build()
-            page.add(ui_container)
-            logger.info("UI added to page successfully")
+            # Set additional properties needed by dictation view
+            self.dictation_view.audio_engine = self.audio_engine
+            self.dictation_view.injection_manager = self.injection_manager
+            
+            # Initialize UI
+            logger.info("Initializing dictation view UI...")
+            await self.dictation_view.initialize(page)
+            logger.info("UI initialized successfully")
             
             # Start audio processing
             logger.info("Starting audio processing...")
@@ -256,7 +272,7 @@ async def app_main(page: ft.Page):
         # Create error dialog
         dlg = ft.AlertDialog(
             modal=True,
-            title=ft.Text("Critical Error - STT Not Available", color=ft.colors.RED),
+            title=ft.Text("Critical Error - STT Not Available", color=ft.Colors.RED),
             content=ft.Container(
                 content=ft.Column([
                     ft.Text(
@@ -277,7 +293,7 @@ async def app_main(page: ft.Page):
         
         page.dialog = dlg
         dlg.open = True
-        await page.update_async()
+        await page.update()
         
         # Log the error
         logger.error(f"Application cannot start: {e}")
@@ -289,7 +305,7 @@ async def app_main(page: ft.Page):
         
         dlg = ft.AlertDialog(
             modal=True,
-            title=ft.Text("Initialization Error", color=ft.colors.RED),
+            title=ft.Text("Initialization Error", color=ft.Colors.RED),
             content=ft.Container(
                 content=ft.Column([
                     ft.Text(f"Failed to initialize: {str(e)}", weight=ft.FontWeight.BOLD),
@@ -308,7 +324,7 @@ async def app_main(page: ft.Page):
         
         page.dialog = dlg
         dlg.open = True
-        await page.update_async()
+        await page.update()
         
         logger.error(f"Application initialization failed: {e}")
         logger.error(error_details)

@@ -17,6 +17,7 @@ import numpy as np
 from personalparakeet.core.stt_factory import STTFactory
 from personalparakeet.core.clarity_engine import ClarityEngine
 from personalparakeet.core.vad_engine import VoiceActivityDetector
+from personalparakeet.core.audio_resampler import AudioResampler, ResamplerConfig
 from personalparakeet.config import V3Config
 
 logger = logging.getLogger(__name__)
@@ -43,6 +44,7 @@ class AudioEngine:
         self.stt_processor = None
         self.clarity_engine = None
         self.vad_engine = None
+        self.resampler = None
         
         # Callbacks for UI updates (set by DictationView)
         self.on_raw_transcription = None
@@ -69,13 +71,25 @@ class AudioEngine:
             await self.clarity_engine.initialize()
             self.clarity_engine.start_worker()
             
-            # Initialize VAD Engine
+            # Initialize VAD Engine (using model sample rate)
             self.vad_engine = VoiceActivityDetector(
-                sample_rate=self.config.audio.sample_rate,
+                sample_rate=self.config.audio.model_sample_rate,
                 silence_threshold=self.config.vad.silence_threshold,
                 pause_threshold=self.config.vad.pause_threshold
             )
             self.vad_engine.on_pause_detected = self._handle_pause_detected
+            
+            # Initialize resampler if needed
+            if self.config.audio.enable_resampling and \
+               self.config.audio.capture_sample_rate != self.config.audio.model_sample_rate:
+                self.resampler = AudioResampler(
+                    ResamplerConfig(
+                        input_rate=self.config.audio.capture_sample_rate,
+                        output_rate=self.config.audio.model_sample_rate,
+                        quality=self.config.audio.resample_quality
+                    )
+                )
+                logger.info(f"Resampler initialized: {self.config.audio.capture_sample_rate}Hz -> {self.config.audio.model_sample_rate}Hz")
             
             self.is_running = True
             logger.info("AudioEngine initialized successfully")
@@ -99,14 +113,14 @@ class AudioEngine:
         self.audio_thread = threading.Thread(target=self._audio_processing_loop, daemon=True)
         self.audio_thread.start()
         
-        # Start audio stream
+        # Start audio stream at capture sample rate
         self.audio_stream = sd.InputStream(
             device=self.config.audio.device_index,
-            samplerate=self.config.audio.sample_rate,
+            samplerate=self.config.audio.capture_sample_rate,
             channels=1,
             dtype=np.float32,
             callback=self._audio_callback,
-            blocksize=self.config.audio.chunk_size
+            blocksize=int(self.config.audio.chunk_size * self.config.audio.capture_sample_rate / self.config.audio.model_sample_rate)
         )
         self.audio_stream.start()
         
@@ -164,10 +178,14 @@ class AudioEngine:
         
         while self.is_listening:
             try:
-                # Get audio chunk from queue
+                # Get audio chunk from queue (at capture sample rate)
                 audio_chunk = self.audio_queue.get(timeout=0.5)
                 
-                # Process VAD
+                # Resample if needed
+                if self.resampler:
+                    audio_chunk = self.resampler.resample_chunk(audio_chunk)
+                
+                # Process VAD (expects model sample rate)
                 if self.vad_engine:
                     vad_status = self.vad_engine.process_audio_frame(audio_chunk)
                     self._update_vad_status(vad_status)
@@ -204,10 +222,15 @@ class AudioEngine:
         """Process audio through STT model"""
         try:
             if self.stt_processor:
-                return self.stt_processor.transcribe(audio_chunk)
+                logger.debug(f"Calling STT transcribe with chunk shape: {audio_chunk.shape}")
+                start_time = time.time()
+                result = self.stt_processor.transcribe(audio_chunk)
+                elapsed = time.time() - start_time
+                logger.debug(f"STT transcribe took {elapsed:.3f}s, result: {result}")
+                return result
             return None
         except Exception as e:
-            logger.error(f"STT processing error: {e}")
+            logger.error(f"STT processing error: {e}", exc_info=True)
             return None
     
     def _handle_transcription(self, text: str):
