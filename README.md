@@ -21,12 +21,11 @@ PersonalParakeet v3 is a complete rewrite with a single-process architecture usi
 git clone <repo>
 cd PersonalParakeet
 
-# Create conda environment with ML dependencies
-conda env create -f environment.yml
+# Setup (see SETUP.md for details)
+conda create -n personalparakeet python=3.12
 conda activate personalparakeet
-
-# Install application with Poetry
 poetry install
+poetry run pip install -r requirements-torch.txt  # RTX 5090 support
 
 # Run application
 poetry run personalparakeet

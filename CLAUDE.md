@@ -1,3 +1,7 @@
+# CLAUDE.md
+
+This file provides guidance to Claude Code (claude.ai/code) when working with code in this repository.
+
 # PersonalParakeet - Claude Code Context
 
 PersonalParakeet v3: Real-time dictation system with transparent floating UI.
@@ -15,11 +19,27 @@ PersonalParakeet v3: Real-time dictation system with transparent floating UI.
 
 ## Key Commands
 ```bash
+# Environment setup
 conda activate personalparakeet
 poetry install
+
+# IMPORTANT: Install PyTorch nightly for RTX 5090
+poetry run pip install -r requirements-torch.txt
+
+# Run application
 poetry run personalparakeet
 # or
 python -m personalparakeet
+
+# Run tests
+poetry run pytest
+poetry run pytest tests/integration/test_full_pipeline.py  # Specific test
+
+# Code quality
+poetry run black . --line-length 100
+poetry run isort . --profile black
+poetry run ruff check .
+poetry run mypy .
 ```
 
 ## Architecture Constraints
@@ -36,6 +56,58 @@ python -m personalparakeet
 - asyncio.run_coroutine_threadsafe() for UI
 - Dataclass configuration
 - Direct function calls
+
+## Project Structure
+```
+src/
+└── personalparakeet/
+    ├── __main__.py         # Entry point
+    ├── main.py            # Application bootstrap
+    ├── config.py          # Dataclass configuration
+    ├── core/              # Business logic (STT, VAD, etc)
+    │   ├── stt_processor.py
+    │   ├── stt_factory.py
+    │   ├── clarity_engine.py
+    │   └── text_injector.py
+    └── ui/                # Flet UI components
+        └── dictation_view.py
+tests/
+├── hardware/              # Hardware validation tests
+├── integration/           # End-to-end tests
+└── unit/                 # Unit tests
+```
+
+## Threading Model
+```python
+# Audio Producer (sounddevice callback)
+def audio_callback(indata, frames, time, status):
+    audio_queue.put(indata.copy())
+
+# STT Consumer (background thread)
+def stt_worker(page):
+    while True:
+        chunk = audio_queue.get()
+        text = model.transcribe(chunk)
+        # Thread-safe UI update
+        asyncio.run_coroutine_threadsafe(
+            update_ui(text), page.loop
+        )
+```
+
+## Core Features
+- **LocalAgreement Buffering**: Prevents text rewrites by only committing stable text
+- **High-Performance STT**: GPU-accelerated using NVIDIA Parakeet (6.05% WER target)
+- **Floating UI**: Transparent, draggable window above other applications
+- **Clarity Engine**: Real-time homophone and technical jargon corrections
+- **Smart Text Injection**: Multi-strategy, platform-aware text input
+- **Advanced VAD**: Dual VAD system (Silero + WebRTC)
+- **Configuration Profiles**: Runtime-switchable presets (Fast/Balanced/Accurate)
+
+## Testing Strategy
+- All tests use real hardware (microphone, GPU, audio)
+- Integration tests verify end-to-end functionality
+- Hardware validation ensures environment readiness
+- Performance benchmarks track <150ms latency requirement
 
 ## Documentation
 - [QUICKSTART.md](docs/QUICKSTART.md) - Setup guide
