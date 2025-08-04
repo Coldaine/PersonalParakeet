@@ -1,14 +1,46 @@
+# PersonalParakeet Conda Environment
+# Purpose: Provides system-level binaries and CUDA toolkit only
+# All Python packages are managed by Poetry for single-source-of-truth dependency management
+
 name: personalparakeet
 channels:
-  - pytorch
-  - nvidia
+  - nvidia/label/cuda-12.8.0  # CUDA 12.8 required for RTX 5090 (Blackwell architecture)
   - conda-forge
   - defaults
+
 dependencies:
+  # Python interpreter - locked to 3.11 for compatibility
   - python=3.11
-  - pytorch
-  - torchaudio
-  - pytorch-cuda=12.1
+  
+  # CUDA toolkit and GPU libraries
+  # These are system-level binaries that Poetry cannot install
+  - cuda-toolkit=12.8
+  - cudnn=9.*
+  - nccl              # NVIDIA Collective Communications Library
+  
+  # System libraries that benefit from conda's optimized builds
+  - mkl               # Intel Math Kernel Library for numpy/scipy
+  - portaudio         # Audio I/O library required by pyaudio
+  
+  # Build tools for packages with C extensions
+  - gcc_linux-64      # [linux]
+  - gxx_linux-64      # [linux]
+  - clang             # [osx]
+  - clangxx           # [osx]
+  
+  # Package management
   - pip
+  - setuptools
+  - wheel
+  
+  # Install Poetry in the conda environment
   - pip:
-    - poetry
+    - poetry>=1.8.0
+    
+# Environment variables
+variables:
+  CUDA_HOME: ${CONDA_PREFIX}
+  LD_LIBRARY_PATH: ${CONDA_PREFIX}/lib:${LD_LIBRARY_PATH}
+  # Ensure MKL is used for numpy/scipy operations
+  MKL_NUM_THREADS: 4
+  OMP_NUM_THREADS: 4
