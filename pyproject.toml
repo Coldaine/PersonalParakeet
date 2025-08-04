@@ -40,9 +40,10 @@ torchaudio = { version = "2.7.0", source = "pytorch-cu128" }
 # ML/Audio Processing Stack
 numpy = "^1.26.0"  # Pinned for PyTorch 2.7 compatibility
 scipy = "^1.11.0"
-nemo-toolkit = { version = "^2.4.0", extras = ["asr"] }
-pytorch-lightning = "^2.0.0"
-torchmetrics = "^0.11.0"
+# TEMPORARILY DISABLED - Install via requirements-ml.txt instead
+# nemo-toolkit = { version = "^2.4.0", extras = ["asr"] }
+# pytorch-lightning = "^2.0.0"
+# torchmetrics = "^0.11.0"
 hydra-core = "^1.3.2"
 omegaconf = "^2.3.0"
 
@@ -63,7 +64,7 @@ pyperclip = "^1.9.0"
 # Data & Configuration
 dataclasses-json = "^0.6.0"
 networkx = "^3.5"
-packaging = "^25.0"
+packaging = "^24.0"  # Downgraded for NeMo compatibility
 cython = "^3.1.2"
 
 [tool.poetry.group.dev.dependencies]
