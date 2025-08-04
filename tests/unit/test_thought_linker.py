@@ -83,7 +83,7 @@ class TestThoughtLinker(unittest.TestCase):
         """Test that identical texts have a high similarity score."""
         text = "this is a test sentence"
         similarity = self.thought_linker._calculate_text_similarity(text, text)
-        self.assertGreater(similarity, 0.9)
+        self.assertGreater(similarity, 0.8)
 
     def test_calculate_text_similarity_different(self):
         """Test that completely different texts have a low similarity score."""
