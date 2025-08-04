@@ -126,17 +126,26 @@ class TestDashboard:
                 # Stream output
                 for line in iter(process.stdout.readline, ''):
                     if line:
+                        # Remove ANSI escape codes for cleaner display
+                        import re
+                        clean_line = re.sub(r'\x1b\[[0-9;]*[mK]', '', line)
+                        
                         # Handle carriage return for live updates
-                        if '\r' in line and not line.endswith('\n'):
-                            # Update the last line instead of appending
+                        if '\r' in clean_line:
+                            # Split by \r to handle multiple updates in one line
+                            parts = clean_line.split('\r')
+                            # Take the last non-empty part as the current state
+                            current = next((p for p in reversed(parts) if p.strip()), '')
+                            
+                            # Update the last line
                             lines = self.output_text.value.split('\n')
-                            if lines:
-                                lines[-1] = line.rstrip('\r\n')
+                            if lines and not clean_line.endswith('\n'):
+                                lines[-1] = current.rstrip('\n')
                                 self.output_text.value = '\n'.join(lines)
                             else:
-                                self.output_text.value = line.rstrip('\r\n')
+                                self.output_text.value += current
                         else:
-                            self.output_text.value += line
+                            self.output_text.value += clean_line
                         
                         # Auto-scroll to bottom
                         self.output_text.update()

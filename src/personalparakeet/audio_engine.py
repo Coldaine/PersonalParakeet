@@ -14,7 +14,7 @@ from typing import Callable, Optional
 import sounddevice as sd
 import numpy as np
 
-from personalparakeet.core.stt_processor import STTProcessor
+from personalparakeet.core.stt_factory import STTFactory
 from personalparakeet.core.clarity_engine import ClarityEngine
 from personalparakeet.core.vad_engine import VoiceActivityDetector
 from personalparakeet.config import V3Config
@@ -60,8 +60,8 @@ class AudioEngine:
         try:
             logger.info("Initializing AudioEngine...")
             
-            # Initialize STT processor
-            self.stt_processor = STTProcessor(self.config)
+            # Initialize STT processor using factory
+            self.stt_processor = STTFactory.create_stt_processor(self.config)
             await self.stt_processor.initialize()
             
             # Initialize Clarity Engine

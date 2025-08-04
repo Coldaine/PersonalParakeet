@@ -1,0 +1,161 @@
+{
+  "summary": {
+    "session_id": "20250803_235549",
+    "start_time": 1754283349.6217134,
+    "end_time": 1754283350.3653665,
+    "duration": 0.7436532974243164,
+    "total_tests": 5,
+    "hardware_tests": 0,
+    "resource_summary": {
+      "peak_gpu_memory_mb": 0.0
+    },
+    "performance_metrics": {
+      "min_duration": 0.10502910614013672,
+      "max_duration": 0.21754980087280273,
+      "avg_duration": 0.12933039665222168,
+      "total_duration": 0.6466519832611084
+    }
+  },
+  "test_results": [
+    {
+      "test_name": "test_audio_device_enumeration",
+      "start_time": 1754283349.706119,
+      "hardware_state": {
+        "timestamp": 1754283349.7061245,
+        "gpu": {
+          "memory_allocated": 0.0,
+          "memory_reserved": 0.0
+        }
+      },
+      "duration": 0.10736727714538574,
+      "resource_usage": {
+        "duration": 0.10489535331726074,
+        "sample_count": 1,
+        "monitoring_available": {
+          "cpu": false,
+          "memory": false,
+          "gpu": true
+        },
+        "gpu_memory_mb": {
+          "min": 0.0,
+          "max": 0.0,
+          "avg": 0.0,
+          "samples": 1
+        }
+      },
+      "end_time": 1754283349.8135374
+    },
+    {
+      "test_name": "test_audio_stream_creation",
+      "start_time": 1754283349.820193,
+      "hardware_state": {
+        "timestamp": 1754283349.8201995,
+        "gpu": {
+          "memory_allocated": 0.0,
+          "memory_reserved": 0.0
+        }
+      },
+      "duration": 0.21754980087280273,
+      "resource_usage": {
+        "duration": 0.20751261711120605,
+        "sample_count": 2,
+        "monitoring_available": {
+          "cpu": false,
+          "memory": false,
+          "gpu": true
+        },
+        "gpu_memory_mb": {
+          "min": 0.0,
+          "max": 0.0,
+          "avg": 0.0,
+          "samples": 2
+        }
+      },
+      "end_time": 1754283350.0377858
+    },
+    {
+      "test_name": "test_audio_capture_quality",
+      "start_time": 1754283350.039771,
+      "hardware_state": {
+        "timestamp": 1754283350.0397744,
+        "gpu": {
+          "memory_allocated": 0.0,
+          "memory_reserved": 0.0
+        }
+      },
+      "duration": 0.11092162132263184,
+      "resource_usage": {
+        "duration": 0.10408139228820801,
+        "sample_count": 1,
+        "monitoring_available": {
+          "cpu": false,
+          "memory": false,
+          "gpu": true
+        },
+        "gpu_memory_mb": {
+          "min": 0.0,
+          "max": 0.0,
+          "avg": 0.0,
+          "samples": 1
+        }
+      },
+      "end_time": 1754283350.1507163
+    },
+    {
+      "test_name": "test_audio_latency",
+      "start_time": 1754283350.1519804,
+      "hardware_state": {
+        "timestamp": 1754283350.1519828,
+        "gpu": {
+          "memory_allocated": 0.0,
+          "memory_reserved": 0.0
+        }
+      },
+      "duration": 0.10502910614013672,
+      "resource_usage": {
+        "duration": 0.10314321517944336,
+        "sample_count": 1,
+        "monitoring_available": {
+          "cpu": false,
+          "memory": false,
+          "gpu": true
+        },
+        "gpu_memory_mb": {
+          "min": 0.0,
+          "max": 0.0,
+          "avg": 0.0,
+          "samples": 1
+        }
+      },
+      "end_time": 1754283350.257047
+    },
+    {
+      "test_name": "test_continuous_capture_stability",
+      "start_time": 1754283350.2594655,
+      "hardware_state": {
+        "timestamp": 1754283350.2594697,
+        "gpu": {
+          "memory_allocated": 0.0,
+          "memory_reserved": 0.0
+        }
+      },
+      "duration": 0.10578417778015137,
+      "resource_usage": {
+        "duration": 0.10230231285095215,
+        "sample_count": 1,
+        "monitoring_available": {
+          "cpu": false,
+          "memory": false,
+          "gpu": true
+        },
+        "gpu_memory_mb": {
+          "min": 0.0,
+          "max": 0.0,
+          "avg": 0.0,
+          "samples": 1
+        }
+      },
+      "end_time": 1754283350.365268
+    }
+  ]
+}

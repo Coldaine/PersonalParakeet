@@ -1,0 +1,105 @@
+{
+  "summary": {
+    "session_id": "20250804_000126",
+    "start_time": 1754283686.174885,
+    "end_time": 1754283686.658265,
+    "duration": 0.4833803176879883,
+    "total_tests": 3,
+    "hardware_tests": 0,
+    "resource_summary": {
+      "peak_gpu_memory_mb": 0.0
+    },
+    "performance_metrics": {
+      "min_duration": 0.10445499420166016,
+      "max_duration": 0.21779942512512207,
+      "avg_duration": 0.14261269569396973,
+      "total_duration": 0.4278380870819092
+    }
+  },
+  "test_results": [
+    {
+      "test_name": "test_live_speech_recognition",
+      "start_time": 1754283686.2231796,
+      "hardware_state": {
+        "timestamp": 1754283686.2231843,
+        "gpu": {
+          "memory_allocated": 0.0,
+          "memory_reserved": 0.0
+        }
+      },
+      "duration": 0.21779942512512207,
+      "resource_usage": {
+        "duration": 0.21561312675476074,
+        "sample_count": 2,
+        "monitoring_available": {
+          "cpu": false,
+          "memory": false,
+          "gpu": true
+        },
+        "gpu_memory_mb": {
+          "min": 0.0,
+          "max": 0.0,
+          "avg": 0.0,
+          "samples": 2
+        }
+      },
+      "end_time": 1754283686.44103
+    },
+    {
+      "test_name": "test_continuous_dictation",
+      "start_time": 1754283686.4438906,
+      "hardware_state": {
+        "timestamp": 1754283686.4438968,
+        "gpu": {
+          "memory_allocated": 0.0,
+          "memory_reserved": 0.0
+        }
+      },
+      "duration": 0.10558366775512695,
+      "resource_usage": {
+        "duration": 0.1030428409576416,
+        "sample_count": 1,
+        "monitoring_available": {
+          "cpu": false,
+          "memory": false,
+          "gpu": true
+        },
+        "gpu_memory_mb": {
+          "min": 0.0,
+          "max": 0.0,
+          "avg": 0.0,
+          "samples": 1
+        }
+      },
+      "end_time": 1754283686.5495243
+    },
+    {
+      "test_name": "test_noise_handling",
+      "start_time": 1754283686.553676,
+      "hardware_state": {
+        "timestamp": 1754283686.5536797,
+        "gpu": {
+          "memory_allocated": 0.0,
+          "memory_reserved": 0.0
+        }
+      },
+      "duration": 0.10445499420166016,
+      "resource_usage": {
+        "duration": 0.1030433177947998,
+        "sample_count": 1,
+        "monitoring_available": {
+          "cpu": false,
+          "memory": false,
+          "gpu": true
+        },
+        "gpu_memory_mb": {
+          "min": 0.0,
+          "max": 0.0,
+          "avg": 0.0,
+          "samples": 1
+        }
+      },
+      "end_time": 1754283686.6581576
+    }
+  ]
+}

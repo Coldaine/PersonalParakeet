@@ -78,6 +78,8 @@ async def test_audio_pipeline():
     print("\n=== Testing Audio Pipeline ===")
     
     config = V3Config()
+    # Force mock STT for testing
+    config.audio.use_mock_stt = True
     engine = AudioEngine(config, asyncio.get_event_loop())
     
     # Track callbacks

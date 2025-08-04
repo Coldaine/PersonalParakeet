@@ -9,6 +9,7 @@ import numpy as np
 import time
 import sys
 import threading
+from audio_meter import AudioMeter
 
 class LiveAudioMonitor:
     def __init__(self, device_id=7, duration=30):
@@ -19,6 +20,7 @@ class LiveAudioMonitor:
         self.audio_chunks = []
         self.max_level = 0
         self.total_samples = 0
+        self.meter = AudioMeter(voice_threshold=0.01)
         
     def audio_callback(self, indata, frames, time_info, status):
         """Process audio in real-time"""
@@ -29,30 +31,18 @@ class LiveAudioMonitor:
         self.audio_chunks.append(indata.copy())
         self.total_samples += len(indata)
         
-        # Calculate levels
-        audio = indata[:, 0]
-        rms = np.sqrt(np.mean(audio**2))
-        peak = np.max(np.abs(audio))
-        self.max_level = max(self.max_level, peak)
+        # Measure audio levels
+        level = self.meter.measure(indata)
+        self.max_level = max(self.max_level, level.peak)
         
-        # Detect voice activity
-        is_voice = rms > 0.01
+        # Get formatted status line
+        status_line = self.meter.get_status_line(level)
         
-        # Create visual meter
-        meter_width = 40
-        normalized = min(1.0, rms * 20)
-        filled = int(normalized * meter_width)
-        meter = "█" * filled + "░" * (meter_width - filled)
-        
-        # Calculate dB levels
-        rms_db = 20 * np.log10(rms + 1e-10)
-        peak_db = 20 * np.log10(peak + 1e-10)
-        
-        # Status indicator
-        status_indicator = "🎤 SPEAKING" if is_voice else "   SILENCE "
-        
-        # Print real-time feedback
-        print(f"\r{status_indicator} [{meter}] RMS: {rms_db:6.1f} dB | Peak: {peak_db:6.1f} dB", end='', flush=True)
+        # Print with proper terminal handling
+        # Move to start of line and clear it
+        sys.stdout.write("\r" + " " * 80 + "\r")
+        sys.stdout.write(status_line)
+        sys.stdout.flush()
         
     def run(self):
         """Run the live audio monitor"""
@@ -80,14 +70,17 @@ class LiveAudioMonitor:
                 # Run for specified duration
                 while time.time() - start_time < self.duration:
                     remaining = self.duration - (time.time() - start_time)
-                    # Update remaining time in title
-                    sys.stdout.write(f"\033]0;Audio Monitor - {remaining:.0f}s remaining\007")
+                    # Update remaining time without interfering with meter display
                     time.sleep(0.1)
                 
                 self.is_running = False
                 
+            # Clear the line with ANSI escape code
+            sys.stdout.write("\r\033[K")
+            sys.stdout.flush()
+            
             # Analysis
-            print("\n\n" + "=" * 70)
+            print("\n" + "=" * 70)
             print("📊 AUDIO SESSION ANALYSIS")
             print("=" * 70)
             

@@ -1,0 +1,31 @@
+PersonalParakeet Hardware Test Report
+==================================================
+Session ID: 20250803_235614
+Duration: 0.43 seconds
+Total Tests: 3
+
+Resource Usage:
+------------------------------
+  peak_gpu_memory_mb: 294.24
+
+Performance Metrics:
+------------------------------
+  Min Duration: 0.107s
+  Max Duration: 0.110s
+  Avg Duration: 0.108s
+  Total Time: 0.325s
+
+Test Results:
+------------------------------
+
+  test_platform_detection:
+    Duration: 0.108s
+    GPU Memory: 294.2MB avg, 294.2MB max
+
+  test_non_windows_fallback:
+    Duration: 0.107s
+    GPU Memory: 294.2MB avg, 294.2MB max
+
+  test_window_monitoring_performance:
+    Duration: 0.110s
+    GPU Memory: 294.2MB avg, 294.2MB max
