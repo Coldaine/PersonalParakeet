@@ -51,10 +51,24 @@ class AudioEngine:
         self.is_running = False
         self.is_listening = False
         
-        # Audio processing
+        # Audio processing - small chunks for smooth capture
         self.audio_queue = queue.Queue(maxsize=50)
         self.audio_stream = None
         self.audio_thread = None
+        
+        # STT processing buffer - accumulate 4-second chunks for efficient processing
+        # Modern STT works best on multi-second segments, not micro-chunks
+        self.stt_buffer = []
+        self.stt_buffer_duration = 4.0  # seconds - good balance of latency vs efficiency
+        self.stt_buffer_max_samples = int(self.stt_buffer_duration * 16000)  # Will be updated after config load
+        
+        # Performance monitoring
+        self.queue_overflow_count = 0
+        self.total_chunks_received = 0
+        self.total_chunks_processed = 0
+        self.total_stt_calls = 0  # Track actual STT processing calls
+        self.last_chunk_time = time.time()
+        self.processing_times = []
         
         # Core components
         self.stt_processor = None
@@ -106,6 +120,10 @@ class AudioEngine:
                     )
                 )
                 logger.info(f"Resampler initialized: {self.config.audio.capture_sample_rate}Hz -> {self.config.audio.model_sample_rate}Hz")
+            
+            # Update STT buffer size based on actual model sample rate
+            self.stt_buffer_max_samples = int(self.stt_buffer_duration * self.config.audio.model_sample_rate)
+            logger.info(f"STT buffer configured: {self.stt_buffer_duration}s = {self.stt_buffer_max_samples} samples at {self.config.audio.model_sample_rate}Hz")
             
             self.is_running = True
             logger.info("AudioEngine initialized successfully")
@@ -164,12 +182,16 @@ class AudioEngine:
         if self.audio_thread and self.audio_thread.is_alive():
             self.audio_thread.join(timeout=2.0)
         
-        # Clear audio queue
+        # Clear audio queue and STT buffer
         while not self.audio_queue.empty():
             try:
                 self.audio_queue.get_nowait()
             except queue.Empty:
                 break
+        
+        # Clear STT buffer to prevent processing stale audio
+        self.stt_buffer.clear()
+        logger.info(f"Cleared STT buffer and audio queue")
                 
         logger.info("Audio processing stopped")
     
@@ -182,11 +204,21 @@ class AudioEngine:
             try:
                 # Convert to float32 and add to queue
                 audio_chunk = indata[:, 0].astype(np.float32)
+                self.total_chunks_received += 1
                 
                 if not self.audio_queue.full():
                     self.audio_queue.put(audio_chunk.copy())
+                    
+                    # Log queue usage metrics
+                    current_queue_size = self.audio_queue.qsize()
+                    if current_queue_size > 40:  # 80% capacity
+                        logger.warning(f"High queue usage: {current_queue_size}/50 chunks ({current_queue_size/50*100:.1f}%)")
                 else:
-                    logger.warning("Audio queue full, dropping chunk")
+                    self.queue_overflow_count += 1
+                    logger.warning(f"Audio queue full, dropping chunk (overflow #{self.queue_overflow_count}, total received: {self.total_chunks_received})")
+                    
+                    # Log detailed queue statistics
+                    logger.info(f"Queue stats - Size: {self.audio_queue.qsize()}/50, Overflow rate: {self.queue_overflow_count/self.total_chunks_received*100:.2f}%")
                     
             except Exception as e:
                 logger.error(f"Audio callback error: {e}")
@@ -199,27 +231,82 @@ class AudioEngine:
             try:
                 # Get audio chunk from queue (at capture sample rate)
                 audio_chunk = self.audio_queue.get(timeout=0.5)
+                chunk_start_time = time.time()
                 
-                # Resample if needed
+                # Resample if needed (convert to model sample rate)
                 if self.resampler:
                     audio_chunk = self.resampler.resample_chunk(audio_chunk)
                 
-                # Process VAD (expects model sample rate)
+                # Process VAD on individual chunks (expects model sample rate)
                 if self.vad_engine:
                     vad_status = self.vad_engine.process_audio_frame(audio_chunk)
                     self._update_vad_status(vad_status)
                 
-                # Check if audio is loud enough for STT
-                max_level = np.max(np.abs(audio_chunk))
-                if max_level < self.config.audio.silence_threshold:
-                    continue
+                # Add to STT buffer for efficient batch processing
+                # STT models work much better on multi-second segments than micro-chunks
+                self.stt_buffer.extend(audio_chunk)
                 
-                # Process through STT (synchronous in worker thread)
-                text = self._process_stt_sync(audio_chunk)
-                if text and text.strip():
-                    self._handle_transcription(text)
+                # Process STT when buffer reaches target duration (4 seconds)
+                if len(self.stt_buffer) >= self.stt_buffer_max_samples:
+                    # Convert buffer to numpy array for STT processing
+                    stt_chunk = np.array(self.stt_buffer[:self.stt_buffer_max_samples], dtype=np.float32)
+                    
+                    # Remove processed samples from buffer (keep remainder for next batch)
+                    self.stt_buffer = self.stt_buffer[self.stt_buffer_max_samples:]
+                    
+                    # Check if audio is loud enough for STT (on the full 4-second chunk)
+                    max_level = np.max(np.abs(stt_chunk))
+                    if max_level >= self.config.audio.silence_threshold:
+                        # Process through STT (synchronous in worker thread)
+                        # This now processes meaningful 4-second segments instead of 43ms fragments
+                        stt_start_time = time.time()
+                        text = self._process_stt_sync(stt_chunk)
+                        stt_processing_time = time.time() - stt_start_time
+                        self.total_stt_calls += 1
+                        
+                        if text and text.strip():
+                            self._handle_transcription(text)
+                        
+                        # Log STT processing performance (should be much more efficient now)
+                        logger.debug(f"STT processed {len(stt_chunk)/self.config.audio.model_sample_rate:.1f}s audio in {stt_processing_time:.3f}s")
+                        if stt_processing_time > 1.0:  # 1s threshold for 4s audio
+                            logger.warning(f"Slow STT processing: {stt_processing_time:.3f}s for {len(stt_chunk)/self.config.audio.model_sample_rate:.1f}s audio")
+                
+                # Track chunk processing metrics (queue management performance)
+                processing_time = time.time() - chunk_start_time
+                self.processing_times.append(processing_time)
+                self.total_chunks_processed += 1
+                self.last_chunk_time = time.time()
+                
+                # Log periodic performance summary with STT efficiency metrics
+                if self.total_chunks_processed % 100 == 0:
+                    avg_processing_time = sum(self.processing_times[-100:]) / min(100, len(self.processing_times))
+                    buffer_seconds = len(self.stt_buffer) / self.config.audio.model_sample_rate
+                    logger.info(f"Performance summary - Chunks: {self.total_chunks_processed}, "
+                              f"STT calls: {self.total_stt_calls}, "
+                              f"Avg chunk time: {avg_processing_time:.3f}s, "
+                              f"Queue: {self.audio_queue.qsize()}/50, "
+                              f"STT buffer: {buffer_seconds:.1f}s, "
+                              f"Overflow rate: {self.queue_overflow_count/max(1, self.total_chunks_received)*100:.2f}%")
                     
             except queue.Empty:
+                # Process any remaining audio in buffer during quiet periods
+                # This ensures we don't lose the last bit of speech
+                if len(self.stt_buffer) > self.config.audio.model_sample_rate * 0.5:  # > 0.5 seconds
+                    stt_chunk = np.array(self.stt_buffer, dtype=np.float32)
+                    self.stt_buffer.clear()
+                    
+                    max_level = np.max(np.abs(stt_chunk))
+                    if max_level >= self.config.audio.silence_threshold:
+                        text = self._process_stt_sync(stt_chunk)
+                        self.total_stt_calls += 1
+                        if text and text.strip():
+                            self._handle_transcription(text)
+                        logger.debug(f"Processed remaining {len(stt_chunk)/self.config.audio.model_sample_rate:.1f}s audio from buffer")
+                
+                # Check for queue starvation
+                if self.audio_queue.qsize() == 0 and time.time() - self.last_chunk_time > 1.0:
+                    logger.debug("Queue starvation detected - no audio chunks for >1s")
                 continue
             except Exception as e:
                 logger.error(f"Audio processing error: {e}")
@@ -245,6 +332,11 @@ class AudioEngine:
                 start_time = time.time()
                 result = self.stt_processor.transcribe(audio_chunk)
                 elapsed = time.time() - start_time
+                
+                # Log STT performance metrics
+                if elapsed > 0.3:  # 300ms threshold
+                    logger.warning(f"Slow STT processing: {elapsed:.3f}s for chunk shape {audio_chunk.shape}")
+                
                 logger.debug(f"STT transcribe took {elapsed:.3f}s, result: {result}")
                 return result
             return None
@@ -352,6 +444,8 @@ class AudioEngine:
     def clear_current_text(self):
         """Clear current text and context"""
         self.current_text = ""
+        # Also clear STT buffer to prevent processing stale audio
+        self.stt_buffer.clear()
         if self.clarity_engine:
             self.clarity_engine.clear_context()
     

@@ -1,0 +1,51 @@
+PersonalParakeet Hardware Test Report
+==================================================
+Session ID: 20250804_170107
+Duration: 11.84 seconds
+Total Tests: 5
+
+Resource Usage:
+------------------------------
+  peak_cpu_percent: 1851.20
+  peak_memory_mb: 893.39
+  peak_gpu_memory_mb: 108.56
+
+Performance Metrics:
+------------------------------
+  Min Duration: 0.204s
+  Max Duration: 10.189s
+  Avg Duration: 2.361s
+  Total Time: 11.805s
+
+Test Results:
+------------------------------
+
+  test_cuda_availability:
+    Duration: 0.204s
+    CPU: 0.0% avg, 0.0% max
+    Memory: 504.9MB avg, 504.9MB max
+    GPU Memory: 0.0MB avg, 0.0MB max
+
+  test_gpu_memory_allocation:
+    Duration: 0.305s
+    CPU: 43.9% avg, 87.7% max
+    Memory: 538.3MB avg, 569.4MB max
+    GPU Memory: 0.0MB avg, 0.0MB max
+
+  test_gpu_computation_speed:
+    Duration: 0.705s
+    CPU: 1049.5% avg, 1851.2% max
+    Memory: 751.6MB avg, 836.6MB max
+    GPU Memory: 15.2MB avg, 20.0MB max
+
+  test_gpu_data_transfer:
+    Duration: 0.403s
+    CPU: 66.2% avg, 99.3% max
+    Memory: 826.4MB avg, 893.4MB max
+    GPU Memory: 45.2MB avg, 108.6MB max
+
+  test_gpu_stress:
+    Duration: 10.189s
+    CPU: 99.4% avg, 118.8% max
+    Memory: 828.0MB avg, 830.3MB max
+    GPU Memory: 11.7MB avg, 23.7MB max

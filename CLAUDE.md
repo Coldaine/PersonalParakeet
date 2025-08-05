@@ -49,6 +49,54 @@ poetry run ruff check .
 poetry run mypy .
 ```
 
+## Dependency Resolution Process
+
+### ⚠️ CRITICAL: PyTorch Version Compatibility Fix ⚠️
+
+If you encounter the following dependency errors:
+- `RuntimeError: operator torchvision::nms does not exist`
+- Version conflicts between torch, torchvision, and torchaudio
+- fsspec version conflicts with NeMo
+
+Use this exact sequence to fix:
+
+```bash
+# PREREQUISITE: Always activate conda environment first
+conda activate personalparakeet
+
+# Step 1: Fix TorchVision (downgrade from dev to stable)
+poetry run pip uninstall -y torchvision
+poetry run pip install torchvision==0.22.0 --index-url https://download.pytorch.org/whl/cu128
+
+# Step 2: Fix fsspec for NeMo compatibility
+poetry run pip install fsspec==2024.12.0
+
+# Step 3: Fix TorchAudio (downgrade from dev to stable)
+poetry run pip uninstall -y torchaudio
+poetry run pip install torchaudio==2.7.0 --index-url https://download.pytorch.org/whl/cu128
+
+# Step 4: Verify all imports work
+poetry run python -c "import torch; import torchvision; import torchaudio; print('✅ All PyTorch packages imported successfully')"
+poetry run python -c "import nemo.collections.asr as nemo_asr; print('✅ NeMo imported successfully')"
+
+# Step 5: Test the application
+poetry run python -m personalparakeet
+```
+
+### Why These Specific Versions?
+
+- **PyTorch 2.7.0**: Stable version with CUDA 12.8 support for RTX 5090
+- **TorchVision 0.22.0**: Matches PyTorch 2.7.0, avoids nms operator issues
+- **TorchAudio 2.7.0**: Matches PyTorch 2.7.0, maintains compatibility
+- **fsspec 2024.12.0**: Exact version required by NeMo 2.4.0
+
+### Alternative: Clean Install
+
+If issues persist, use the provided script:
+```bash
+./fix_ml_dependencies.sh
+```
+
 ## Architecture Constraints
 
 ### ❌ FORBIDDEN

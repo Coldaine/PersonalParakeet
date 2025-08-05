@@ -1,0 +1,223 @@
+{
+  "summary": {
+    "session_id": "20250804_170045",
+    "start_time": 1754344845.194364,
+    "end_time": 1754344847.473118,
+    "duration": 2.278754234313965,
+    "total_tests": 4,
+    "hardware_tests": 0,
+    "resource_summary": {
+      "peak_cpu_percent": 9.6,
+      "peak_memory_mb": 502.890625,
+      "peak_gpu_memory_mb": 0.0
+    },
+    "performance_metrics": {
+      "min_duration": 0.20259499549865723,
+      "max_duration": 1.2111773490905762,
+      "avg_duration": 0.5575571060180664,
+      "total_duration": 2.2302284240722656
+    }
+  },
+  "test_results": [
+    {
+      "test_name": "test_text_injection_simulation",
+      "start_time": 1754344845.2257721,
+      "hardware_state": {
+        "timestamp": 1754344845.225777,
+        "gpu": {
+          "memory_allocated": 0.0,
+          "memory_reserved": 0.0
+        },
+        "system": {
+          "cpu_percent": 59.5,
+          "memory_percent": 28.0
+        }
+      },
+      "duration": 1.2111773490905762,
+      "resource_usage": {
+        "duration": 1.1095902919769287,
+        "sample_count": 11,
+        "monitoring_available": {
+          "cpu": true,
+          "memory": true,
+          "gpu": true
+        },
+        "cpu_percent": {
+          "min": 0.0,
+          "max": 0.0,
+          "avg": 0.0,
+          "samples": 11
+        },
+        "memory_mb": {
+          "min": 502.640625,
+          "max": 502.890625,
+          "avg": 502.86789772727275,
+          "samples": 11
+        },
+        "gpu_memory_mb": {
+          "min": 0.0,
+          "max": 0.0,
+          "avg": 0.0,
+          "samples": 11
+        },
+        "gpu_utilization": {
+          "min": 6,
+          "max": 11,
+          "avg": 8.272727272727273,
+          "samples": 11
+        }
+      },
+      "end_time": 1754344846.4370608
+    },
+    {
+      "test_name": "test_text_preprocessing_for_injection",
+      "start_time": 1754344846.4438882,
+      "hardware_state": {
+        "timestamp": 1754344846.443891,
+        "gpu": {
+          "memory_allocated": 0.0,
+          "memory_reserved": 0.0
+        },
+        "system": {
+          "cpu_percent": 51.8,
+          "memory_percent": 28.0
+        }
+      },
+      "duration": 0.20507597923278809,
+      "resource_usage": {
+        "duration": 0.1034233570098877,
+        "sample_count": 1,
+        "monitoring_available": {
+          "cpu": true,
+          "memory": true,
+          "gpu": true
+        },
+        "cpu_percent": {
+          "min": 0.0,
+          "max": 0.0,
+          "avg": 0.0,
+          "samples": 1
+        },
+        "memory_mb": {
+          "min": 502.890625,
+          "max": 502.890625,
+          "avg": 502.890625,
+          "samples": 1
+        },
+        "gpu_memory_mb": {
+          "min": 0.0,
+          "max": 0.0,
+          "avg": 0.0,
+          "samples": 1
+        },
+        "gpu_utilization": {
+          "min": 11,
+          "max": 11,
+          "avg": 11.0,
+          "samples": 1
+        }
+      },
+      "end_time": 1754344846.6490345
+    },
+    {
+      "test_name": "test_injection_queue_handling",
+      "start_time": 1754344846.6538405,
+      "hardware_state": {
+        "timestamp": 1754344846.6538453,
+        "gpu": {
+          "memory_allocated": 0.0,
+          "memory_reserved": 0.0
+        },
+        "system": {
+          "cpu_percent": 51.0,
+          "memory_percent": 28.0
+        }
+      },
+      "duration": 0.6113801002502441,
+      "resource_usage": {
+        "duration": 0.5094239711761475,
+        "sample_count": 5,
+        "monitoring_available": {
+          "cpu": true,
+          "memory": true,
+          "gpu": true
+        },
+        "cpu_percent": {
+          "min": 0.0,
+          "max": 9.6,
+          "avg": 1.92,
+          "samples": 5
+        },
+        "memory_mb": {
+          "min": 502.890625,
+          "max": 502.890625,
+          "avg": 502.890625,
+          "samples": 5
+        },
+        "gpu_memory_mb": {
+          "min": 0.0,
+          "max": 0.0,
+          "avg": 0.0,
+          "samples": 5
+        },
+        "gpu_utilization": {
+          "min": 4,
+          "max": 11,
+          "avg": 6.8,
+          "samples": 5
+        }
+      },
+      "end_time": 1754344847.26543
+    },
+    {
+      "test_name": "test_injection_error_recovery",
+      "start_time": 1754344847.2703195,
+      "hardware_state": {
+        "timestamp": 1754344847.270324,
+        "gpu": {
+          "memory_allocated": 0.0,
+          "memory_reserved": 0.0
+        },
+        "system": {
+          "cpu_percent": 55.4,
+          "memory_percent": 28.1
+        }
+      },
+      "duration": 0.20259499549865723,
+      "resource_usage": {
+        "duration": 0.10100555419921875,
+        "sample_count": 1,
+        "monitoring_available": {
+          "cpu": true,
+          "memory": true,
+          "gpu": true
+        },
+        "cpu_percent": {
+          "min": 0.0,
+          "max": 0.0,
+          "avg": 0.0,
+          "samples": 1
+        },
+        "memory_mb": {
+          "min": 502.890625,
+          "max": 502.890625,
+          "avg": 502.890625,
+          "samples": 1
+        },
+        "gpu_memory_mb": {
+          "min": 0.0,
+          "max": 0.0,
+          "avg": 0.0,
+          "samples": 1
+        },
+        "gpu_utilization": {
+          "min": 4,
+          "max": 4,
+          "avg": 4.0,
+          "samples": 1
+        }
+      },
+      "end_time": 1754344847.472945
+    }
+  ]
+}

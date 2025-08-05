@@ -1,4 +1,5 @@
-# PersonalParakeet v3 - Development Guide
+
+# PersonalParakeet v3 - Development Guide (Last updated: August 4, 2025)
 
 This guide provides a complete overview of the setup, development, and contribution process for PersonalParakeet v3.
 
@@ -8,45 +9,40 @@ This guide provides a complete overview of the setup, development, and contribut
 
 ### 1.1. Prerequisites
 
--   **Python**: 3.11+ is required.
--   **GPU**: An NVIDIA GPU is recommended for real-time STT. CPU-only mode is supported for development.
--   **CUDA**: CUDA 11.8+ for GPU acceleration.
--   **Poetry**: For dependency management.
+- **Python**: 3.11+ is required (3.11.x recommended for ML compatibility)
+- **GPU**: NVIDIA GPU recommended for real-time STT (CPU-only mode supported)
+- **CUDA**: CUDA 11.8+ for GPU acceleration
+- **Conda**: For environment management
+- **Poetry**: For dependency management
 
 ### 1.2. Python Version Considerations
 
--   The project targets Python 3.11+ (as specified in `.python-version`).
--   While the system may run on newer versions like 3.13, some ML packages (like NVIDIA NeMo) have strict version compatibility requirements. It is recommended to use a Python version as close to the target as possible.
+- The project targets Python 3.11+ (see `.python-version`)
+- Some ML packages (e.g., NVIDIA NeMo) have strict version compatibility; use the recommended Python version
 
 ### 1.3. Installation
 
 This project uses a hybrid **Conda + Poetry** setup.
 
-1.  **Clone and Create Conda Environment**:
-
+1. **Clone and Create Conda Environment**:
     ```bash
     git clone <repository>
     cd PersonalParakeet
     conda env create -f environment.yml
     conda activate personalparakeet
     ```
-
-2.  **Install Application Dependencies with Poetry**:
-
+2. **Install Application Dependencies with Poetry**:
     ```bash
     poetry install
     ```
-
-3.  **Activate the Virtual Environment**:
-
+3. **Activate the Virtual Environment**:
     ```bash
     poetry shell
     ```
 
-### 1.5. ML Stack Verification
+### 1.4. ML Stack Verification
 
 After installation, verify your setup:
-
 ```bash
 python -m personalparakeet.scripts.ml_stack_check
 ```
@@ -55,9 +51,48 @@ python -m personalparakeet.scripts.ml_stack_check
 
 ## 2. Project Structure
 
-The project follows the standard `src-layout` structure.
+The project follows a modern `src-layout` structure:
 
 ```
+src/personalparakeet/
+├── core/           # Business logic only
+├── ui/             # Flet components only
+├── main.py         # Single entry point
+└── config.py       # Dataclass configuration
+```
+
+## 3. Code Style & Patterns
+
+- Use **dataclasses** for all configuration
+- Type hints are required throughout
+- Use **async/await** only for UI updates (Flet)
+- Follow proven patterns in `docs/archive/legacy/V3_PROVEN_CODE_LIBRARY.md`
+- Use `queue.Queue` for thread-safe communication (never direct cross-thread UI access)
+
+## 4. Configuration Profiles
+
+- All configuration is managed via dataclasses in `config.py`
+- Runtime profile switching is supported (see ProfileManager in `config.py`)
+- Add new profiles by extending the `ConfigurationProfile` dataclass
+
+## 5. Testing
+
+- All tests use real hardware (no mocks/stubs)
+- Run tests with:
+    ```bash
+    poetry run pytest tests/
+    ```
+- See `docs/TESTING_IMPLEMENTATION_SUMMARY.md` for details
+
+## 6. Contribution & PR Checklist
+
+- [ ] Code follows single-process, thread-safe architecture
+- [ ] All new features are documented in the appropriate `.md` files
+- [ ] Dependencies are updated in both `requirements.txt` and documentation
+- [ ] Tests are added/updated for new features
+- [ ] Documentation is cross-checked for accuracy and completeness
+
+---
 src/
 └── personalparakeet/
     ├── __main__.py

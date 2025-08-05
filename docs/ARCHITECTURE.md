@@ -1,62 +1,69 @@
-# PersonalParakeet v3 Architecture
+
+# PersonalParakeet v3 Architecture (Last updated: August 4, 2025)
 
 ## 1. Executive Summary
 
-PersonalParakeet v3 represents a complete architectural overhaul from the problematic two-process Tauri/WebSocket system to a unified **single-process Flet application**. This migration addresses critical stability, deployment, and maintenance issues while preserving all v2 features. The core of the architecture is a pure Python, single-process solution that eliminates all inter-process communication (IPC) complexity.
+PersonalParakeet v3 is a pure Python, single-process, multi-threaded real-time dictation system using the Flet UI framework. The v3 migration eliminates all WebSocket, IPC, and multi-process patterns, resulting in a stable, maintainable, and performant application. All UI, audio, and STT logic runs in a single process, with thread-safe communication via `queue.Queue`.
 
-**Key Decisions**:
-- Migrate to **Flet** for a pure Python UI.
-- Adopt a **single-process, multi-threaded architecture**.
-- Implement a **src-layout** for a clean, maintainable project structure.
-- Use **Poetry** for dependency management and packaging.
-- Standardize on modern tooling: **black, isort, ruff, mypy**.
+**Key Architectural Principles:**
+- Pure Python, single-process, multi-threaded design
+- Flet for all UI components (no React/Tauri remnants)
+- Thread-safe producer-consumer pattern for audio and STT
+- src-layout for maintainability
+- Modern tooling: black, isort, ruff, mypy
+- Dataclasses for all configuration
 
 ## 2. Architecture Decision Record
 
-**Date**: July 26, 2025
-**Status**: Accepted
-**Decision**: Migrate PersonalParakeet to a single-process Flet application.
+**Date:** July 26, 2025  
+**Status:** Accepted  
+**Decision:** Migrate to a single-process Flet application
 
 ### 2.1. Context and Problem
+v2’s Tauri/WebSocket architecture caused race conditions, complex deployment, and poor maintainability. v3 solves these by unifying all logic in a single Python process.
 
-PersonalParakeet v2's architecture led to critical issues:
-- **Process synchronization failures**: WebSocket race conditions between the Tauri frontend and Python backend.
-- **Complex deployment**: Required Node.js, Rust, and Python toolchains.
-- **Shell/path conflicts**: `npm` using Git Bash caused startup failures.
-- **User feedback**: "Process management nightmare."
-
-### 2.2. Considered Alternatives
-
-1.  **Fix Current Architecture** ❌
-    -   **Pros**: Preserves existing code.
-    -   **Cons**: Fundamental architectural flaws remain.
-    -   **Verdict**: Treating symptoms, not the disease.
-2.  **pywebview** 🤔
-    -   **Pros**: Preserves React UI, single process.
-    -   **Cons**: Still requires JavaScript maintenance.
-    -   **Verdict**: Good option but not optimal.
-3.  **Flet** ✅ **CHOSEN**
-    -   **Pros**: Pure Python, single process, Material Design, simple deployment.
-    -   **Cons**: Complete UI rewrite, larger bundle (~50MB).
-    -   **Verdict**: Best balance of simplicity and functionality.
-4.  **Native UI (Tkinter, etc.)** ❌
-    -   **Pros**: Smaller executable.
-    -   **Cons**: Dated appearance, poor developer experience.
-    -   **Verdict**: Not suitable for a modern application.
+### 2.2. Alternatives Considered
+- Fix v2 (rejected: fundamental flaws remain)
+- pywebview (rejected: still requires JS maintenance)
+- Flet (chosen: pure Python, modern UI, single process)
+- Native UI (rejected: dated appearance)
 
 ## 3. Technical Architecture
 
 ### 3.1. High-Level Design
-
-The v3 architecture is a single Python process that manages the UI, audio processing, and STT inference in separate threads.
 
 ```
 [Single Python Process]
 ├── Flet UI (Main Thread)
 ├── Audio Producer Thread
 ├── STT Consumer Thread
+├── Clarity Engine Thread (optional)
 └── Shared Queue (thread-safe)
 ```
+
+**Key modules:**
+- `core/`: Business logic (audio, STT, injection, clarity, etc.)
+- `ui/`: Flet UI components
+- `config.py`: Dataclass-based configuration and runtime profiles
+- `main.py`: Single entry point
+
+### 3.2. Configuration Profiles & Runtime Switching
+PersonalParakeet v3 supports runtime configuration profiles (e.g., for speed, accuracy, conversation, document modes). Profiles are managed via dataclasses and can be switched at runtime (see `config.py`).
+
+### 3.3. Enhanced Injection & Thought Linking
+- **Enhanced Injection:** Multi-strategy text injection (UI Automation, Keyboard, Clipboard, etc.) is implemented, but some advanced strategies are still in progress.
+- **Thought Linking:** Modular thought linking is partially integrated; further UI and workflow integration is planned.
+
+### 3.4. Testing & Performance
+- All tests use real hardware (no mocks/stubs)
+- <150ms latency target (see TESTING docs)
+
+## 4. Current Gaps & Next Steps
+- Some features (advanced injection, thought linking, configuration UI) are partially implemented
+- Performance benchmarks and automated latency tests are planned
+- Linux support is partial; see STATUS.md for details
+
+---
 
 **Benefits**:
 - **Simple**: No IPC, no serialization overhead.

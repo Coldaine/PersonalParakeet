@@ -1,7 +1,8 @@
-# PersonalParakeet Testing Framework Implementation Plan
+---
+# PersonalParakeet v3 - Testing Framework Implementation Plan (Last updated: August 4, 2025)
 
 ## Overview
-Complete rebuild of testing framework using ONLY real hardware - no mocks, stubs, or simulations.
+The testing framework is a complete rebuild using ONLY real hardware—no mocks, stubs, or simulations. All tests are designed to run on actual microphones, GPUs, and system resources, with fallback and reporting for unavailable hardware.
 
 ## Core Principles
 1. **Real Hardware Only** - All tests use actual microphone, GPU, and system resources
@@ -52,12 +53,34 @@ tests/
 
 ## Implementation Phases
 
-### Phase 1: Core Infrastructure (Week 1)
+### Phase 1: Core Infrastructure
 1. **BaseHardwareTest Class**
    - Hardware initialization/cleanup
    - Resource management
    - Error handling for hardware failures
    - Test isolation mechanisms
+
+### Phase 2: Hardware & Integration Tests
+- Audio device, STT model, GPU/CUDA, and window detection tests
+- Audio-to-STT and STT-to-injection pipeline tests
+
+### Phase 3: Interactive & Performance Tests
+- Live dictation, app switching, and dashboard
+- Latency, GPU usage, and memory pattern benchmarks
+
+## Current Status & Next Steps
+
+- Most core and integration tests are implemented and passing on supported hardware
+- Some advanced injection and thought linking tests are planned
+- Automated performance benchmarks are in progress
+- Linux-specific hardware and injection tests are partial
+
+## How to Run Tests
+```bash
+poetry run pytest tests/
+```
+
+---
 
 2. **Hardware Validator**
    - Check GPU/CUDA availability

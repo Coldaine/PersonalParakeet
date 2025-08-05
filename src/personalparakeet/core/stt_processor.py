@@ -6,6 +6,7 @@ Ported from personalparakeet.dictation.SimpleDictation
 
 import logging
 import asyncio
+import time
 import torch
 import numpy as np
 from typing import Optional
@@ -32,13 +33,20 @@ class STTProcessor:
         self.is_initialized = False
         self.device = None  # Will be set during initialization
         
+        # Performance tracking
+        self.transcription_count = 0
+        self.total_transcription_time = 0.0
+        self.transcription_times = []
+        
     async def initialize(self):
         """Initialize the Parakeet STT model"""
         try:
             logger.info("Loading Parakeet-TDT-1.1B model...")
+            start_time = time.time()
             
             # Check CUDA compatibility and apply fixes
             cuda_info = CUDACompatibility.check_and_apply_fixes()
+            logger.info(f"CUDA compatibility check completed: {cuda_info}")
             
             # Determine device to use
             force_cpu = self.config.audio.stt_device == "cpu"
@@ -68,7 +76,8 @@ class STTProcessor:
                 logger.info("Using float16 for GPU memory efficiency")
             
             self.is_initialized = True
-            logger.info("Parakeet model loaded successfully")
+            load_time = time.time() - start_time
+            logger.info(f"Parakeet model loaded successfully in {load_time:.2f}s")
             
         except Exception as e:
             logger.error(f"Failed to initialize STT processor: {e}")
@@ -118,8 +127,24 @@ class STTProcessor:
                     audio_chunk = audio_chunk.flatten()
                 
                 # Transcribe with Parakeet
+                start_time = time.time()
                 result = self.model.transcribe([audio_chunk])
+                transcription_time = time.time() - start_time
+                
+                # Track performance metrics
+                self.transcription_count += 1
+                self.total_transcription_time += transcription_time
+                self.transcription_times.append(transcription_time)
+                
                 text = result[0].text if result and result[0].text else ""
+                
+                # Log performance metrics periodically
+                if self.transcription_count % 50 == 0:
+                    avg_time = self.total_transcription_time / self.transcription_count
+                    recent_avg = sum(self.transcription_times[-10:]) / min(10, len(self.transcription_times))
+                    logger.info(f"STT performance - Count: {self.transcription_count}, "
+                              f"Avg time: {avg_time:.3f}s, Recent avg: {recent_avg:.3f}s, "
+                              f"Current: {transcription_time:.3f}s")
                 
                 return text.strip() if text else None
                 

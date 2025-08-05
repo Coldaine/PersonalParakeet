@@ -46,7 +46,7 @@ self.ui_element.value = text  # Race condition
 
 ### File Structure
 ```
-v3-flet/
+src/personalparakeet/
 ├── core/           # Business logic only
 ├── ui/             # Flet components only
 ├── main.py         # Single entry point
@@ -62,9 +62,9 @@ v3-flet/
 ## Testing Requirements
 - Test with real microphone input
 - Verify <150ms latency
-- Run: `python v3-flet/run_tests.py`
+- Run: `poetry run pytest tests/`
 
 ## References
-- @docs/V3_FEATURE_MIGRATION_STATUS.md - Migration roadmap (35% complete)
-- @docs/V3_PROVEN_CODE_LIBRARY.md - Battle-tested patterns
+- @docs/STATUS.md - Migration roadmap (50% complete)
+- @docs/ARCHITECTURE.md - Battle-tested patterns
 - @CLAUDE.md - Architecture decisions and history
