@@ -17,9 +17,8 @@ def test_imports():
     logger.info("Testing imports...")
     
     try:
-        # Test Flet import
-        import flet as ft
-        logger.info("- Flet: OK")
+        import personalparakeet_ui
+        logger.info("- Rust UI: OK")
         
         # Test config import
         from config import V3Config
@@ -73,7 +72,7 @@ def test_ui_creation():
     logger.info("Testing UI creation...")
     
     try:
-        import flet as ft
+        import personalparakeet_ui
         from ui.components import StatusIndicator, ControlPanel, ConfidenceBar
         
         # Create mock components

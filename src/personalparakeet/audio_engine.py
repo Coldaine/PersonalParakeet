@@ -351,7 +351,10 @@ class AudioEngine:
         # Send raw transcription to UI
         if self.on_raw_transcription:
             try:
-                if asyncio.iscoroutinefunction(self.on_raw_transcription):
+                # Use direct Rust UI call for better performance
+                if hasattr(self.on_raw_transcription, '__call__') and not asyncio.iscoroutinefunction(self.on_raw_transcription):
+                    self.on_raw_transcription(text)
+                elif asyncio.iscoroutinefunction(self.on_raw_transcription):
                     asyncio.run_coroutine_threadsafe(
                         self.on_raw_transcription(text),
                         asyncio.get_event_loop()
