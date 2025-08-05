@@ -269,4 +269,4 @@ graph TD
 
 PersonalParakeet v3 shows strong architectural foundations with a well-designed single-process Flet implementation. The core audio processing and STT functionality is solid, but several critical blockers prevent full deployment. The most urgent issues are RTX 5090 compatibility, audio queue management, and activation of thought linking features.
 
-With focused effort on the critical blockers and completion of medium-term goals, PersonalParakeet v3 has the potential to become a leading real-time dictation solution with its innovative LocalAgreement buffering system and GPU-accelerated architecture.
+With focused effort on the critical blockers and completion of medium-term goals, PersonalParakeet v3 has the potential to become a leading real-time dictation solution with its intelligent text buffering system and GPU-accelerated architecture.

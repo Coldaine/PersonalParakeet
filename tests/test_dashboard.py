@@ -31,7 +31,7 @@ class TestDashboard:
         self.page = None
         self.output_text = None
         self.current_process = None
-        self.root_dir = Path(__file__).parent
+        self.root_dir = Path(__file__).parent.parent  # Go up to project root
         self.src_dir = self.root_dir / "src" / "personalparakeet"
         
         # Define tests with descriptions
@@ -147,9 +147,9 @@ class TestDashboard:
                         else:
                             self.output_text.value += clean_line
                         
-                        # Auto-scroll to bottom
-                        self.output_text.update()
-                        self.page.update()
+                        # Auto-scroll to bottom - thread-safe update
+                        if self.page:
+                            self.page.update()
                 
                 process.wait()
                 self.current_process = None
@@ -158,11 +158,13 @@ class TestDashboard:
                     self.output_text.value += "\n✅ Test completed successfully\n"
                 else:
                     self.output_text.value += f"\n❌ Test failed with exit code {process.returncode}\n"
-                self.page.update()
+                if self.page:
+                    self.page.update()
                 
             except Exception as e:
                 self.output_text.value += f"\n❌ Error running test: {str(e)}\n"
-                self.page.update()
+                if self.page:
+                    self.page.update()
         
         # Run in thread to not block UI
         thread = threading.Thread(target=run_in_thread)
@@ -170,15 +172,105 @@ class TestDashboard:
     
     def stop_test(self, e):
         """Stop the currently running test"""
-        if self.current_process:
-            self.current_process.terminate()
-            self.output_text.value += "\n⚠️ Test stopped by user\n"
-            self.page.update()
+        try:
+            if self.current_process:
+                self.current_process.terminate()
+                self.output_text.value += "\n⚠️ Test stopped by user\n"
+                if self.page:
+                    self.page.update()
+        except Exception as ex:
+            print(f"Error stopping test: {ex}")
     
     def clear_output(self, e):
         """Clear the output text"""
-        self.output_text.value = ""
-        self.page.update()
+        try:
+            self.output_text.value = ""
+            if self.page:
+                self.page.update()
+        except Exception as ex:
+            print(f"Error clearing output: {ex}")
+
+    def create_injection_test_widget(self):
+        """Create a special widget for quick injection testing"""
+        self.injection_result_text = ft.Text(
+            "Click button to test injection",
+            size=14,
+            color=ft.Colors.GREY_400
+        )
+        
+        self.injection_test_field = ft.TextField(
+            hint_text="Injected text will appear here",
+            multiline=False,
+            bgcolor=ft.Colors.BLACK87,
+            border_color=ft.Colors.BLUE_400,
+            focused_border_color=ft.Colors.GREEN_400
+        )
+        
+        def test_injection(e):
+            """Test injection after delay"""
+            import threading
+            import time
+            
+            # Update UI
+            self.injection_result_text.value = "Testing in 200ms..."
+            self.injection_result_text.color = ft.Colors.YELLOW_400
+            self.page.update()
+            
+            def inject_after_delay():
+                time.sleep(0.2)  # 200ms delay
+                
+                # Import and test injection
+                import sys
+                sys.path.insert(0, str(self.root_dir / "src"))
+                
+                try:
+                    from personalparakeet.core.text_injector import TextInjector
+                    injector = TextInjector()
+                    
+                    test_text = f"Test {datetime.now().strftime('%H:%M:%S')} "
+                    success = injector.inject_text(test_text)
+                    
+                    # Update result
+                    if success:
+                        self.injection_result_text.value = f"✅ Injected: '{test_text}'"
+                        self.injection_result_text.color = ft.Colors.GREEN_400
+                    else:
+                        self.injection_result_text.value = "❌ Injection failed"
+                        self.injection_result_text.color = ft.Colors.RED_400
+                        
+                except Exception as ex:
+                    self.injection_result_text.value = f"❌ Error: {str(ex)}"
+                    self.injection_result_text.color = ft.Colors.RED_400
+                
+                self.page.update()
+            
+            # Run injection in thread
+            threading.Thread(target=inject_after_delay, daemon=True).start()
+        
+        widget = ft.Container(
+            content=ft.Column([
+                ft.Row([
+                    ft.Icon(ft.Icons.KEYBOARD_ALT, size=30),
+                    ft.Text("Quick Injection Test", size=20, weight=ft.FontWeight.BOLD)
+                ]),
+                ft.Text("Tests text injection with 200ms delay", size=14),
+                ft.ElevatedButton(
+                    "Test Injection Now",
+                    icon=ft.Icons.SEND,
+                    on_click=test_injection,
+                    bgcolor=ft.Colors.BLUE_700,
+                ),
+                self.injection_result_text,
+                ft.Text("Test field (for manual testing):", size=12),
+                self.injection_test_field
+            ]),
+            bgcolor=ft.Colors.BLUE_GREY_900,
+            border_radius=10,
+            padding=20,
+            margin=10
+        )
+        
+        return widget
     
     def create_test_card(self, test):
         """Create a card for a test"""
@@ -222,9 +314,12 @@ class TestDashboard:
             padding=20
         )
         
+        # Create injection test widget
+        injection_widget = self.create_injection_test_widget()
+        
         # Test cards
         test_cards = ft.Column(
-            [self.create_test_card(test) for test in self.tests],
+            [injection_widget] + [self.create_test_card(test) for test in self.tests],
             scroll=ft.ScrollMode.AUTO
         )
         

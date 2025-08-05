@@ -7,6 +7,7 @@ and fallback mechanisms for reliable text injection across all supported platfor
 """
 
 import logging
+import os
 import platform
 import time
 import threading
@@ -336,9 +337,16 @@ class TextInjector:
     def _inject_linux(self, context: InjectionContext) -> bool:
         """Linux-specific text injection"""
         try:
-            # Try different methods
+            # Check if we're on Wayland
+            session_type = os.environ.get('XDG_SESSION_TYPE', '').lower()
+            wayland_display = os.environ.get('WAYLAND_DISPLAY', '')
             
-            # Method 1: X11 keyboard simulation
+            if session_type == 'wayland' or wayland_display:
+                # Try Wayland injection first
+                if self._inject_linux_wayland(context):
+                    return True
+            
+            # Try X11 methods
             if self._inject_linux_x11_keyboard(context):
                 return True
             
@@ -350,6 +358,37 @@ class TextInjector:
             
         except Exception as e:
             logger.error(f"Linux injection failed: {e}")
+            return False
+
+    def _inject_linux_wayland(self, context: InjectionContext) -> bool:
+        """Linux Wayland-specific text injection"""
+        try:
+            # Import WaylandInjector lazily to avoid import errors on non-Wayland systems
+            from .wayland_injector import WaylandInjector
+            
+            # Create or reuse Wayland injector instance
+            if not hasattr(self, '_wayland_injector'):
+                self._wayland_injector = WaylandInjector()
+                
+            # Log detected capabilities once
+            if not hasattr(self, '_wayland_logged'):
+                logger.info(f"Wayland compositor: {self._wayland_injector.capabilities.compositor.value}")
+                logger.info(f"Available Wayland methods: {[m.value for m in self._wayland_injector.capabilities.available_methods]}")
+                self._wayland_logged = True
+                
+            # Attempt injection
+            success, error = self._wayland_injector.inject_text(context.text)
+            
+            if not success and error:
+                logger.debug(f"Wayland injection failed: {error}")
+                
+            return success
+            
+        except ImportError as e:
+            logger.debug(f"WaylandInjector not available: {e}")
+            return False
+        except Exception as e:
+            logger.error(f"Wayland injection error: {e}")
             return False
     
     def _inject_linux_x11_keyboard(self, context: InjectionContext) -> bool:
@@ -374,50 +413,46 @@ class TextInjector:
     def _inject_linux_clipboard(self, context: InjectionContext) -> bool:
         """Linux clipboard-based injection"""
         try:
-            import pyperclip
+            # Use our improved clipboard injector
+            from .clipboard_injector import ClipboardInjector
             
-            # Try to use xdotool if available
-            import subprocess
-            
-            # Save current clipboard
-            original_clipboard = pyperclip.paste()
-            
-            # Set new text
-            pyperclip.copy(context.text)
-            
-            # Try to paste using xdotool
-            try:
-                subprocess.run(['xdotool', 'key', 'ctrl+v'], 
-                             check=True, timeout=2, capture_output=True)
+            if not hasattr(self, '_clipboard_injector'):
+                self._clipboard_injector = ClipboardInjector()
                 
-                # Restore clipboard
-                time.sleep(0.01)
-                pyperclip.copy(original_clipboard)
-                
-                return True
-            except (subprocess.CalledProcessError, subprocess.TimeoutExpired, FileNotFoundError):
-                pass
-            
-            # Fallback: try xclip
-            try:
-                subprocess.run(['xclip', '-selection', 'clipboard'], 
-                             input=context.text.encode(), check=True, timeout=2)
-                subprocess.run(['xdotool', 'key', 'ctrl+v'], 
-                             check=True, timeout=2, capture_output=True)
-                
-                # Restore clipboard
-                time.sleep(0.01)
-                pyperclip.copy(original_clipboard)
-                
-                return True
-            except (subprocess.CalledProcessError, subprocess.TimeoutExpired, FileNotFoundError):
-                pass
-            
-            return False
+            return self._clipboard_injector.inject_text(context.text)
             
         except ImportError:
-            logger.debug("Clipboard libraries not available")
-            return False
+            logger.debug("ClipboardInjector not available, trying legacy method")
+            
+            # Legacy pyperclip approach
+            try:
+                import pyperclip
+                import subprocess
+                
+                # Save current clipboard
+                original_clipboard = pyperclip.paste()
+                
+                # Set new text
+                pyperclip.copy(context.text)
+                
+                # Try to paste using xdotool
+                try:
+                    subprocess.run(['xdotool', 'key', 'ctrl+v'], 
+                                 check=True, timeout=2, capture_output=True)
+                    
+                    # Restore clipboard
+                    time.sleep(0.01)
+                    pyperclip.copy(original_clipboard)
+                    
+                    return True
+                except (subprocess.CalledProcessError, subprocess.TimeoutExpired, FileNotFoundError):
+                    pass
+                
+                return False
+                
+            except ImportError:
+                logger.debug("Clipboard libraries not available")
+                return False
         except Exception as e:
             logger.debug(f"Linux clipboard injection failed: {e}")
             return False

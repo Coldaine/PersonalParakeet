@@ -100,6 +100,38 @@ class PersonalParakeetV3:
             )
             logger.info("Thought linking integration initialized successfully")
             
+            # Connect audio engine callbacks to text injection
+            logger.info("Connecting audio engine callbacks...")
+            
+            # Handle raw transcriptions - inject directly without thought linking for now
+            async def handle_raw_transcription(text: str):
+                """Handle raw transcribed text from STT"""
+                if text and text.strip():
+                    logger.info(f"Transcribed: {text}")
+                    # Update UI
+                    if self.dictation_view:
+                        await self.dictation_view.update_text(text)
+                    # Inject text into active application
+                    success = self.injection_manager.inject_text(text)
+                    if success:
+                        logger.info(f"Injected text: {text}")
+                    else:
+                        logger.warning(f"Failed to inject text: {text}")
+            
+            # Handle corrected transcriptions
+            async def handle_corrected_transcription(result):
+                """Handle corrected text from Clarity Engine"""
+                if result and result.corrected_text and result.corrected_text.strip():
+                    logger.info(f"Corrected: {result.corrected_text}")
+                    # For now, just update UI - injection happens in raw handler
+                    if self.dictation_view:
+                        await self.dictation_view.update_text(result.corrected_text)
+            
+            # Set callbacks
+            self.audio_engine.on_raw_transcription = handle_raw_transcription
+            self.audio_engine.on_corrected_transcription = handle_corrected_transcription
+            logger.info("Audio engine callbacks connected")
+            
             # Initialize dictation view
             logger.info("Creating dictation view...")
             self.dictation_view = DictationView(self.config, None)  # profile_manager not implemented yet
@@ -147,27 +179,8 @@ class PersonalParakeetV3:
         
         page.run_task = run_task
         
-        # Window configuration for floating dictation view
-        page.window_always_on_top = True
-        page.window_frameless = True
-        page.window_resizable = False  # Disable resize to force exact size
-        
-        # Force exact window dimensions
-        page.window_width = 450
-        page.window_height = 350
-        page.window_min_width = 450
-        page.window_max_width = 450
-        page.window_min_height = 350
-        page.window_max_height = 350
-        
-        page.window_opacity = self.config.window.opacity
-        
-        # Set transparent background
-        page.bgcolor = ft.Colors.TRANSPARENT
-        page.theme_mode = ft.ThemeMode.DARK
-        
-        # Window title
-        page.title = "PersonalParakeet v3"
+        # Let dictation_view handle all window configuration
+        pass
         
         # Center window on screen initially
         # page.window_center()  # Not available in this Flet version
@@ -293,7 +306,7 @@ async def app_main(page: ft.Page):
         
         page.dialog = dlg
         dlg.open = True
-        await page.update()
+        page.update()
         
         # Log the error
         logger.error(f"Application cannot start: {e}")
@@ -324,7 +337,7 @@ async def app_main(page: ft.Page):
         
         page.dialog = dlg
         dlg.open = True
-        await page.update()
+        page.update()
         
         logger.error(f"Application initialization failed: {e}")
         logger.error(error_details)

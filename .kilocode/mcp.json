@@ -8,7 +8,10 @@
       ],
       "env": {
         "BRAVE_API_KEY": "BSAp4RXXvbbFgBK2WTxmC-QW7Sx4Q6d"
-      }
+      },
+      "alwaysAllow": [
+        "brave_web_search"
+      ]
     }
   }
 }

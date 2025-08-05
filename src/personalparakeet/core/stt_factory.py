@@ -63,6 +63,12 @@ class STTFactory:
         Raises:
             RuntimeError: If NeMo is not available (violates hardware requirements)
         """
+        # Check if mock STT is requested
+        if config.audio.use_mock_stt:
+            logger.info("Mock STT requested - creating mock processor")
+            from .mock_stt_processor import MockSTTProcessor
+            return MockSTTProcessor(config)
+        
         # Real hardware always present - check if ML dependencies available
         if not cls.check_nemo_availability():
             error_msg = (

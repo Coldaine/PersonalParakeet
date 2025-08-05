@@ -1,0 +1,188 @@
+<svg width="1200" height="800" xmlns="http://www.w3.org/2000/svg">
+  <!-- Background -->
+  <rect width="1200" height="800" fill="#f8f9fa"/>
+  
+  <!-- Header -->
+  <rect x="0" y="0" width="1200" height="80" fill="#2c3e50"/>
+  <text x="600" y="35" text-anchor="middle" fill="white" font-size="24" font-weight="bold" font-family="Arial, sans-serif">PersonalParakeet Test Visualization</text>
+  <text x="600" y="60" text-anchor="middle" fill="white" font-size="14" font-family="Arial, sans-serif">Comprehensive Test Structure and Coverage Analysis</text>
+  
+  <!-- Metrics Overview -->
+  <g transform="translate(50, 100)">
+    <text x="0" y="0" font-size="18" font-weight="bold" fill="#2c3e50" font-family="Arial, sans-serif">Test Metrics Overview</text>
+    
+    <!-- Total Tests -->
+    <rect x="0" y="10" width="150" height="80" rx="10" fill="#ecf0f1" stroke="#bdc3c7" stroke-width="2"/>
+    <text x="75" y="40" text-anchor="middle" font-size="14" fill="#7f8c8d" font-family="Arial, sans-serif">Total Tests</text>
+    <text x="75" y="65" text-anchor="middle" font-size="24" font-weight="bold" fill="#2c3e50" font-family="Arial, sans-serif">56</text>
+    
+    <!-- Test Files -->
+    <rect x="170" y="10" width="150" height="80" rx="10" fill="#ecf0f1" stroke="#bdc3c7" stroke-width="2"/>
+    <text x="245" y="40" text-anchor="middle" font-size="14" fill="#7f8c8d" font-family="Arial, sans-serif">Test Files</text>
+    <text x="245" y="65" text-anchor="middle" font-size="24" font-weight="bold" fill="#2c3e50" font-family="Arial, sans-serif">19</text>
+    
+    <!-- Test Categories -->
+    <rect x="340" y="10" width="150" height="80" rx="10" fill="#ecf0f1" stroke="#bdc3c7" stroke-width="2"/>
+    <text x="415" y="40" text-anchor="middle" font-size="14" fill="#7f8c8d" font-family="Arial, sans-serif">Categories</text>
+    <text x="415" y="65" text-anchor="middle" font-size="24" font-weight="bold" fill="#2c3e50" font-family="Arial, sans-serif">6</text>
+    
+    <!-- Coverage Status -->
+    <rect x="510" y="10" width="150" height="80" rx="10" fill="#ecf0f1" stroke="#bdc3c7" stroke-width="2"/>
+    <text x="585" y="40" text-anchor="middle" font-size="14" fill="#7f8c8d" font-family="Arial, sans-serif">Coverage</text>
+    <text x="585" y="65" text-anchor="middle" font-size="24" font-weight="bold" fill="#e74c3c" font-family="Arial, sans-serif">0%</text>
+  </g>
+  
+  <!-- Test Categories Breakdown -->
+  <g transform="translate(50, 220)">
+    <text x="0" y="0" font-size="18" font-weight="bold" fill="#2c3e50" font-family="Arial, sans-serif">Test Categories Breakdown</text>
+    
+    <!-- Unit Tests -->
+    <rect x="0" y="10" width="180" height="100" rx="10" fill="#3498db" stroke="#2980b9" stroke-width="2"/>
+    <text x="90" y="35" text-anchor="middle" font-size="16" font-weight="bold" fill="white" font-family="Arial, sans-serif">Unit Tests</text>
+    <text x="90" y="55" text-anchor="middle" font-size="12" fill="white" font-family="Arial, sans-serif">2 files</text>
+    <text x="90" y="75" text-anchor="middle" font-size="12" fill="white" font-family="Arial, sans-serif">15 tests</text>
+    <text x="90" y="95" text-anchor="middle" font-size="10" fill="white" font-family="Arial, sans-serif">tests/unit</text>
+    
+    <!-- Hardware Tests -->
+    <rect x="200" y="10" width="180" height="100" rx="10" fill="#e74c3c" stroke="#c0392b" stroke-width="2"/>
+    <text x="290" y="35" text-anchor="middle" font-size="16" font-weight="bold" fill="white" font-family="Arial, sans-serif">Hardware Tests</text>
+    <text x="290" y="55" text-anchor="middle" font-size="12" fill="white" font-family="Arial, sans-serif">3 files</text>
+    <text x="290" y="75" text-anchor="middle" font-size="12" fill="white" font-family="Arial, sans-serif">15 tests</text>
+    <text x="290" y="95" text-anchor="middle" font-size="10" fill="white" font-family="Arial, sans-serif">tests/hardware</text>
+    
+    <!-- Integration Tests -->
+    <rect x="400" y="10" width="180" height="100" rx="10" fill="#f39c12" stroke="#d68910" stroke-width="2"/>
+    <text x="490" y="35" text-anchor="middle" font-size="16" font-weight="bold" fill="white" font-family="Arial, sans-serif">Integration Tests</text>
+    <text x="490" y="55" text-anchor="middle" font-size="12" fill="white" font-family="Arial, sans-serif">4 files</text>
+    <text x="490" y="75" text-anchor="middle" font-size="12" fill="white" font-family="Arial, sans-serif">9 tests</text>
+    <text x="490" y="95" text-anchor="middle" font-size="10" fill="white" font-family="Arial, sans-serif">tests/integration</text>
+    
+    <!-- Interactive Tests -->
+    <rect x="600" y="10" width="180" height="100" rx="10" fill="#27ae60" stroke="#229954" stroke-width="2"/>
+    <text x="690" y="35" text-anchor="middle" font-size="16" font-weight="bold" fill="white" font-family="Arial, sans-serif">Interactive Tests</text>
+    <text x="690" y="55" text-anchor="middle" font-size="12" fill="white" font-family="Arial, sans-serif">9 files</text>
+    <text x="690" y="75" text-anchor="middle" font-size="12" fill="white" font-family="Arial, sans-serif">17 tests</text>
+    <text x="690" y="95" text-anchor="middle" font-size="10" fill="white" font-family="Arial, sans-serif">src/tests/utilities</text>
+    
+    <!-- Benchmarks -->
+    <rect x="800" y="10" width="180" height="100" rx="10" fill="#9b59b6" stroke="#8e44ad" stroke-width="2"/>
+    <text x="890" y="35" text-anchor="middle" font-size="16" font-weight="bold" fill="white" font-family="Arial, sans-serif">Benchmarks</text>
+    <text x="890" y="55" text-anchor="middle" font-size="12" fill="white" font-family="Arial, sans-serif">0 files</text>
+    <text x="890" y="75" text-anchor="middle" font-size="12" fill="white" font-family="Arial, sans-serif">0 tests</text>
+    <text x="890" y="95" text-anchor="middle" font-size="10" fill="white" font-family="Arial, sans-serif">tests/benchmarks</text>
+    
+    <!-- Core Infrastructure -->
+    <rect x="1000" y="10" width="150" height="100" rx="10" fill="#34495e" stroke="#2c3e50" stroke-width="2"/>
+    <text x="1075" y="35" text-anchor="middle" font-size="16" font-weight="bold" fill="white" font-family="Arial, sans-serif">Core</text>
+    <text x="1075" y="55" text-anchor="middle" font-size="12" fill="white" font-family="Arial, sans-serif">1 file</text>
+    <text x="1075" y="75" text-anchor="middle" font-size="12" fill="white" font-family="Arial, sans-serif">0 tests</text>
+    <text x="1075" y="95" text-anchor="middle" font-size="10" fill="white" font-family="Arial, sans-serif">tests/core</text>
+  </g>
+  
+  <!-- Test Structure Tree -->
+  <g transform="translate(50, 360)">
+    <text x="0" y="0" font-size="18" font-weight="bold" fill="#2c3e50" font-family="Arial, sans-serif">Test Structure Tree</text>
+    
+    <!-- Main Test Suite -->
+    <rect x="0" y="10" width="200" height="40" rx="5" fill="#34495e" stroke="#2c3e50" stroke-width="2"/>
+    <text x="100" y="35" text-anchor="middle" font-size="14" font-weight="bold" fill="white" font-family="Arial, sans-serif">Main Test Suite</text>
+    
+    <!-- Connection lines -->
+    <line x1="100" y1="50" x2="100" y2="70" stroke="#7f8c8d" stroke-width="2"/>
+    <line x1="50" y1="70" x2="150" y2="70" stroke="#7f8c8d" stroke-width="2"/>
+    <line x1="50" y1="70" x2="50" y2="90" stroke="#7f8c8d" stroke-width="2"/>
+    <line x1="100" y1="70" x2="100" y2="90" stroke="#7f8c8d" stroke-width="2"/>
+    <line x1="150" y1="70" x2="150" y2="90" stroke="#7f8c8d" stroke-width="2"/>
+    
+    <!-- Unit Tests Branch -->
+    <rect x="0" y="90" width="100" height="30" rx="5" fill="#3498db" stroke="#2980b9" stroke-width="2"/>
+    <text x="50" y="110" text-anchor="middle" font-size="12" fill="white" font-family="Arial, sans-serif">Unit (2)</text>
+    
+    <!-- Hardware Tests Branch -->
+    <rect x="50" y="90" width="100" height="30" rx="5" fill="#e74c3c" stroke="#c0392b" stroke-width="2"/>
+    <text x="100" y="110" text-anchor="middle" font-size="12" fill="white" font-family="Arial, sans-serif">Hardware (3)</text>
+    
+    <!-- Integration Tests Branch -->
+    <rect x="100" y="90" width="100" height="30" rx="5" fill="#f39c12" stroke="#d68910" stroke-width="2"/>
+    <text x="150" y="110" text-anchor="middle" font-size="12" fill="white" font-family="Arial, sans-serif">Integration (4)</text>
+    
+    <!-- Application Tests -->
+    <rect x="250" y="10" width="200" height="40" rx="5" fill="#16a085" stroke="#138d75" stroke-width="2"/>
+    <text x="350" y="35" text-anchor="middle" font-size="14" font-weight="bold" fill="white" font-family="Arial, sans-serif">Application Tests</text>
+    
+    <!-- Connection line for Application Tests -->
+    <line x1="350" y1="50" x2="350" y2="90" stroke="#7f8c8d" stroke-width="2"/>
+    
+    <!-- Utility Scripts Branch -->
+    <rect x="300" y="90" width="100" height="30" rx="5" fill="#27ae60" stroke="#229954" stroke-width="2"/>
+    <text x="350" y="110" text-anchor="middle" font-size="12" fill="white" font-family="Arial, sans-serif">Utilities (9)</text>
+  </g>
+  
+  <!-- Coverage Analysis -->
+  <g transform="translate(50, 520)">
+    <text x="0" y="0" font-size="18" font-weight="bold" fill="#2c3e50" font-family="Arial, sans-serif">Coverage Analysis</text>
+    
+    <!-- Coverage Status Box -->
+    <rect x="0" y="10" width="400" height="120" rx="10" fill="#ecf0f1" stroke="#bdc3c7" stroke-width="2"/>
+    <text x="200" y="35" text-anchor="middle" font-size="16" font-weight="bold" fill="#2c3e50" font-family="Arial, sans-serif">Current Coverage Status</text>
+    
+    <!-- Coverage Bar -->
+    <rect x="20" y="50" width="360" height="20" rx="10" fill="#ecf0f1" stroke="#bdc3c7" stroke-width="1"/>
+    <text x="200" y="65" text-anchor="middle" font-size="12" fill="#e74c3c" font-family="Arial, sans-serif">0% Coverage</text>
+    
+    <!-- Coverage Details -->
+    <text x="20" y="95" font-size="12" fill="#7f8c8d" font-family="Arial, sans-serif">• Coverage file exists but empty (53KB)</text>
+    <text x="20" y="115" font-size="12" fill="#7f8c8d" font-family="Arial, sans-serif">• Tests require ML dependencies (torch, etc.)</text>
+    
+    <!-- Solution Box -->
+    <rect x="420" y="10" width="400" height="120" rx="10" fill="#e8f8f5" stroke="#27ae60" stroke-width="2"/>
+    <text x="620" y="35" text-anchor="middle" font-size="16" font-weight="bold" fill="#27ae60" font-family="Arial, sans-serif">Solution</text>
+    <text x="440" y="60" font-size="12" fill="#2c3e50" font-family="Arial, sans-serif">1. Install ML dependencies (torch, etc.)</text>
+    <text x="440" y="80" font-size="12" fill="#2c3e50" font-family="Arial, sans-serif">2. Run: pytest --cov=src/personalparakeet tests/</text>
+    <text x="440" y="100" font-size="12" fill="#2c3e50" font-family="Arial, sans-serif">3. Regenerate visualization</text>
+    <text x="440" y="120" font-size="12" fill="#2c3e50" font-family="Arial, sans-serif">4. See COVERAGE_EXPLANATION.md for details</text>
+  </g>
+  
+  <!-- Test Distribution Chart -->
+  <g transform="translate(50, 680)">
+    <text x="0" y="0" font-size="18" font-weight="bold" fill="#2c3e50" font-family="Arial, sans-serif">Test Distribution</text>
+    
+    <!-- Pie Chart -->
+    <g transform="translate(200, 80)">
+      <!-- Unit Tests - 27% -->
+      <path d="M 0,0 L 60,0 A 60,60 0 0,1 18.54,57.06 Z" fill="#3498db" stroke="white" stroke-width="2"/>
+      <text x="30" y="20" text-anchor="middle" font-size="10" fill="white" font-family="Arial, sans-serif">27%</text>
+      
+      <!-- Hardware Tests - 27% -->
+      <path d="M 0,0 L 18.54,57.06 A 60,60 0 0,1 -48.54,35.27 Z" fill="#e74c3c" stroke="white" stroke-width="2"/>
+      <text x="-10" y="40" text-anchor="middle" font-size="10" fill="white" font-family="Arial, sans-serif">27%</text>
+      
+      <!-- Integration Tests - 16% -->
+      <path d="M 0,0 L -48.54,35.27 A 60,60 0 0,1 -48.54,-35.27 Z" fill="#f39c12" stroke="white" stroke-width="2"/>
+      <text x="-40" y="0" text-anchor="middle" font-size="10" fill="white" font-family="Arial, sans-serif">16%</text>
+      
+      <!-- Interactive Tests - 30% -->
+      <path d="M 0,0 L -48.54,-35.27 A 60,60 0 0,1 60,0 Z" fill="#27ae60" stroke="white" stroke-width="2"/>
+      <text x="10" y="-20" text-anchor="middle" font-size="10" fill="white" font-family="Arial, sans-serif">30%</text>
+    </g>
+    
+    <!-- Legend -->
+    <g transform="translate(300, 40)">
+      <rect x="0" y="0" width="15" height="15" fill="#3498db"/>
+      <text x="20" y="12" font-size="12" fill="#2c3e50" font-family="Arial, sans-serif">Unit Tests (15)</text>
+      
+      <rect x="0" y="25" width="15" height="15" fill="#e74c3c"/>
+      <text x="20" y="37" font-size="12" fill="#2c3e50" font-family="Arial, sans-serif">Hardware Tests (15)</text>
+      
+      <rect x="0" y="50" width="15" height="15" fill="#f39c12"/>
+      <text x="20" y="62" font-size="12" fill="#2c3e50" font-family="Arial, sans-serif">Integration Tests (9)</text>
+      
+      <rect x="0" y="75" width="15" height="15" fill="#27ae60"/>
+      <text x="20" y="87" font-size="12" fill="#2c3e50" font-family="Arial, sans-serif">Interactive Tests (17)</text>
+    </g>
+  </g>
+  
+  <!-- Footer -->
+  <rect x="0" y="760" width="1200" height="40" fill="#34495e"/>
+  <text x="600" y="785" text-anchor="middle" font-size="12" fill="white" font-family="Arial, sans-serif">Generated on 2025-08-05 | PersonalParakeet Test Visualization System</text>
+</svg>

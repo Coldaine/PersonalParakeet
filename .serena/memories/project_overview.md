@@ -4,7 +4,7 @@
 PersonalParakeet v3 is a real-time dictation system with:
 - Transparent floating UI built with Flet
 - AI-powered corrections using "Clarity Engine"
-- LocalAgreement buffering system to prevent text rewrites
+- Intelligent text buffering system to prevent text rewrites
 - GPU-accelerated speech recognition using NVIDIA Parakeet
 - Cross-platform text injection with multiple strategies
 
@@ -20,7 +20,7 @@ PersonalParakeet v3 is a real-time dictation system with:
 - Dataclass-based configuration system
 
 ## Key Innovation
-**LocalAgreement Buffering**: Core innovation that prevents jarring text rewrites by only committing text that is stable across multiple transcription updates.
+**Intelligent Text Buffering**: Core feature that prevents jarring text rewrites by using pause-based commitment and multi-second STT processing for more stable text output.
 
 ## System Requirements
 - Python 3.11+

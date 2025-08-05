@@ -7,6 +7,7 @@ Ported from personalparakeet.dictation.SimpleDictation
 import logging
 import asyncio
 import time
+import os
 import torch
 import numpy as np
 from typing import Optional
@@ -43,6 +44,20 @@ class STTProcessor:
         try:
             logger.info("Loading Parakeet-TDT-1.1B model...")
             start_time = time.time()
+            
+            # Set custom cache directory if configured
+            if self.config.audio.model_cache_dir:
+                cache_dir = Path(self.config.audio.model_cache_dir).expanduser().absolute()
+                cache_dir.mkdir(parents=True, exist_ok=True)
+                
+                # Set environment variables for HuggingFace and Torch cache
+                os.environ['HF_HOME'] = str(cache_dir / 'huggingface')
+                os.environ['HUGGINGFACE_HUB_CACHE'] = str(cache_dir / 'huggingface' / 'hub')
+                os.environ['TORCH_HOME'] = str(cache_dir / 'torch')
+                os.environ['TRANSFORMERS_CACHE'] = str(cache_dir / 'transformers')
+                
+                logger.info(f"Using custom model cache directory: {cache_dir}")
+                logger.info(f"HuggingFace cache: {os.environ['HUGGINGFACE_HUB_CACHE']}")
             
             # Check CUDA compatibility and apply fixes
             cuda_info = CUDACompatibility.check_and_apply_fixes()

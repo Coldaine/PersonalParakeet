@@ -32,9 +32,10 @@ class AudioConfig:
     resample_quality: str = "high"  # "fast", "balanced", "high"
     
     # STT-specific configuration
-    use_mock_stt: bool = False  # Force mock STT even if NeMo is available
+    use_mock_stt: bool = False  # Use real STT if NeMo is available
     stt_device: str = "cuda"  # Device for STT: "cuda" or "cpu"
     stt_audio_threshold: float = 0.01  # Threshold for filtering silent chunks
+    model_cache_dir: Optional[str] = None  # Custom cache directory for model storage
 
     def get_stt_model_path(self) -> str:
         """Get the path to the STT model using importlib.resources."""

@@ -1,0 +1,213 @@
+{
+  "generated_at": "2025-08-05T07:15:37.044569",
+  "project_root": "/mnt/windows_e/_projects/PersonalParakeet",
+  "test_structure": {
+    "test_categories": {
+      "unit": {
+        "paths": [
+          "tests/unit"
+        ],
+        "files": [
+          "/mnt/windows_e/_projects/PersonalParakeet/tests/unit/test_config.py",
+          "/mnt/windows_e/_projects/PersonalParakeet/tests/unit/test_thought_linker.py"
+        ],
+        "methods": [
+          6,
+          9
+        ],
+        "count": 15
+      },
+      "hardware": {
+        "paths": [
+          "tests/hardware"
+        ],
+        "files": [
+          "/mnt/windows_e/_projects/PersonalParakeet/tests/hardware/test_audio_capture.py",
+          "/mnt/windows_e/_projects/PersonalParakeet/tests/hardware/test_gpu_cuda.py",
+          "/mnt/windows_e/_projects/PersonalParakeet/tests/hardware/test_window_detection.py"
+        ],
+        "methods": [
+          5,
+          5,
+          5
+        ],
+        "count": 15
+      },
+      "integration": {
+        "paths": [
+          "tests/integration"
+        ],
+        "files": [
+          "/mnt/windows_e/_projects/PersonalParakeet/tests/integration/test_pipeline_debug.py",
+          "/mnt/windows_e/_projects/PersonalParakeet/tests/integration/test_pipeline_manual.py",
+          "/mnt/windows_e/_projects/PersonalParakeet/tests/integration/test_pipeline_no_gui.py",
+          "/mnt/windows_e/_projects/PersonalParakeet/tests/integration/test_stt_to_injection.py"
+        ],
+        "methods": [
+          1,
+          2,
+          1,
+          5
+        ],
+        "count": 9
+      },
+      "interactive": {
+        "paths": [
+          "src/personalparakeet/tests/utilities"
+        ],
+        "files": [
+          "/mnt/windows_e/_projects/PersonalParakeet/src/personalparakeet/tests/utilities/test_application_detection.py",
+          "/mnt/windows_e/_projects/PersonalParakeet/src/personalparakeet/tests/utilities/test_audio_headless.py",
+          "/mnt/windows_e/_projects/PersonalParakeet/src/personalparakeet/tests/utilities/test_detector.py",
+          "/mnt/windows_e/_projects/PersonalParakeet/src/personalparakeet/tests/utilities/test_enhanced_injection.py",
+          "/mnt/windows_e/_projects/PersonalParakeet/src/personalparakeet/tests/utilities/test_full_pipeline.py",
+          "/mnt/windows_e/_projects/PersonalParakeet/src/personalparakeet/tests/utilities/test_injection.py",
+          "/mnt/windows_e/_projects/PersonalParakeet/src/personalparakeet/tests/utilities/test_live_audio.py",
+          "/mnt/windows_e/_projects/PersonalParakeet/src/personalparakeet/tests/utilities/test_live_audio_gui.py",
+          "/mnt/windows_e/_projects/PersonalParakeet/src/personalparakeet/tests/utilities/test_microphone.py"
+        ],
+        "methods": [
+          3,
+          0,
+          0,
+          7,
+          3,
+          1,
+          0,
+          0,
+          3
+        ],
+        "count": 17
+      },
+      "benchmarks": {
+        "paths": [
+          "tests/benchmarks"
+        ],
+        "files": [],
+        "methods": [],
+        "count": 0
+      },
+      "core": {
+        "paths": [
+          "tests/core"
+        ],
+        "files": [
+          "/mnt/windows_e/_projects/PersonalParakeet/tests/core/test_reporter.py"
+        ],
+        "methods": [
+          0
+        ],
+        "count": 0
+      }
+    },
+    "test_files": [
+      "/mnt/windows_e/_projects/PersonalParakeet/tests/unit/test_config.py",
+      "/mnt/windows_e/_projects/PersonalParakeet/tests/unit/test_thought_linker.py",
+      "/mnt/windows_e/_projects/PersonalParakeet/tests/hardware/test_audio_capture.py",
+      "/mnt/windows_e/_projects/PersonalParakeet/tests/hardware/test_gpu_cuda.py",
+      "/mnt/windows_e/_projects/PersonalParakeet/tests/hardware/test_window_detection.py",
+      "/mnt/windows_e/_projects/PersonalParakeet/tests/integration/test_pipeline_debug.py",
+      "/mnt/windows_e/_projects/PersonalParakeet/tests/integration/test_pipeline_manual.py",
+      "/mnt/windows_e/_projects/PersonalParakeet/tests/integration/test_pipeline_no_gui.py",
+      "/mnt/windows_e/_projects/PersonalParakeet/tests/integration/test_stt_to_injection.py",
+      "/mnt/windows_e/_projects/PersonalParakeet/src/personalparakeet/tests/utilities/test_application_detection.py",
+      "/mnt/windows_e/_projects/PersonalParakeet/src/personalparakeet/tests/utilities/test_audio_headless.py",
+      "/mnt/windows_e/_projects/PersonalParakeet/src/personalparakeet/tests/utilities/test_detector.py",
+      "/mnt/windows_e/_projects/PersonalParakeet/src/personalparakeet/tests/utilities/test_enhanced_injection.py",
+      "/mnt/windows_e/_projects/PersonalParakeet/src/personalparakeet/tests/utilities/test_full_pipeline.py",
+      "/mnt/windows_e/_projects/PersonalParakeet/src/personalparakeet/tests/utilities/test_injection.py",
+      "/mnt/windows_e/_projects/PersonalParakeet/src/personalparakeet/tests/utilities/test_live_audio.py",
+      "/mnt/windows_e/_projects/PersonalParakeet/src/personalparakeet/tests/utilities/test_live_audio_gui.py",
+      "/mnt/windows_e/_projects/PersonalParakeet/src/personalparakeet/tests/utilities/test_microphone.py",
+      "/mnt/windows_e/_projects/PersonalParakeet/tests/core/test_reporter.py"
+    ],
+    "test_methods": [
+      6,
+      9,
+      5,
+      5,
+      5,
+      1,
+      2,
+      1,
+      5,
+      3,
+      0,
+      0,
+      7,
+      3,
+      1,
+      0,
+      0,
+      3,
+      0
+    ],
+    "markers": {},
+    "total_tests": 56,
+    "structure_tree": {
+      "name": "PersonalParakeet Tests",
+      "type": "root",
+      "children": [
+        {
+          "name": "Main Test Suite",
+          "type": "directory",
+          "path": "tests",
+          "children": [
+            {
+              "name": "Unit Tests",
+              "type": "category",
+              "path": "tests/unit",
+              "count": 2
+            },
+            {
+              "name": "Hardware Tests",
+              "type": "category",
+              "path": "tests/hardware",
+              "count": 3
+            },
+            {
+              "name": "Integration Tests",
+              "type": "category",
+              "path": "tests/integration",
+              "count": 4
+            },
+            {
+              "name": "Core Infrastructure",
+              "type": "category",
+              "path": "tests/core",
+              "count": 1
+            },
+            {
+              "name": "Benchmarks",
+              "type": "category",
+              "path": "tests/benchmarks",
+              "count": 0
+            }
+          ]
+        },
+        {
+          "name": "Application Tests",
+          "type": "directory",
+          "path": "src/personalparakeet/tests",
+          "children": [
+            {
+              "name": "Utility Scripts",
+              "type": "category",
+              "path": "src/personalparakeet/tests/utilities",
+              "count": 10
+            }
+          ]
+        }
+      ]
+    }
+  },
+  "coverage_data": {
+    "has_coverage": true,
+    "coverage_file": "/mnt/windows_e/_projects/PersonalParakeet/.coverage",
+    "coverage_percentage": 0,
+    "covered_files": [],
+    "uncovered_files": [],
+    "coverage_by_module": {}
+  },
+  "test_results": {}
+}

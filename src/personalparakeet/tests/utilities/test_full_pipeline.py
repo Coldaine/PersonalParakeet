@@ -20,8 +20,11 @@ logger = logging.getLogger(__name__)
 # Import components
 from personalparakeet.audio_engine import AudioEngine
 from personalparakeet.core.clarity_engine import ClarityEngine
-from personalparakeet.core.injection_manager_enhanced import injection_manager
+from personalparakeet.core.injection_manager_enhanced import EnhancedInjectionManager
 from personalparakeet.config import V3Config
+
+# Create injection manager instance
+injection_manager = EnhancedInjectionManager()
 
 
 def test_clarity_engine():
@@ -134,8 +137,8 @@ def simulate_audio_with_injection():
     time.sleep(0.5)
     
     # Apply clarity
-    engine = ClarityEngine(use_gpt=False)
-    result = engine.correct(text)
+    engine = ClarityEngine(enable_rule_based=True)
+    result = engine.correct_text_sync(text)
     print(f"3. Clarity corrected: '{result.corrected_text}'")
     time.sleep(0.5)
     

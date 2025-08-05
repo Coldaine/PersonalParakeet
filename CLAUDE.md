@@ -150,7 +150,7 @@ def stt_worker(page):
 ```
 
 ## Core Features
-- **LocalAgreement Buffering**: Prevents text rewrites by only committing stable text
+- **Intelligent Text Buffering**: Prevents text rewrites using pause-based commitment and multi-second STT processing
 - **High-Performance STT**: GPU-accelerated using NVIDIA Parakeet (6.05% WER target)
 - **Floating UI**: Transparent, draggable window above other applications
 - **Clarity Engine**: Real-time homophone and technical jargon corrections
@@ -163,6 +163,35 @@ def stt_worker(page):
 - Integration tests verify end-to-end functionality
 - Hardware validation ensures environment readiness
 - Performance benchmarks track <150ms latency requirement
+
+### Wayland Testing
+```bash
+# Test Wayland support
+conda activate personalparakeet
+
+# 1. Check if on Wayland
+echo $XDG_SESSION_TYPE  # Should show "wayland"
+
+# 2. Setup Wayland injection (one-time)
+./scripts/setup_wayland_injection.sh
+# May need to logout/login for group changes
+
+# 3. Test injection methods
+python test_wayland_injection.py      # Full test
+python test_wayland_unsafe.py         # Unsafe mode test
+python test_clipboard_only.py         # Clipboard fallback
+
+# 4. Run main app on Wayland
+poetry run personalparakeet
+
+# 5. Debug injection issues
+# Check available methods:
+python -c "from personalparakeet.core.wayland_injector import WaylandInjector; w=WaylandInjector(); print(w.capabilities.available_methods)"
+
+# Common fixes:
+sudo systemctl start ydotoold  # Start ydotool daemon
+sudo usermod -a -G input $USER # Add to input group
+```
 
 ## Documentation
 - [QUICKSTART.md](docs/QUICKSTART.md) - Setup guide
