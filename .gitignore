@@ -68,9 +68,11 @@ Thumbs.db
 *.m4a
 *.flac
 
-# Logs
+# Logs and test reports
 *.log
 logs/
+test_reports/
+test_diagnostic_logs.py
 
 # Model cache
 models/
