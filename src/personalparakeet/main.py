@@ -11,7 +11,7 @@ import sys
 import os
 from pathlib import Path
 
-import flet as ft
+# import flet as ft  # REMOVED - replaced with Rust UI
 
 from personalparakeet.audio_engine import AudioEngine
 from personalparakeet.ui.dictation_view import DictationView
@@ -59,16 +59,16 @@ class PersonalParakeetV3:
         self.is_running = False
         self.cleanup_registered = False
         
-    async def initialize(self, page: ft.Page):
+    async def initialize(self, rust_ui):
         """Initialize the application components"""
         try:
-            # Register cleanup on page close
+            # Register cleanup
             if not self.cleanup_registered:
-                self.register_cleanup(page)
+                self.register_cleanup(rust_ui)
                 self.cleanup_registered = True
             
-            # Configure page for floating transparent window
-            await self.configure_window(page)
+            # Configure window for floating transparent UI
+            await self.configure_window(rust_ui)
             logger.info("Window configuration completed")
             
             # Initialize audio engine with all components
@@ -103,47 +103,15 @@ class PersonalParakeetV3:
             # Connect audio engine callbacks to text injection
             logger.info("Connecting audio engine callbacks...")
             
-            # Handle raw transcriptions - inject directly without thought linking for now
-            async def handle_raw_transcription(text: str):
-                """Handle raw transcribed text from STT"""
-                if text and text.strip():
-                    logger.info(f"Transcribed: {text}")
-                    # Update UI
-                    if self.dictation_view:
-                        await self.dictation_view.update_text(text)
-                    # Inject text into active application
-                    success = self.injection_manager.inject_text(text)
-                    if success:
-                        logger.info(f"Injected text: {text}")
-                    else:
-                        logger.warning(f"Failed to inject text: {text}")
-            
-            # Handle corrected transcriptions
-            async def handle_corrected_transcription(result):
-                """Handle corrected text from Clarity Engine"""
-                if result and result.corrected_text and result.corrected_text.strip():
-                    logger.info(f"Corrected: {result.corrected_text}")
-                    # For now, just update UI - injection happens in raw handler
-                    if self.dictation_view:
-                        await self.dictation_view.update_text(result.corrected_text)
-            
-            # Set callbacks
-            self.audio_engine.on_raw_transcription = handle_raw_transcription
-            self.audio_engine.on_corrected_transcription = handle_corrected_transcription
+            # Connect audio engine callbacks to Rust UI
+            self.audio_engine.on_raw_transcription = lambda text: rust_ui.update_text(text, "APPEND_WITH_SPACE")
+            self.audio_engine.on_corrected_transcription = lambda text: rust_ui.update_text(text, "REPLACE")
+            self.audio_engine.on_pause_detected = lambda: rust_ui.update_status("Pause detected", "yellow")
+            self.audio_engine.on_vad_status = lambda active: rust_ui.set_recording(active)
+            self.audio_engine.on_error = lambda error: rust_ui.show_error(str(error))
             logger.info("Audio engine callbacks connected")
             
-            # Initialize dictation view
-            logger.info("Creating dictation view...")
-            self.dictation_view = DictationView(self.config, None)  # profile_manager not implemented yet
-            
-            # Set additional properties needed by dictation view
-            self.dictation_view.audio_engine = self.audio_engine
-            self.dictation_view.injection_manager = self.injection_manager
-            
-            # Initialize UI
-            logger.info("Initializing dictation view UI...")
-            await self.dictation_view.initialize(page)
-            logger.info("UI initialized successfully")
+            logger.info("Rust UI callbacks connected successfully")
             
             # Start audio processing
             logger.info("Starting audio processing...")
@@ -167,25 +135,18 @@ class PersonalParakeetV3:
             await self.emergency_cleanup()
             raise
     
-    async def configure_window(self, page: ft.Page):
-        """Configure the main window properties"""
-        # Add run_task helper for sync->async calls
-        def run_task(coro):
-            """Run an async task in the page's event loop"""
+    async def configure_window(self, rust_ui):
+        """Configure window properties for floating UI"""
+        async def run_task():
             try:
-                asyncio.create_task(coro)
-            except RuntimeError as e:
-                logger.error(f"Failed to create task: {e}")
+                await asyncio.sleep(0.1)  # Small delay to ensure UI is ready
+                logger.info("Configuring window properties...")
+                rust_ui.set_window_properties(transparent=True, always_on_top=False)
+                logger.info("Window configuration completed")
+            except Exception as e:
+                logger.error(f"Error configuring window: {e}")
         
-        page.run_task = run_task
-        
-        # Let dictation_view handle all window configuration
-        pass
-        
-        # Center window on screen initially
-        # page.window_center()  # Not available in this Flet version
-        
-        logger.info("Window configured for floating transparent UI")
+        asyncio.create_task(run_task())
     
     async def shutdown(self):
         """Clean shutdown of all components"""
@@ -197,7 +158,7 @@ class PersonalParakeetV3:
         
         logger.info("Shutdown complete")
     
-    def register_cleanup(self, page: ft.Page):
+    def register_cleanup(self, rust_ui):
         """Register cleanup handlers"""
         import atexit
         import signal
@@ -258,102 +219,59 @@ class PersonalParakeetV3:
             logger.error(f"Error during sync cleanup: {e}")
 
 
-async def app_main(page: ft.Page):
-    """Main Flet application entry point"""
+async def app_main():
+    """Main application entry point using Rust UI"""
     app = PersonalParakeetV3()
     
-    # Handle window close event
-    async def on_window_event(e):
-        if e.data == "close":
-            await app.shutdown()
-            page.window_destroy()
-    
-    page.on_window_event = on_window_event
-    
     try:
-        # Initialize application
-        await app.initialize(page)
+        # Initialize Rust UI
+        import personalparakeet_ui
+        rust_ui = personalparakeet_ui.GuiController()
         
-        # Keep application running
+        # Initialize application with Rust UI
+        await app.initialize(rust_ui)
+        
+        # Run the GUI on main thread (blocking call)
+        rust_ui.run()
+        
+        if not app.audio_engine.stt_processor:
+            logger.error("STT processor not available")
+            rust_ui.show_error(
+                "Speech-to-Text (STT) processor could not be initialized. "
+                "This is likely due to missing NVIDIA GPU, CUDA drivers, "
+                "insufficient GPU memory, or missing model files. "
+                "Please check the logs for more details."
+            )
+            return
+        
+        # Configure window properties
+        await app.configure_window(rust_ui)
+        
+        # Register cleanup handlers
+        app.register_cleanup(rust_ui)
+        
+        # Start audio processing
+        await app.audio_engine.start()
         logger.info("PersonalParakeet v3 is ready!")
         logger.info("Use the UI controls or voice commands to interact")
         
-    except RuntimeError as e:
-        # Show critical error dialog for STT failures
-        error_message = str(e)
-        
-        # Create error dialog
-        dlg = ft.AlertDialog(
-            modal=True,
-            title=ft.Text("Critical Error - STT Not Available", color=ft.Colors.RED),
-            content=ft.Container(
-                content=ft.Column([
-                    ft.Text(
-                        "PersonalParakeet cannot start without speech recognition.",
-                        weight=ft.FontWeight.BOLD
-                    ),
-                    ft.Text(""),
-                    ft.Text(error_message, size=12),
-                ], scroll=ft.ScrollMode.AUTO),
-                width=500,
-                height=300,
-            ),
-            actions=[
-                ft.TextButton("Exit", on_click=lambda e: page.window_destroy()),
-            ],
-            actions_alignment=ft.MainAxisAlignment.END,
-        )
-        
-        page.dialog = dlg
-        dlg.open = True
-        page.update()
-        
-        # Log the error
-        logger.error(f"Application cannot start: {e}")
-        
+        while True:
+            await asyncio.sleep(1)
+            
+    except KeyboardInterrupt:
+        logger.info("Application interrupted by user")
     except Exception as e:
-        # Show generic error dialog
-        import traceback
-        error_details = traceback.format_exc()
-        
-        dlg = ft.AlertDialog(
-            modal=True,
-            title=ft.Text("Initialization Error", color=ft.Colors.RED),
-            content=ft.Container(
-                content=ft.Column([
-                    ft.Text(f"Failed to initialize: {str(e)}", weight=ft.FontWeight.BOLD),
-                    ft.Text(""),
-                    ft.Text("Details:", size=12, weight=ft.FontWeight.BOLD),
-                    ft.Text(error_details, size=10),
-                ], scroll=ft.ScrollMode.AUTO),
-                width=600,
-                height=400,
-            ),
-            actions=[
-                ft.TextButton("Exit", on_click=lambda e: page.window_destroy()),
-            ],
-            actions_alignment=ft.MainAxisAlignment.END,
-        )
-        
-        page.dialog = dlg
-        dlg.open = True
-        page.update()
-        
         logger.error(f"Application initialization failed: {e}")
-        logger.error(error_details)
+        raise
 
 
 def main():
-    """Entry point for running the Flet application"""
-    logger.info("Starting PersonalParakeet v3 Flet Application")
+    """Entry point for running the Rust + egui application"""
+    logger.info("Starting PersonalParakeet v3 Rust + egui Application")
     
-    # Run the Flet app
-    ft.app(
-        target=app_main,
-        view=ft.FLET_APP,  # Native desktop application
-        port=0,  # Auto-assign available port to avoid conflicts
-        assets_dir="assets"
-    )
+    # Run the application with Rust UI
+    import asyncio
+    asyncio.run(app_main())
 
 
 if __name__ == "__main__":

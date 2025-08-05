@@ -23,7 +23,7 @@ soundfile = "^0.12.0"  # Audio file I/O
 pyaudio = "^0.2.11"  # Alternative audio backend
 
 # UI Framework
-flet = "^0.28.3"  # Cross-platform Flutter-based UI
+# flet = "^0.28.3"  # REMOVED - replaced with Rust + egui  # Cross-platform Flutter-based UI
 
 # System Integration
 python-dotenv = "^1.0.0"  # Environment configuration
@@ -58,6 +58,7 @@ isort = "^5.12.0"
 flake8 = "^6.0.0"
 mypy = "^1.0.0"
 ruff = "^0.8.0"
+maturin = "^1.5.0"
 openai-whisper = "^20250625"  # For dev/testing alternative STT
 gtts = "^2.5.4"  # Text-to-speech for testing
 pre-commit = "^4.2.0"
@@ -66,8 +67,13 @@ pre-commit = "^4.2.0"
 personalparakeet = "personalparakeet.main:main"
 
 [build-system]
-requires = ["poetry-core>=1.8.0"]
-build-backend = "poetry.core.masonry.api"
+requires = ["maturin>=1.0,<2.0"]
+build-backend = "maturin"
+
+[tool.maturin]
+features = ["pyo3/extension-module"]
+python-source = "src"
+strip = true
 
 [tool.black]
 line-length = 100
