@@ -32,7 +32,9 @@ impl GuiController {
     }
     
     pub fn run(&self) -> PyResult<()> {
-        let receiver = self.event_receiver.lock().unwrap().take()
+        let receiver = self.event_receiver.lock()
+            .map_err(|e| PyErr::new::<pyo3::exceptions::PyRuntimeError, _>(format!("Failed to acquire event_receiver lock: {}", e)))?
+            .take()
             .ok_or_else(|| PyErr::new::<pyo3::exceptions::PyRuntimeError, _>("GUI already running"))?;
         
         let callbacks_clone = self.callback_registry.clone();
@@ -42,7 +44,9 @@ impl GuiController {
     }
     
     pub fn register_callback(&self, name: String, callback: Py<PyAny>) -> PyResult<()> {
-        self.callback_registry.lock().unwrap().insert(name, callback);
+        let mut registry = self.callback_registry.lock()
+            .map_err(|e| PyErr::new::<pyo3::exceptions::PyRuntimeError, _>(format!("Failed to lock callback registry: {}", e)))?;
+        registry.insert(name, callback);
         Ok(())
     }
     

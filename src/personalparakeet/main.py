@@ -103,9 +103,25 @@ class PersonalParakeetV3:
             # Connect audio engine callbacks to text injection
             logger.info("Connecting audio engine callbacks...")
             
-            # Connect audio engine callbacks to Rust UI
-            self.audio_engine.on_raw_transcription = lambda text: rust_ui.update_text(text, "APPEND_WITH_SPACE")
-            self.audio_engine.on_corrected_transcription = lambda text: rust_ui.update_text(text, "REPLACE")
+            # Connect audio engine callbacks to Rust UI AND text injection
+            def handle_raw_transcription(text: str):
+                rust_ui.update_text(text, "APPEND_WITH_SPACE")
+                if text and text.strip():
+                    success = self.injection_manager.inject_text(text)
+                    if success:
+                        logger.info(f"Injected text: {text}")
+                    else:
+                        logger.warning(f"Failed to inject text: {text}")
+            
+            def handle_corrected_transcription(result):
+                if hasattr(result, 'corrected_text'):
+                    text = result.corrected_text
+                else:
+                    text = str(result)
+                rust_ui.update_text(text, "REPLACE")
+            
+            self.audio_engine.on_raw_transcription = handle_raw_transcription
+            self.audio_engine.on_corrected_transcription = handle_corrected_transcription
             self.audio_engine.on_pause_detected = lambda: rust_ui.update_status("Pause detected", "yellow")
             self.audio_engine.on_vad_status = lambda active: rust_ui.set_recording(active)
             self.audio_engine.on_error = lambda error: rust_ui.show_error(str(error))
@@ -228,11 +244,8 @@ async def app_main():
         import personalparakeet_ui
         rust_ui = personalparakeet_ui.GuiController()
         
-        # Initialize application with Rust UI
+        # Initialize application with Rust UI BEFORE running GUI
         await app.initialize(rust_ui)
-        
-        # Run the GUI on main thread (blocking call)
-        rust_ui.run()
         
         if not app.audio_engine.stt_processor:
             logger.error("STT processor not available")
@@ -255,9 +268,9 @@ async def app_main():
         logger.info("PersonalParakeet v3 is ready!")
         logger.info("Use the UI controls or voice commands to interact")
         
-        while True:
-            await asyncio.sleep(1)
-            
+        # Run the GUI on main thread (blocking call) - this should be LAST
+        rust_ui.run()
+        
     except KeyboardInterrupt:
         logger.info("Application interrupted by user")
     except Exception as e:

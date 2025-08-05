@@ -20,6 +20,9 @@ pub struct GuiApp {
     thought_linking_enabled: bool,
     vad_threshold: f32,
     
+    window_transparent: Option<bool>,
+    window_always_on_top: Option<bool>,
+    
     last_update: std::time::Instant,
     update_batch: Vec<GuiEvent>,
 }
@@ -42,6 +45,8 @@ impl GuiApp {
             settings_open: false,
             thought_linking_enabled: false,
             vad_threshold: 2.0,
+            window_transparent: None,
+            window_always_on_top: None,
             last_update: std::time::Instant::now(),
             update_batch: Vec::new(),
         }
@@ -93,7 +98,9 @@ impl GuiApp {
                     self.status_text = format!("Error: {}", error);
                     self.status_color = egui::Color32::from_rgb(255, 165, 0);
                 }
-                GuiEvent::SetWindowProperties { transparent: _, always_on_top: _ } => {
+                GuiEvent::SetWindowProperties { transparent, always_on_top } => {
+                    self.window_transparent = Some(*transparent);
+                    self.window_always_on_top = Some(*always_on_top);
                 }
                 GuiEvent::TriggerCallback(callback_name, data) => {
                     self.trigger_python_callback(callback_name, data);
@@ -103,16 +110,20 @@ impl GuiApp {
     }
     
     fn trigger_python_callback(&self, callback_name: &str, data: &str) {
-        if let Ok(callbacks) = self.callbacks.lock() {
-            if let Some(callback) = callbacks.get(callback_name) {
-                Python::with_gil(|py| {
-                    let args = (data,);
-                    if let Err(e) = callback.call1(py, args) {
-                        eprintln!("Error calling Python callback {}: {}", callback_name, e);
-                    }
-                });
+        Python::with_gil(|py| {
+            let callback_opt = if let Ok(callbacks) = self.callbacks.lock() {
+                callbacks.get(callback_name).map(|cb| cb.clone_ref(py))
+            } else {
+                None
+            };
+            
+            if let Some(callback) = callback_opt {
+                let args = (data,);
+                if let Err(e) = callback.call1(py, args) {
+                    eprintln!("Error calling Python callback {}: {}", callback_name, e);
+                }
             }
-        }
+        });
     }
 }
 
