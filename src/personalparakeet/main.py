@@ -139,6 +139,7 @@ class PersonalParakeetV3:
             logger.info(f"Thought linker instance created: enabled={self.thought_linker.enabled}")
             
             logger.info("PersonalParakeet v3 initialized successfully")
+            logger.info("Ready for real-time dictation with intelligent text processing")
             
         except Exception as e:
             logger.error(f"CRITICAL: Failed to initialize PersonalParakeet v3: {e}")
