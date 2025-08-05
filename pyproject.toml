@@ -47,6 +47,7 @@ cython = "^3.1.2"  # Build optimization
 # - requirements-ml.txt (NeMo toolkit and related ML packages)
 # This separation is required due to complex version constraints and
 # custom package indices that Poetry cannot handle effectively.
+python-xlib = "^0.33"
 
 [tool.poetry.group.dev.dependencies]
 pytest = "^7.0.0"

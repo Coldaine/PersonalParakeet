@@ -53,6 +53,7 @@ class WaylandInjector:
         self.capabilities = self._detect_capabilities()
         self.method_priority = self._determine_method_priority()
         self._ydotool_daemon_checked = False
+        self._needs_sudo = False
         
     def _detect_capabilities(self) -> WaylandCapabilities:
         """Detect Wayland environment and available injection methods."""
@@ -176,25 +177,38 @@ class WaylandInjector:
         return [m for m in base_priority if m in self.capabilities.available_methods]
         
     def _ensure_ydotool_daemon(self) -> bool:
-        """Ensure ydotool daemon is running."""
+        """Ensure ydotool is available (with or without daemon)."""
         if self._ydotool_daemon_checked:
             return True
             
         try:
-            # Check if daemon is running
-            subprocess.run(['ydotool', 'type', ''], capture_output=True, timeout=1)
-            self._ydotool_daemon_checked = True
-            return True
-        except (subprocess.TimeoutExpired, subprocess.CalledProcessError):
-            # Try to start daemon
-            try:
-                subprocess.Popen(['ydotoold'], stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
-                import time
-                time.sleep(0.5)  # Give daemon time to start
+            # Test if ydotool works (might need sudo)
+            result = subprocess.run(['ydotool', 'type', ''], capture_output=True, timeout=1)
+            if result.returncode == 0:
                 self._ydotool_daemon_checked = True
                 return True
-            except:
-                return False
+                
+            # Try with sudo if regular failed
+            result = subprocess.run(['sudo', '-n', 'ydotool', 'type', ''], capture_output=True, timeout=1)
+            if result.returncode == 0:
+                self._ydotool_daemon_checked = True
+                self._needs_sudo = True  # Remember we need sudo
+                return True
+                
+        except (subprocess.TimeoutExpired, subprocess.CalledProcessError):
+            pass
+            
+        # Try to start daemon if ydotoold exists
+        try:
+            subprocess.Popen(['ydotoold'], stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
+            import time
+            time.sleep(0.5)  # Give daemon time to start
+            self._ydotool_daemon_checked = True
+            return True
+        except:
+            pass
+            
+        return False
                 
     def inject_text(self, text: str) -> Tuple[bool, Optional[str]]:
         """
@@ -265,14 +279,20 @@ class WaylandInjector:
             
     def _inject_ydotool(self, text: str) -> Tuple[bool, Optional[str]]:
         """Inject text using ydotool."""
-        # Ensure daemon is running
+        # Ensure ydotool is available
         if not self._ensure_ydotool_daemon():
-            return False, "ydotool daemon not running"
+            return False, "ydotool not available"
             
         try:
-            # ydotool type command
+            # Build command based on whether we need sudo
+            if hasattr(self, '_needs_sudo') and self._needs_sudo:
+                cmd = ['sudo', '-n', 'ydotool', 'type', text]
+            else:
+                cmd = ['ydotool', 'type', text]
+                
+            # Run ydotool type command
             result = subprocess.run(
-                ['ydotool', 'type', text],
+                cmd,
                 capture_output=True,
                 text=True,
                 timeout=5
@@ -281,6 +301,17 @@ class WaylandInjector:
             if result.returncode == 0:
                 return True, None
             else:
+                # If regular ydotool failed, try with sudo
+                if not self._needs_sudo and 'Permission denied' in result.stderr:
+                    result = subprocess.run(
+                        ['sudo', '-n', 'ydotool', 'type', text],
+                        capture_output=True,
+                        text=True,
+                        timeout=5
+                    )
+                    if result.returncode == 0:
+                        self._needs_sudo = True
+                        return True, None
                 return False, result.stderr
         except subprocess.TimeoutExpired:
             return False, "ydotool command timed out"
