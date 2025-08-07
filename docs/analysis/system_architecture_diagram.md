@@ -5,9 +5,9 @@
 ```mermaid
 graph TB
     subgraph "PersonalParakeet v3 Single Process"
-        subgraph "Main Thread [Flet UI]"
-            A[Flet Application Entry] --> B[Window Configuration]
-            B --> C[Dictation View UI]
+        subgraph "Main Thread [Rust UI]"
+            A[Rust Application Entry] --> B[Window Configuration]
+            B --> C[egui UI]
             C --> D[User Controls]
             D --> E[Real-time Updates]
         end
@@ -188,7 +188,7 @@ graph TD
 ```mermaid
 graph LR
     subgraph "UI Layer"
-        A[Flet Main Thread] --> B[Dictation View]
+        A[Rust Main Thread] --> B[egui Interface]
         B --> C[Status Indicators]
         B --> D[Control Buttons]
         B --> E[Text Display]
@@ -411,7 +411,7 @@ graph TD
 
 ```mermaid
 graph TD
-    subgraph "Main Thread [Flet UI]"
+    subgraph "Main Thread [Rust UI]"
         A[Event Loop] --> B[UI Updates]
         B --> C[User Input Handling]
         C --> D[Window Management]
@@ -481,7 +481,7 @@ graph TD
         Q[NeMo Toolkit] --> R[PyTorch]
         R --> S[Torch Audio]
         S --> T[Sound Libraries]
-        T --> U[Flet Framework]
+        T --> U[Rust + egui Framework]
     end
     
     subgraph "Model Downloads"

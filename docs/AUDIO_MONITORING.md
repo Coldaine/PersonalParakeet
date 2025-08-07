@@ -15,8 +15,8 @@ poetry run python src/personalparakeet/tests/utilities/test_live_audio.py 30
 
 ### GUI Dashboard
 ```bash
-# Run the test dashboard
-poetry run python test_dashboard.py
+# Note: GUI dashboard has been removed in favor of Rust UI
+# Use terminal monitor instead
 ```
 
 ## Audio Level Display
@@ -82,9 +82,9 @@ The meter uses ANSI escape codes for proper display:
 
 If you see garbled output, your terminal may not support ANSI codes.
 
-### Dashboard Display Issues
-The dashboard removes ANSI codes and handles carriage returns specially. If the meter doesn't update properly:
-1. Check Flet is up to date: `pip install -U flet`
+### Terminal Display Issues
+If the meter doesn't update properly in your terminal:
+1. Ensure your terminal supports ANSI escape codes
 2. Try the GUI-specific monitor: `test_live_audio_gui.py`
 
 ## Technical Details

@@ -231,7 +231,7 @@ flowchart TD
     A[PersonalParakeetV3] --> B[Initialize Components]
     B --> C[Create ThoughtLinker]
     B --> D[Create ThoughtLinkingIntegration]
-    B --> E[Create DictationView]
+    B --> E[Create Rust UI]
     
     F[Audio Processing] --> G[Text Recognition]
     G --> H[Thought Linking Decision]
@@ -294,7 +294,7 @@ flowchart TD
    - Missing platform dependencies
 
 2. **UI Integration Gap**
-   - DictationView doesn't use thought linking
+   - Rust UI doesn't use thought linking
    - No UI controls for thought linking configuration
    - Missing visual feedback for thought linking decisions
 
@@ -318,7 +318,7 @@ flowchart TD
    - Add proper error handling and fallbacks
 
 2. **UI Integration**
-   - Connect thought linking to DictationView
+   - Connect thought linking to Rust UI
    - Add configuration controls to the UI
    - Provide visual feedback for linking decisions
 

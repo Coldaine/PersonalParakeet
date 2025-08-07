@@ -3,11 +3,11 @@
 
 ## 1. Executive Summary
 
-PersonalParakeet v3 is a pure Python, single-process, multi-threaded real-time dictation system using the Flet UI framework. The v3 migration eliminates all WebSocket, IPC, and multi-process patterns, resulting in a stable, maintainable, and performant application. All UI, audio, and STT logic runs in a single process, with thread-safe communication via `queue.Queue`.
+PersonalParakeet v3 is a pure Python, single-process, multi-threaded real-time dictation system using a Rust + egui UI framework. The v3 migration eliminates all WebSocket, IPC, and multi-process patterns, resulting in a stable, maintainable, and performant application. All UI, audio, and STT logic runs in a single process, with thread-safe communication via `queue.Queue`.
 
 **Key Architectural Principles:**
 - Pure Python, single-process, multi-threaded design
-- Flet for all UI components (no React/Tauri remnants)
+- Rust + egui for all UI components (no React/Tauri remnants)
 - Thread-safe producer-consumer pattern for audio and STT
 - src-layout for maintainability
 - Modern tooling: black, isort, ruff, mypy
@@ -17,7 +17,7 @@ PersonalParakeet v3 is a pure Python, single-process, multi-threaded real-time d
 
 **Date:** July 26, 2025  
 **Status:** Accepted  
-**Decision:** Migrate to a single-process Flet application
+**Decision:** Migrate to a single-process Rust + egui application
 
 ### 2.1. Context and Problem
 v2’s Tauri/WebSocket architecture caused race conditions, complex deployment, and poor maintainability. v3 solves these by unifying all logic in a single Python process.
@@ -25,7 +25,7 @@ v2’s Tauri/WebSocket architecture caused race conditions, complex deployment, 
 ### 2.2. Alternatives Considered
 - Fix v2 (rejected: fundamental flaws remain)
 - pywebview (rejected: still requires JS maintenance)
-- Flet (chosen: pure Python, modern UI, single process)
+- Rust + egui (chosen: high performance, modern UI, single process)
 - Native UI (rejected: dated appearance)
 
 ## 3. Technical Architecture
@@ -34,7 +34,7 @@ v2’s Tauri/WebSocket architecture caused race conditions, complex deployment, 
 
 ```
 [Single Python Process]
-├── Flet UI (Main Thread)
+├── Rust UI (Main Thread)
 ├── Audio Producer Thread
 ├── STT Consumer Thread
 ├── Clarity Engine Thread (optional)
@@ -43,7 +43,7 @@ v2’s Tauri/WebSocket architecture caused race conditions, complex deployment, 
 
 **Key modules:**
 - `core/`: Business logic (audio, STT, injection, clarity, etc.)
-- `ui/`: Flet UI components
+- `ui/`: Rust UI components
 - `config.py`: Dataclass-based configuration and runtime profiles
 - `main.py`: Single entry point
 
@@ -78,7 +78,7 @@ PersonalParakeet v3 supports runtime configuration profiles (e.g., for speed, ac
 
 ### 3.3. Threading Model
 
--   **Main Thread (Flet UI)**: Handles all UI updates and user interactions.
+-   **Main Thread (Rust UI)**: Handles all UI updates and user interactions.
 -   **Audio Producer Thread**: Managed by a `sounddevice` callback. Its only job is to put audio chunks into a thread-safe queue.
 -   **STT Consumer Thread**: Pulls audio chunks from the queue, runs Parakeet inference, and sends results to the main thread for UI updates via `asyncio.run_coroutine_threadsafe()`.
 

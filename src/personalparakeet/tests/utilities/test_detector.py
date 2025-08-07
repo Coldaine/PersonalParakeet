@@ -15,12 +15,12 @@ if app_info:
     print(f"App type: {app_info.app_type}")
     print(f"Window class: {app_info.window_class}")
     print(f"Extra info: {app_info.extra_info}")
-    
+
     # Get profile
     profile = detector.get_application_profile(app_info)
     print(f"\nProfile: {profile.name}")
     print(f"Preferred strategies: {profile.preferred_strategies}")
 else:
     print("No application detected")
-    
+
 print(f"\nDetector status: {detector.get_detector_status()}")

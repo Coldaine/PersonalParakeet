@@ -7,32 +7,34 @@ import sys
 import time
 from personalparakeet.core.injection_manager import InjectionManager
 
+
 def test_injection():
     """Test the text injection manager"""
     print("=== PersonalParakeet v3 Quick Injection Test ===")
-    
+
     # Initialize injection manager
     print("Initializing injection manager...")
     manager = InjectionManager()
-    
+
     # Get status
     status = manager.get_status()
     print(f"Available strategies: {status['available_strategies']}")
-    
+
     # Test text injection after short delay
     print("Injecting test text in 3 seconds...")
     time.sleep(3)
-    
+
     test_text = "Hello from PersonalParakeet v3! This is a test."
     print(f"Injecting: '{test_text}'")
     success = manager.inject_text(test_text)
-    
+
     if success:
         print("✓ Injection completed successfully")
         return True
     else:
         print("✗ Injection failed")
         return False
+
 
 if __name__ == "__main__":
     try:

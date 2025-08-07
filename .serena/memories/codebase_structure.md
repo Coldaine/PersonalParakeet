@@ -30,8 +30,7 @@ src/personalparakeet/
 │   ├── vad_engine.py           # Voice activity detection
 │   ├── thought_linker.py       # Thought linking logic
 │   └── injection_manager*.py   # Text injection management
-├── ui/                         # Flet UI components
-│   └── dictation_view.py       # Main dictation interface
+├── ui/                         # UI components (now using Rust + egui)
 └── utils/                      # Utility modules
     └── dependency_validation.py
 ```
@@ -66,7 +65,7 @@ docs/
 - **CLI Entry**: `src/personalparakeet/__main__.py`
 - **Configuration**: `src/personalparakeet/config.py:V3Config`
 - **Audio Processing**: `src/personalparakeet/audio_engine.py:AudioEngine`
-- **UI**: `src/personalparakeet/ui/dictation_view.py:DictationView`
+- **UI**: Rust + egui via `personalparakeet_ui.GuiController`
 
 ## Threading Architecture
 - **Main Thread**: Flet UI event loop

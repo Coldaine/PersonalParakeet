@@ -421,13 +421,6 @@
       "typing",
       "unittest"
     ],
-    "src/personalparakeet/ui/dictation_view.py": [
-      "asyncio",
-      "flet",
-      "logging",
-      "personalparakeet",
-      "typing"
-    ],
     "src/personalparakeet/utils/dependency_validation.py": [
       "sys",
       "typing"

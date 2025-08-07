@@ -40,9 +40,9 @@ class ThoughtLinkingConfig:
     cursor_movement_threshold: int = 100
 ```
 
-### 2. Update Dictation View
+### 2. Update Main Application
 
-In `ui/dictation_view.py`, add the integration:
+In the main application, add the integration:
 
 ```python
 # In __init__ method

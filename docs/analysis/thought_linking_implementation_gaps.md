@@ -69,8 +69,8 @@ def _get_position_macos(self) -> Optional[Tuple[int, int]]:
 
 ### 2. UI Integration Gaps
 
-#### Missing Connection in DictationView
-The [`DictationView`](src/personalparakeet/ui/dictation_view.py:15) class does not integrate with the thought linking system. The class is initialized with only a config parameter and lacks references to the thought linking components.
+#### Missing Connection in Rust UI
+The Rust UI implementation does not integrate with the thought linking system. The UI lacks references to the thought linking components.
 
 **Current Constructor:**
 ```python
@@ -177,7 +177,7 @@ Several edge cases are not properly handled:
    - Add conditional imports with proper error handling
 
 ### Priority 2: UI Integration (1-2 weeks)
-1. **Modify DictationView:**
+1. **Modify Rust UI:**
    - Add thought linking integration
    - Implement visual feedback for decisions
    - Add configuration controls

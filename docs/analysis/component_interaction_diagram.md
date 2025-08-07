@@ -4,7 +4,7 @@
 
 | Component | Depends On | Communicates With | Data Flow | Event Flow |
 |-----------|------------|-------------------|-----------|------------|
-| **Main Application** | Flet, Config | All Components | Configuration, Events | Lifecycle Events |
+| **Main Application** | Rust UI, Config | All Components | Configuration, Events | Lifecycle Events |
 | **Audio Engine** | Config, VAD Engine | STT Processor, UI | Audio Data, Status | Audio Events, Status Updates |
 | **STT Processor** | Audio Engine, NeMo | Clarity Engine, UI | Transcription Text | Processing Events |
 | **Clarity Engine** | STT Processor | Thought Linker, UI | Corrected Text | Correction Events |
@@ -36,7 +36,7 @@ graph TB
     end
     
     subgraph "Dependencies"
-        K[Flet Framework] --> A
+        K[Rust UI Framework] --> A
         L[V3Config] --> A
         M[Logging System] --> A
     end
@@ -296,8 +296,8 @@ graph TD
 
 ```mermaid
 graph TD
-    subgraph "UI Framework [dictation_view.py]"
-        A[DictationView] --> B[Build UI Components]
+    subgraph "UI Framework [Rust + egui]"
+        A[Rust UI Controller] --> B[Build UI Components]
         B --> C[Handle User Input]
         C --> D[Update Display]
         D --> E[Manage Window State]
@@ -305,7 +305,7 @@ graph TD
     end
     
     subgraph "Dependencies"
-        G[Flet Framework] --> A
+        G[Rust UI Framework] --> A
         H[Configuration] --> A
         I[Assets] --> A
     end

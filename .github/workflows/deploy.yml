@@ -197,7 +197,7 @@ jobs:
         nav:
           - Home: README.md
           - Architecture: docs/Architecture_Decision_Record_Flet.md
-          - Setup: docs/DICTATION_VIEW_SETUP_GUIDE.md
+          - Setup: docs/RUST_UI_SETUP_GUIDE.md
           - Testing: docs/testing/TESTING_CHECKLIST.md
           - API: docs/api/modules.md
         

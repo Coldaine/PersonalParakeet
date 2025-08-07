@@ -35,7 +35,7 @@ def pytest_sessionstart(session):
     print("\n" + "=" * 70)
     print("PersonalParakeet Hardware Test Suite")
     print("=" * 70)
-    
+
     # Validate hardware
     validator = HardwareValidator()
     print("\n" + validator.generate_report())
@@ -89,11 +89,11 @@ def gpu_device(hardware_validator):
 def test_audio_files() -> dict:
     """Provide paths to test audio files."""
     fixtures_dir = Path(__file__).parent / "fixtures" / "audio"
-    
+
     return {
         "hello_world": fixtures_dir / "hello_world.wav",
         "commands": fixtures_dir / "commands.wav",
-        "continuous_speech": fixtures_dir / "continuous_speech.wav"
+        "continuous_speech": fixtures_dir / "continuous_speech.wav",
     }
 
 
@@ -117,6 +117,7 @@ def skip_if_no_gpu(hardware_validator):
 def skip_if_windows_only():
     """Skip test if not on Windows."""
     import platform
+
     if platform.system() != "Windows":
         pytest.skip("Windows-only test")
 
@@ -137,25 +138,16 @@ def skip_if_slow_hardware(hardware_validator):
 def test_config():
     """Provide test configuration."""
     return {
-        "audio": {
-            "sample_rate": 16000,
-            "channels": 1,
-            "chunk_size": 1024,
-            "format": "int16"
-        },
+        "audio": {"sample_rate": 16000, "channels": 1, "chunk_size": 1024, "format": "int16"},
         "stt": {
             "model_size": "base",
             "device": "cuda" if torch.cuda.is_available() else "cpu",
-            "compute_type": "float16" if torch.cuda.is_available() else "float32"
+            "compute_type": "float16" if torch.cuda.is_available() else "float32",
         },
-        "timeouts": {
-            "audio_init": 5.0,
-            "model_load": 30.0,
-            "transcription": 10.0
-        },
+        "timeouts": {"audio_init": 5.0, "model_load": 30.0, "transcription": 10.0},
         "tolerances": {
             "audio_level": 0.1,  # ±10%
-            "latency": 0.2,      # ±20%
-            "accuracy": 0.9      # 90% minimum
-        }
+            "latency": 0.2,  # ±20%
+            "accuracy": 0.9,  # 90% minimum
+        },
     }

@@ -36,7 +36,7 @@ poetry install
 ```
 
 This installs all non-ML dependencies:
-- Flet (UI framework)
+- Rust UI framework (compiled via maturin)
 - Audio libraries (sounddevice, numpy, scipy)
 - Utility libraries (keyboard, pyperclip, etc.)
 

@@ -17,49 +17,49 @@ if TYPE_CHECKING:
 
 class STTFactory:
     """Factory for creating STT processors with real hardware"""
-    
+
     _nemo_available = None  # Cache availability check
-    
+
     @classmethod
     def check_nemo_availability(cls) -> bool:
         """Check if NeMo and PyTorch are available"""
         if cls._nemo_available is not None:
             return cls._nemo_available
-            
+
         try:
             # Try importing required ML dependencies
             import torch
             import nemo.collections.asr as nemo_asr
-            
+
             # Check CUDA availability
             cuda_available = torch.cuda.is_available()
             if cuda_available:
                 logger.info(f"✓ CUDA available: {torch.cuda.get_device_name(0)}")
             else:
                 logger.warning("⚠ CUDA not available - will use CPU (slower)")
-            
+
             logger.info("✓ NeMo and PyTorch are available")
             cls._nemo_available = True
             return True
-            
+
         except ImportError as e:
             logger.error(f"✗ ML dependencies not available: {e}")
             logger.error("  Real hardware is required - no mock implementations allowed")
             logger.info("  To enable real STT: install NeMo toolkit")
             cls._nemo_available = False
             return False
-    
+
     @classmethod
-    def create_stt_processor(cls, config: V3Config) -> 'STTProcessor':
+    def create_stt_processor(cls, config: V3Config) -> "STTProcessor":
         """
         Create real STT processor - hardware always present per CLAUDE.md
-        
+
         Args:
             config: V3 configuration object
-            
+
         Returns:
             Real STTProcessor only
-            
+
         Raises:
             RuntimeError: If NeMo is not available (violates hardware requirements)
         """
@@ -67,8 +67,9 @@ class STTFactory:
         if config.audio.use_mock_stt:
             logger.info("Mock STT requested - creating mock processor")
             from .mock_stt_processor import MockSTTProcessor
+
             return MockSTTProcessor(config)
-        
+
         # Real hardware always present - check if ML dependencies available
         if not cls.check_nemo_availability():
             error_msg = (
@@ -83,11 +84,12 @@ class STTFactory:
             )
             logger.error(error_msg)
             raise RuntimeError(error_msg)
-        
+
         # Create real STT processor
         try:
             logger.info("Creating real STT processor with NeMo")
             from .stt_processor import STTProcessor
+
             return STTProcessor(config)
         except Exception as e:
             error_msg = (
@@ -103,25 +105,30 @@ class STTFactory:
             )
             logger.error(error_msg)
             raise RuntimeError(error_msg) from e
-    
+
     @classmethod
     def get_stt_info(cls) -> dict:
         """Get information about current STT configuration"""
         info = {
-            'nemo_available': cls.check_nemo_availability(),
-            'backend': 'nemo' if cls._nemo_available else 'mock',
+            "nemo_available": cls.check_nemo_availability(),
+            "backend": "nemo" if cls._nemo_available else "mock",
         }
-        
+
         if cls._nemo_available:
             try:
                 import torch
-                info.update({
-                    'cuda_available': torch.cuda.is_available(),
-                    'cuda_version': torch.version.cuda if torch.cuda.is_available() else None,
-                    'device_name': torch.cuda.get_device_name(0) if torch.cuda.is_available() else 'CPU',
-                    'pytorch_version': torch.__version__,
-                })
+
+                info.update(
+                    {
+                        "cuda_available": torch.cuda.is_available(),
+                        "cuda_version": torch.version.cuda if torch.cuda.is_available() else None,
+                        "device_name": (
+                            torch.cuda.get_device_name(0) if torch.cuda.is_available() else "CPU"
+                        ),
+                        "pytorch_version": torch.__version__,
+                    }
+                )
             except:
                 pass
-                
+
         return info

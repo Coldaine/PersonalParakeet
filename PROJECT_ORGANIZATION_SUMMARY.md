@@ -71,7 +71,6 @@
 #### Test Files → `tests/`
 - `test_diagnostic_logs.py`
 - `test_main.py`
-- `test_dashboard.py`
 - `test_stt_direct.py`
 - `test_stt_working.py`
 
