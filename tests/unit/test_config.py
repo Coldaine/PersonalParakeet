@@ -30,9 +30,10 @@ class TestConfig(unittest.TestCase):
         }
         mock_file_content = json.dumps(mock_config_data)
 
-        with patch("pathlib.Path.exists") as mock_exists, patch(
-            "builtins.open", mock_open(read_data=mock_file_content)
-        ) as mock_file:
+        with (
+            patch("pathlib.Path.exists") as mock_exists,
+            patch("builtins.open", mock_open(read_data=mock_file_content)) as mock_file,
+        ):
             mock_exists.return_value = True
             config = V3Config()
             self.assertEqual(config.audio.sample_rate, 8000)
@@ -49,9 +50,7 @@ class TestConfig(unittest.TestCase):
             config.save_to_file(Path("test_config.json"))
 
             # Get the content that was written to the mock file
-            written_data = "".join(
-                call.args[0] for call in mock_file().write.call_args_list
-            )
+            written_data = "".join(call.args[0] for call in mock_file().write.call_args_list)
             saved_config = json.loads(written_data)
 
             self.assertEqual(saved_config["audio"]["sample_rate"], 22050)

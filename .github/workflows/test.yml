@@ -53,6 +53,9 @@ jobs:
         pip install coverage[toml] pytest-html pytest-json-report
         # Install v3 dependencies
         pip install -e .
+        # Install ML dependencies for testing
+        pip install -r requirements-torch.txt
+        pip install -r requirements-ml.txt
         
     - name: Create test reports directory
       run: mkdir -p test-reports
@@ -118,6 +121,9 @@ jobs:
         python -m pip install --upgrade pip
         pip install pytest pytest-benchmark pytest-timeout
         pip install -e .
+        # Install ML dependencies for testing
+        pip install -r requirements-torch.txt
+        pip install -r requirements-ml.txt
         
     - name: Run performance tests
       run: |
@@ -153,6 +159,9 @@ jobs:
         python -m pip install --upgrade pip
         pip install black isort flake8 mypy bandit safety pylint
         pip install -e .
+        # Install ML dependencies for testing
+        pip install -r requirements-torch.txt
+        pip install -r requirements-ml.txt
         
     - name: Check code formatting (Black)
       run: |
@@ -261,6 +270,9 @@ jobs:
         python -m pip install --upgrade pip
         pip install pytest pytest-timeout
         pip install -e .
+        # Install ML dependencies for testing
+        pip install -r requirements-torch.txt
+        pip install -r requirements-ml.txt
         
     - name: Download test artifacts
       uses: actions/download-artifact@v4

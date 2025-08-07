@@ -7,7 +7,7 @@ print("=" * 60)
 
 devices = sd.query_devices()
 for i, device in enumerate(devices):
-    if device['max_input_channels'] > 0:  # Input devices only
+    if device["max_input_channels"] > 0:  # Input devices only
         print(f"\nDevice #{i}: {device['name']}")
         print(f"  Channels: {device['max_input_channels']}")
         print(f"  Sample Rate: {device['default_samplerate']} Hz")
