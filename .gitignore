@@ -107,3 +107,4 @@ test_output/
 
 # Development
 .mypy_cache/
+\".claude-flow/metrics/*\" 

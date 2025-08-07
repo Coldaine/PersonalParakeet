@@ -28,11 +28,11 @@ class WaylandCompositor(Enum):
 
 class InjectionMethod(Enum):
     """Available injection methods for Wayland."""
+    VIRTUAL_KB = "virtual_keyboard"  # Native Wayland virtual keyboard protocol
     WTYPE = "wtype"
     YDOTOOL = "ydotool"
     CLIPBOARD = "clipboard"
     XWAYLAND = "xwayland"
-    VIRTUAL_KB = "virtual_keyboard"
     UINPUT = "uinput"
     NONE = "none"
 
@@ -44,6 +44,7 @@ class WaylandCapabilities:
     available_methods: List[InjectionMethod]
     has_xwayland: bool
     session_type: str  # wayland or x11
+    has_virtual_keyboard: bool = False  # Native virtual keyboard protocol support
     
 
 class WaylandInjector:
@@ -54,6 +55,7 @@ class WaylandInjector:
         self.method_priority = self._determine_method_priority()
         self._ydotool_daemon_checked = False
         self._needs_sudo = False
+        self._virtual_keyboard_injector = None  # Lazy initialization
         
     def _detect_capabilities(self) -> WaylandCapabilities:
         """Detect Wayland environment and available injection methods."""
@@ -66,6 +68,11 @@ class WaylandInjector:
         
         # Check available tools
         available_methods = []
+        
+        # Check for virtual keyboard protocol (highest priority)
+        has_virtual_keyboard = self._check_virtual_keyboard_support()
+        if has_virtual_keyboard:
+            available_methods.append(InjectionMethod.VIRTUAL_KB)
         
         # Check for wtype (wlroots compositors)
         if shutil.which('wtype') and compositor in [
@@ -100,7 +107,8 @@ class WaylandInjector:
             compositor=compositor,
             available_methods=available_methods,
             has_xwayland=has_xwayland,
-            session_type=session_type
+            session_type=session_type,
+            has_virtual_keyboard=has_virtual_keyboard
         )
         
     def _detect_compositor(self) -> WaylandCompositor:
@@ -143,10 +151,33 @@ class WaylandInjector:
             pass
             
         return WaylandCompositor.UNKNOWN
+    
+    def _check_virtual_keyboard_support(self) -> bool:
+        """Check if virtual keyboard protocol is supported."""
+        try:
+            # Only check if we're on Wayland
+            if os.environ.get('XDG_SESSION_TYPE') != 'wayland':
+                return False
+            
+            if not os.environ.get('WAYLAND_DISPLAY'):
+                return False
+            
+            # Try to import and check availability
+            from .virtual_keyboard_injector import VirtualKeyboardInjector
+            injector = VirtualKeyboardInjector()
+            return injector.is_available()
+            
+        except Exception as e:
+            logger.debug(f"Virtual keyboard protocol not available: {e}")
+            return False
         
     def _determine_method_priority(self) -> List[InjectionMethod]:
         """Determine the priority order for injection methods based on compositor."""
         base_priority = []
+        
+        # Virtual keyboard protocol gets highest priority (native, fast, no deps)
+        if InjectionMethod.VIRTUAL_KB in self.capabilities.available_methods:
+            base_priority.append(InjectionMethod.VIRTUAL_KB)
         
         # Compositor-specific preferences
         if self.capabilities.compositor in [
@@ -219,7 +250,9 @@ class WaylandInjector:
         
         for method in self.method_priority:
             try:
-                if method == InjectionMethod.WTYPE:
+                if method == InjectionMethod.VIRTUAL_KB:
+                    success, error = self._inject_virtual_keyboard(text)
+                elif method == InjectionMethod.WTYPE:
                     success, error = self._inject_wtype(text)
                 elif method == InjectionMethod.YDOTOOL:
                     success, error = self._inject_ydotool(text)
@@ -255,6 +288,20 @@ class WaylandInjector:
             
         error_msg = "All injection methods failed:\n" + "\n".join(errors)
         return False, error_msg
+    
+    def _inject_virtual_keyboard(self, text: str) -> Tuple[bool, Optional[str]]:
+        """Inject text using native Wayland virtual keyboard protocol."""
+        try:
+            # Lazy initialization of virtual keyboard injector
+            if not self._virtual_keyboard_injector:
+                from .virtual_keyboard_injector import VirtualKeyboardInjector
+                self._virtual_keyboard_injector = VirtualKeyboardInjector()
+            
+            # Use the high-performance virtual keyboard protocol
+            return self._virtual_keyboard_injector.inject_text(text)
+            
+        except Exception as e:
+            return False, str(e)
         
     def _inject_wtype(self, text: str) -> Tuple[bool, Optional[str]]:
         """Inject text using wtype."""
