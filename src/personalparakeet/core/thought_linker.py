@@ -6,7 +6,7 @@ This is a complete but INACTIVE implementation of intelligent thought linking.
 To activate: Set thought_linking.enabled = True in config
 
 This module implements intelligent context-aware text linking that decides
-whether consecutive utterances should be linked as a single thought or 
+whether consecutive utterances should be linked as a single thought or
 treated as separate paragraphs based on multiple contextual signals.
 """
 

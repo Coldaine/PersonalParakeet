@@ -62,7 +62,7 @@ jobs:
       
     - name: Run unit tests
       run: |
-        pytest tests/test_core/ \
+        pytest tests/core/ tests/unit/ \
           --cov=src/personalparakeet/core \
           --cov-report=xml:test-reports/coverage-core.xml \
           --cov-report=html:test-reports/htmlcov-core \
@@ -73,7 +73,7 @@ jobs:
           
     - name: Run integration tests
       run: |
-        pytest tests/test_integration/ \
+        pytest tests/integration/ \
           --cov=src/personalparakeet/core \
           --cov-append \
           --cov-report=xml:test-reports/coverage-integration.xml \
