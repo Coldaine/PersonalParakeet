@@ -39,7 +39,7 @@ class TestMainApplication(BaseHardwareTest):
         # Verify basic properties
         assert app.config is not None, "Config should be initialized"
         assert app.audio_engine is None, "Audio engine should be None initially"
-        assert app.dictation_view is None, "Dictation view should be None initially"
+        assert app.rust_ui is None, "Rust UI should be None initially"
         assert app.injection_manager is None, "Injection manager should be None initially"
         assert app.is_running is False, "Should not be running initially"
         assert app.cleanup_registered is False, "Cleanup should not be registered initially"
@@ -57,7 +57,7 @@ class TestMainApplication(BaseHardwareTest):
         
         app = PersonalParakeetV3()
         
-        # Create a mock page for testing (since we can't create a real Flet page in tests)
+        # Create a mock page for testing (since we can't create a real UI page in tests)
         class MockPage:
             def __init__(self):
                 self.window_always_on_top = None
@@ -207,7 +207,6 @@ class TestMainApplication(BaseHardwareTest):
         # Test that all required components can be imported
         required_components = [
             'personalparakeet.audio_engine',
-            'personalparakeet.ui.dictation_view',
             'personalparakeet.core.clarity_engine',
             'personalparakeet.core.vad_engine',
             'personalparakeet.core.injection_manager_enhanced',

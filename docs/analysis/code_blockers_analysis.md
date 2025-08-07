@@ -275,7 +275,7 @@ except ImportError as e:
 **Solution**: Implement proper error handling and fallbacks
 
 ### 17. UI - Error Display
-**File**: [`src/personalparakeet/ui/dictation_view.py`](src/personalparakeet/ui/dictation_view.py)  
+**File**: Rust UI components  
 **Line**: Various (estimated)  
 **Issue**: Error messages may not be user-friendly  
 **Impact**: Poor user experience when errors occur  
@@ -366,7 +366,7 @@ if len(self.context_buffer) > 10:
 **Solution**: Implement advanced similarity algorithms
 
 ### 26. UI - No Accessibility Features
-**File**: [`src/personalparakeet/ui/dictation_view.py`](src/personalparakeet/ui/dictation_view.py)  
+**File**: Rust UI components  
 **Line**: Various  
 **Issue**: Limited accessibility support  
 **Impact**: Exclusion of users with disabilities  

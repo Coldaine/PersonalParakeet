@@ -8,7 +8,6 @@ This document outlines the testing approach for the main application entry point
 ### 1. Component Initialization Tests
 - Test initialization of all core components:
   - AudioEngine
-  - DictationView
   - EnhancedInjectionManager
   - ThoughtLinker
   - ThoughtLinkingIntegration

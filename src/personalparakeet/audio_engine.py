@@ -76,7 +76,7 @@ class AudioEngine:
         self.vad_engine = None
         self.resampler = None
         
-        # Callbacks for UI updates (set by DictationView)
+        # Callbacks for UI updates (set by main application)
         self.on_raw_transcription = None
         self.on_corrected_transcription = None
         self.on_pause_detected = None
@@ -456,7 +456,7 @@ class AudioEngine:
         """Get current transcribed text"""
         return self.current_text
     
-    # Callback setters (called by DictationView during initialization)
+    # Callback setters (called by main application during initialization)
     
     def set_raw_transcription_callback(self, callback: Callable[[str], None]):
         self.on_raw_transcription = callback

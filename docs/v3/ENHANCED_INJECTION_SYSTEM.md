@@ -2,7 +2,7 @@
 
 ## Overview
 
-The enhanced text injection system is a complete port of all v2 injection strategies to the v3 single-process Flet architecture. It provides robust, application-aware text injection with multiple fallback strategies and comprehensive performance tracking.
+The enhanced text injection system is a complete port of all v2 injection strategies to the v3 single-process Rust UI architecture. It provides robust, application-aware text injection with multiple fallback strategies and comprehensive performance tracking.
 
 ## Key Features
 

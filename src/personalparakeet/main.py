@@ -14,7 +14,6 @@ from pathlib import Path
 # import flet as ft  # REMOVED - replaced with Rust UI
 
 from personalparakeet.audio_engine import AudioEngine
-from personalparakeet.ui.dictation_view import DictationView
 from personalparakeet.core.clarity_engine import ClarityEngine
 from personalparakeet.core.vad_engine import VoiceActivityDetector
 from personalparakeet.core.injection_manager_enhanced import EnhancedInjectionManager
@@ -54,7 +53,6 @@ class PersonalParakeetV3:
     def __init__(self):
         self.config = V3Config()
         self.audio_engine = None
-        self.dictation_view = None
         self.injection_manager = None
         self.is_running = False
         self.cleanup_registered = False

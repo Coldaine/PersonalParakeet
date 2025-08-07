@@ -61,8 +61,7 @@ def check_personalparakeet_modules():
     modules = [
         'personalparakeet.config',
         'personalparakeet.core.stt_factory',
-        'personalparakeet.audio_engine',
-        'personalparakeet.ui.dictation_view'
+        'personalparakeet.audio_engine'
     ]
     
     all_good = True

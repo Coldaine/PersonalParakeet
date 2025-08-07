@@ -56,7 +56,7 @@ The project follows a modern `src-layout` structure:
 ```
 src/personalparakeet/
 ├── core/           # Business logic only
-├── ui/             # Flet components only
+├── ui/             # Rust UI components only
 ├── main.py         # Single entry point
 └── config.py       # Dataclass configuration
 ```
@@ -65,7 +65,7 @@ src/personalparakeet/
 
 - Use **dataclasses** for all configuration
 - Type hints are required throughout
-- Use **async/await** only for UI updates (Flet)
+- Use **async/await** only for UI updates (Rust UI)
 - Follow proven patterns in `docs/archive/legacy/V3_PROVEN_CODE_LIBRARY.md`
 - Use `queue.Queue` for thread-safe communication (never direct cross-thread UI access)
 
@@ -103,7 +103,7 @@ src/
     │   ├── clarity_engine.py
     │   └── ...
     ├── ui/
-    │   └── dictation_view.py
+    │   └── (Rust UI components)
     └── ...
 tests/
 ```
@@ -175,17 +175,17 @@ A `ProfileManager` class in `config.py` will handle loading, saving, and switchi
 -   **Producer-Consumer**: The audio engine is a producer that puts audio chunks into a queue. The STT processor is a consumer that takes chunks from the queue.
 -   **Thread-Safe UI Updates**: All UI updates from background threads **must** use `asyncio.run_coroutine_threadsafe(coro, page.loop)` to avoid race conditions.
 
-### 5.2. Flet UI Patterns
+### 5.2. Rust UI Patterns
 
--   UI components are defined in the `ui/` directory.
--   The main UI is built in the `DictationView` class.
--   UI updates should be done asynchronously via `await page.update_async()`.
+-   UI components are implemented in Rust using egui.
+-   The main UI is built using the `personalparakeet_ui.GuiController` class.
+-   UI updates are handled through Rust callbacks from Python.
 
 ### 5.3. Migration Guidelines (from v2)
 
 -   **Remove WebSocket Code**: Replace `websocket.send()` with direct function calls or async UI updates.
 -   **Replace `subprocess`**: Use `threading.Thread` for background tasks.
--   **Use Flet State**: Replace React-style state management with Flet's reactive components.
+-   **Use Rust UI State**: Replace React-style state management with Rust UI callbacks.
 
 ---
 

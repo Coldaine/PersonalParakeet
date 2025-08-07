@@ -17,8 +17,8 @@ pip install pytest pytest-cov
 # Optional: For enhanced visualizations
 pip install matplotlib seaborn pandas
 
-# Optional: For interactive dashboard
-pip install flet
+# Optional: For interactive dashboard (deprecated - replaced with Rust UI)
+# pip install flet
 ```
 
 ### Basic Usage
@@ -204,7 +204,7 @@ jobs:
 Create custom reports by extending the dashboard:
 
 ```python
-class CustomTestDashboard(TestVisualizationDashboard):
+class CustomVisualizationDashboard(TestVisualizationDashboard):
     def generate_custom_report(self):
         structure = self.analyze_test_structure()
         coverage = self.analyze_coverage()
@@ -264,7 +264,7 @@ class CustomTestDashboard(TestVisualizationDashboard):
 #### Missing Dependencies
 ```bash
 # Install required packages
-pip install matplotlib seaborn pandas flet
+pip install matplotlib seaborn pandas
 
 # Or install minimal requirements
 pip install pytest pytest-cov
@@ -281,8 +281,7 @@ python3 tests/run_tests.py
 
 #### Dashboard Won't Launch
 ```bash
-# Check flet installation
-pip install flet
+# Interactive dashboard deprecated - use HTML report instead
 
 # Try basic HTML report instead
 python3 scripts/test_visualization_dashboard.py --html

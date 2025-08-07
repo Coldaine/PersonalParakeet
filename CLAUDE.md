@@ -124,8 +124,7 @@ src/
     │   ├── stt_factory.py
     │   ├── clarity_engine.py
     │   └── text_injector.py
-    └── ui/                # Flet UI components
-        └── dictation_view.py
+    └── ui/                # UI components (now using Rust + egui)
 tests/
 ├── hardware/              # Hardware validation tests
 ├── integration/           # End-to-end tests

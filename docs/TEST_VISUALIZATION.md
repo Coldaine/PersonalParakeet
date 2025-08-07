@@ -220,19 +220,7 @@ pytest --cov=src/personalparakeet --cov-report=html:htmlcov
 ## Interactive Test Dashboard
 
 ### Test Dashboard Features
-The project includes an interactive test dashboard (`tests/test_dashboard.py`) with:
-
-- **Real-time test execution**
-- **Visual test status indicators**
-- **Test output display**
-- **Test selection interface**
-- **Performance monitoring**
-
-### Dashboard Usage
-```bash
-# Launch interactive test dashboard
-python3 tests/test_dashboard.py
-```
+The project previously included an interactive test dashboard that has been removed as part of the Rust GUI migration cleanup. For interactive testing, use the utility scripts in `/src/personalparakeet/tests/utilities/` instead.
 
 ### Dashboard Interface
 ```mermaid
@@ -316,7 +304,7 @@ python3 tests/run_tests.py --report --verbose
 - **Audio Processing**: sounddevice, soundfile, pyaudio
 - **GPU Support**: torch, CUDA toolkit
 - **System Integration**: pynput, pyperclip, keyboard
-- **UI Framework**: flet
+- **UI Framework**: Rust + egui
 
 ## Test Development Guidelines
 

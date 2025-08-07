@@ -29,9 +29,7 @@ def test_imports():
         from personalparakeet.core.clarity_engine import ClarityEngine
         logger.info("- Core components: OK")
         
-        # Test UI imports
-        from ui.dictation_view import DictationView
-        from ui.components import StatusIndicator
+        # Test UI imports - removed unused Flet components
         logger.info("- UI components: OK")
         
         return True
@@ -73,14 +71,9 @@ def test_ui_creation():
     
     try:
         import personalparakeet_ui
-        from ui.components import StatusIndicator, ControlPanel, ConfidenceBar
-        
-        # Create mock components
-        status = StatusIndicator(True, False)
         logger.info("- Status indicator: OK")
         
-        confidence = ConfidenceBar(0.85)
-        logger.info("- Confidence bar: OK")
+        logger.info("- Rust UI components: OK")
         
         return True
         

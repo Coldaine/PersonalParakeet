@@ -23,7 +23,6 @@ soundfile = "^0.12.0"  # Audio file I/O
 pyaudio = "^0.2.11"  # Alternative audio backend
 
 # UI Framework
-# flet = "^0.28.3"  # REMOVED - replaced with Rust + egui  # Cross-platform Flutter-based UI
 
 # System Integration
 python-dotenv = "^1.0.0"  # Environment configuration
