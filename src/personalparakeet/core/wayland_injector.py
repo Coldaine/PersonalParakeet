@@ -3,13 +3,13 @@ Wayland text injection implementation using multiple fallback strategies.
 This module tries various methods to inject text on Wayland systems.
 """
 
-import os
-import subprocess
-import shutil
 import logging
-from typing import Optional, List, Tuple
+import os
+import shutil
+import subprocess
 from dataclasses import dataclass
 from enum import Enum
+from typing import List, Optional, Tuple
 
 logger = logging.getLogger(__name__)
 

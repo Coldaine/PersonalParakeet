@@ -6,11 +6,15 @@ Unit tests for the ThoughtLinker module.
 import unittest
 from unittest.mock import MagicMock
 
+import pytest
+
+# Mark entire file as unit tests for CI selection
+pytestmark = pytest.mark.unit
 from personalparakeet.core.thought_linker import (
-    ThoughtLinker,
     LinkingDecision,
     LinkingSignal,
     SignalType,
+    ThoughtLinker,
 )
 
 

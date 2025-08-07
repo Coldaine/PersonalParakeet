@@ -4,11 +4,12 @@ Live microphone test with real-time audio level monitoring
 Allows you to speak and see audio levels in real-time
 """
 
-import sounddevice as sd
-import numpy as np
-import time
 import sys
 import threading
+import time
+
+import numpy as np
+import sounddevice as sd
 from audio_meter import AudioMeter
 
 

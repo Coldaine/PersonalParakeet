@@ -4,14 +4,14 @@ Complete port of v2 enhanced injection with all strategies and performance track
 """
 
 import logging
-import time
-import threading
 import platform
-from typing import Optional, List, Dict, Any, Callable, Tuple
-from enum import Enum, auto
+import threading
+import time
 from dataclasses import dataclass
+from enum import Enum, auto
+from typing import Any, Callable, Dict, List, Optional, Tuple
 
-from .application_detector import EnhancedApplicationDetector, ApplicationInfo, ApplicationProfile
+from .application_detector import ApplicationInfo, ApplicationProfile, EnhancedApplicationDetector
 
 logger = logging.getLogger(__name__)
 
@@ -583,7 +583,7 @@ class EnhancedWindowsTextInjector:
 
         try:
             import ctypes
-            from ctypes import wintypes, Structure, Union
+            from ctypes import Structure, Union, wintypes
 
             # Define INPUT structures
             class KEYBDINPUT(Structure):

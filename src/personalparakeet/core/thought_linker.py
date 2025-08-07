@@ -10,12 +10,12 @@ whether consecutive utterances should be linked as a single thought or
 treated as separate paragraphs based on multiple contextual signals.
 """
 
+import difflib
 import logging
 import time
-import difflib
-from enum import Enum
 from dataclasses import dataclass
-from typing import List, Optional, Dict, Any, Tuple
+from enum import Enum
+from typing import Any, Dict, List, Optional, Tuple
 
 logger = logging.getLogger(__name__)
 
@@ -107,8 +107,8 @@ class ThoughtLinker:
     def _initialize_detectors(self):
         """Initialize platform-specific detectors"""
         try:
-            from .window_detector import create_window_detector
             from .cursor_detector import create_cursor_detector
+            from .window_detector import create_window_detector
 
             self._window_detector = create_window_detector(enabled=True)
             self._cursor_detector = create_cursor_detector(

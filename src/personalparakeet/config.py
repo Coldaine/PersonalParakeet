@@ -4,13 +4,13 @@ Configuration system for PersonalParakeet v3 using dataclasses
 Replaces JSON-based config with type-safe dataclass configuration
 """
 
-from dataclasses import dataclass, asdict
-from typing import Optional, Dict, Any, List
-import logging
-import json
-from pathlib import Path
-import threading
 import importlib.resources
+import json
+import logging
+import threading
+from dataclasses import asdict, dataclass
+from pathlib import Path
+from typing import Any, Dict, List, Optional
 
 logger = logging.getLogger(__name__)
 

@@ -5,6 +5,7 @@ Simple test to verify text injection functionality
 
 import sys
 import time
+
 from personalparakeet.core.injection_manager import InjectionManager
 
 

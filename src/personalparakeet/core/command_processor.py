@@ -4,14 +4,14 @@ Command Processor - Voice Command Engine for PersonalParakeet v3
 Implements the two-step activation pattern from v2 with Flet integration
 """
 
-import time
+import asyncio
 import logging
 import re
-import asyncio
 import threading
-from typing import Optional, Dict, Any, List, Callable, Set
-from enum import Enum
+import time
 from dataclasses import dataclass
+from enum import Enum
+from typing import Any, Callable, Dict, List, Optional, Set
 
 logger = logging.getLogger(__name__)
 

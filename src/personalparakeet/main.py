@@ -6,20 +6,21 @@ Main entry point for the dictation system with integrated UI
 
 import asyncio
 import logging
-import threading
-import sys
 import os
+import sys
+import threading
 from pathlib import Path
 
-# import flet as ft  # REMOVED - replaced with Rust UI
-
 from personalparakeet.audio_engine import AudioEngine
+from personalparakeet.config import V3Config
 from personalparakeet.core.clarity_engine import ClarityEngine
-from personalparakeet.core.vad_engine import VoiceActivityDetector
 from personalparakeet.core.injection_manager_enhanced import EnhancedInjectionManager
 from personalparakeet.core.thought_linker import ThoughtLinker
 from personalparakeet.core.thought_linking_integration import ThoughtLinkingIntegration
-from personalparakeet.config import V3Config
+from personalparakeet.core.vad_engine import VoiceActivityDetector
+
+# import flet as ft  # REMOVED - replaced with Rust UI
+
 
 # Setup comprehensive logging
 log_format = "%(asctime)s - %(name)s - %(levelname)s - %(message)s"
@@ -217,8 +218,8 @@ class PersonalParakeetV3:
     def emergency_cleanup_sync(self):
         """Emergency cleanup for sync context"""
         try:
-            import subprocess
             import os
+            import subprocess
 
             current_dir = Path(__file__).parent
             cleanup_script = current_dir / "cleanup_processes.py"

@@ -1,6 +1,7 @@
 """Debug version of pipeline test with more output."""
 
 import time
+
 from test_pipeline_no_gui import PipelineRunner
 
 

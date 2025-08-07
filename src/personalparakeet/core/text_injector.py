@@ -9,14 +9,14 @@ and fallback mechanisms for reliable text injection across all supported platfor
 import logging
 import os
 import platform
-import time
 import threading
-from typing import Optional, Dict, Any, List, Tuple
+import time
 from dataclasses import dataclass
 from enum import Enum
+from typing import Any, Dict, List, Optional, Tuple
 
-from .injection_manager_enhanced import EnhancedInjectionManager, InjectionResult
 from .application_detector import ApplicationInfo, EnhancedApplicationDetector
+from .injection_manager_enhanced import EnhancedInjectionManager, InjectionResult
 
 logger = logging.getLogger(__name__)
 
@@ -131,8 +131,8 @@ class TextInjector:
     def _init_linux_x11(self):
         """Initialize X11-based injection for Linux"""
         try:
-            from Xlib import X, display
             import Xlib.ext.xtest as xtest
+            from Xlib import X, display
 
             self._x11_display = display.Display()
             self._xtest = xtest
@@ -155,8 +155,8 @@ class TextInjector:
         """Initialize Quartz-based injection for macOS"""
         try:
             try:
-                from AppKit import NSEvent
                 import Quartz
+                from AppKit import NSEvent
             except ImportError:
                 logger.warning("PyObjC frameworks not available for macOS injection")
                 raise
@@ -314,8 +314,8 @@ class TextInjector:
     def _inject_windows_clipboard(self, context: InjectionContext) -> bool:
         """Windows clipboard-based injection"""
         try:
-            import pyperclip
             import keyboard
+            import pyperclip
 
             # Save current clipboard
             original_clipboard = pyperclip.paste()
@@ -438,8 +438,9 @@ class TextInjector:
 
             # Legacy pyperclip approach
             try:
-                import pyperclip
                 import subprocess
+
+                import pyperclip
 
                 # Save current clipboard
                 original_clipboard = pyperclip.paste()
@@ -512,8 +513,9 @@ class TextInjector:
     def _inject_macos_clipboard(self, context: InjectionContext) -> bool:
         """macOS clipboard-based injection"""
         try:
-            import pyperclip
             import subprocess
+
+            import pyperclip
 
             # Save current clipboard
             original_clipboard = pyperclip.paste()

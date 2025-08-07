@@ -4,11 +4,11 @@ CUDA Compatibility Module for PersonalParakeet v3
 Handles GPU detection, CUDA version compatibility, and RTX 5090 special cases
 """
 
-import subprocess
 import logging
 import os
-from typing import Dict, Optional, Tuple
+import subprocess
 from dataclasses import dataclass
+from typing import Dict, Optional, Tuple
 
 logger = logging.getLogger(__name__)
 

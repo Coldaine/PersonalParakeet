@@ -30,11 +30,11 @@ if SOUNDDDEVICE_AVAILABLE:
 else:
     sd = None
 
-from personalparakeet.core.stt_factory import STTFactory
-from personalparakeet.core.clarity_engine import ClarityEngine
-from personalparakeet.core.vad_engine import VoiceActivityDetector
-from personalparakeet.core.audio_resampler import AudioResampler, ResamplerConfig
 from personalparakeet.config import V3Config
+from personalparakeet.core.audio_resampler import AudioResampler, ResamplerConfig
+from personalparakeet.core.clarity_engine import ClarityEngine
+from personalparakeet.core.stt_factory import STTFactory
+from personalparakeet.core.vad_engine import VoiceActivityDetector
 
 logger = logging.getLogger(__name__)
 

@@ -3,10 +3,10 @@ Pure clipboard-based text injection as ultimate fallback.
 Works on any system with clipboard support.
 """
 
+import logging
+import platform
 import subprocess
 import time
-import platform
-import logging
 
 logger = logging.getLogger(__name__)
 

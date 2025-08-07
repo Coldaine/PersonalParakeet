@@ -2,17 +2,22 @@
 """
 Unit tests for the V3Config module.
 """
-
-import unittest
 import json
+import unittest
 from pathlib import Path
-from unittest.mock import patch, mock_open
+from unittest.mock import mock_open, patch
 
+import pytest
+
+import personalparakeet.config
 from personalparakeet.config import V3Config
+
+# Mark entire file as unit tests for CI selection
+pytestmark = pytest.mark.unit
 
 
 class TestConfig(unittest.TestCase):
-    """Test suite for the V3Config class."""
+    """Test suite for the V3Config class"""
 
     def test_default_config_loading(self):
         """Test that a default configuration is loaded when no file exists."""
@@ -32,7 +37,7 @@ class TestConfig(unittest.TestCase):
 
         with (
             patch("pathlib.Path.exists") as mock_exists,
-            patch("builtins.open", mock_open(read_data=mock_file_content)) as mock_file,
+            patch("builtins.open", mock_open(read_data=mock_file_content)),
         ):
             mock_exists.return_value = True
             config = V3Config()

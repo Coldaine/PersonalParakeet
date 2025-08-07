@@ -3,14 +3,13 @@ UNSAFE Wayland text injection - for personal use only!
 This module uses every dirty trick to make text injection work.
 """
 
+import logging
 import os
 import subprocess
-import time
-import threading
 import tempfile
-from typing import Tuple, Optional
-
-import logging
+import threading
+import time
+from typing import Optional, Tuple
 
 logger = logging.getLogger(__name__)
 

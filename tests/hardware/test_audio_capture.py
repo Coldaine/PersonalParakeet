@@ -1,7 +1,7 @@
 """Test audio capture hardware functionality."""
 
-import time
 import sys
+import time
 from pathlib import Path
 from typing import Optional
 

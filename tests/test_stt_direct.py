@@ -2,8 +2,10 @@
 """Direct STT test to debug transcription issues"""
 
 import asyncio
-import numpy as np
 import logging
+
+import numpy as np
+
 from personalparakeet.config import V3Config
 from personalparakeet.core.stt_factory import STTFactory
 

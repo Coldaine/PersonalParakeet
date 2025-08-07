@@ -6,6 +6,7 @@ Real hardware always present - no mock implementations allowed
 
 import logging
 from typing import TYPE_CHECKING
+
 from personalparakeet.config import V3Config
 
 logger = logging.getLogger(__name__)
@@ -28,8 +29,8 @@ class STTFactory:
 
         try:
             # Try importing required ML dependencies
-            import torch
             import nemo.collections.asr as nemo_asr
+            import torch
 
             # Check CUDA availability
             cuda_available = torch.cuda.is_available()

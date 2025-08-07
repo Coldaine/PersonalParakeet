@@ -1,12 +1,14 @@
 #!/usr/bin/env python3
 """Direct test of STT functionality to prove it's working."""
 
-import torch
+import time
+
 import numpy as np
 import sounddevice as sd
-import time
-from personalparakeet.core.stt_factory import STTFactory
+import torch
+
 from personalparakeet.config import V3Config
+from personalparakeet.core.stt_factory import STTFactory
 
 
 def test_stt_with_audio():

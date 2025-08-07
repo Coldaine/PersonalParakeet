@@ -4,11 +4,12 @@ Full pipeline test for PersonalParakeet v3
 Tests audio capture → mock STT → clarity engine → text injection
 """
 
-import time
-import logging
 import asyncio
-import numpy as np
+import logging
+import time
 from pathlib import Path
+
+import numpy as np
 
 # Setup logging
 logging.basicConfig(
@@ -18,9 +19,9 @@ logger = logging.getLogger(__name__)
 
 # Import components
 from personalparakeet.audio_engine import AudioEngine
+from personalparakeet.config import V3Config
 from personalparakeet.core.clarity_engine import ClarityEngine
 from personalparakeet.core.injection_manager_enhanced import EnhancedInjectionManager
-from personalparakeet.config import V3Config
 
 # Create injection manager instance
 injection_manager = EnhancedInjectionManager()

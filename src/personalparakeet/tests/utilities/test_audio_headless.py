@@ -4,10 +4,11 @@ Headless audio test - captures audio without real-time display
 Perfect for automated testing or when you don't need live feedback
 """
 
-import sounddevice as sd
-import numpy as np
-import time
 import sys
+import time
+
+import numpy as np
+import sounddevice as sd
 
 
 class HeadlessAudioTest:

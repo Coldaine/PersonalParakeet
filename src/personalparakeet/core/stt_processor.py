@@ -4,19 +4,20 @@ STT Processor - Extracted Parakeet integration for PersonalParakeet v3
 Ported from personalparakeet.dictation.SimpleDictation
 """
 
-import logging
 import asyncio
-import time
+import logging
 import os
-import torch
-import numpy as np
-from typing import Optional
+import time
 from pathlib import Path
+from typing import Optional
 
 # Import NeMo for Parakeet model
 import nemo.collections.asr as nemo_asr
+import numpy as np
+import torch
 
 from personalparakeet.config import V3Config
+
 from .cuda_compatibility import CUDACompatibility, get_optimal_device
 
 logger = logging.getLogger(__name__)

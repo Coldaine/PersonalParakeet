@@ -4,12 +4,12 @@ Enhanced text injection with application-aware strategy selection
 """
 
 import logging
-import time
 import threading
-from typing import Optional, List, Dict, Any
+import time
 from enum import Enum, auto
+from typing import Any, Dict, List, Optional
 
-from .application_detector import EnhancedApplicationDetector, ApplicationInfo, ApplicationProfile
+from .application_detector import ApplicationInfo, ApplicationProfile, EnhancedApplicationDetector
 
 logger = logging.getLogger(__name__)
 
@@ -259,7 +259,7 @@ class WindowsTextInjector:
     def _send_unicode_char(self, char_code: int):
         """Send a single Unicode character using Win32 SendInput"""
         import ctypes
-        from ctypes import wintypes, Structure, Union
+        from ctypes import Structure, Union, wintypes
 
         # Define INPUT structure
         class KEYBDINPUT(Structure):

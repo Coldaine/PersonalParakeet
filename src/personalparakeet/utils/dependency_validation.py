@@ -1,7 +1,7 @@
 """Dependency validation utilities for PersonalParakeet."""
 
 import sys
-from typing import Dict, Any, Optional, List
+from typing import Any, Dict, List, Optional
 
 
 class DependencyValidator:

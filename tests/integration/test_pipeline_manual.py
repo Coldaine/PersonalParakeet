@@ -1,9 +1,9 @@
 """Manual integration test for full pipeline - real hardware, no mocks."""
 
-import time
-import threading
 import signal
 import sys
+import threading
+import time
 
 from test_pipeline_no_gui import PipelineRunner
 

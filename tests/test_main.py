@@ -5,11 +5,11 @@ Tests the PersonalParakeetV3 class with real hardware components.
 """
 
 import asyncio
-import sys
-import time
 import platform
 import signal
 import subprocess
+import sys
+import time
 from pathlib import Path
 from typing import Any
 
@@ -19,9 +19,9 @@ import pytest
 project_root = Path(__file__).parent.parent
 sys.path.insert(0, str(project_root))
 
-from tests.core import BaseHardwareTest
-from personalparakeet.main import PersonalParakeetV3
 from personalparakeet.config import V3Config
+from personalparakeet.main import PersonalParakeetV3
+from tests.core import BaseHardwareTest
 
 
 class TestMainApplication(BaseHardwareTest):

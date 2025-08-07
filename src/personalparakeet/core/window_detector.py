@@ -10,8 +10,8 @@ if text should be linked or treated as separate contexts.
 import logging
 import platform
 import time
-from typing import Optional, Dict, Any
 from dataclasses import dataclass
+from typing import Any, Dict, Optional
 
 logger = logging.getLogger(__name__)
 
@@ -70,9 +70,9 @@ class WindowDetector:
     def _init_windows(self):
         """Initialize Windows-specific dependencies"""
         try:
+            import psutil
             import win32gui
             import win32process
-            import psutil
 
             self._win32gui = win32gui
             self._win32process = win32process
@@ -87,8 +87,8 @@ class WindowDetector:
     def _init_linux(self):
         """Initialize Linux-specific dependencies"""
         try:
-            from Xlib import display, X
             import ewmh
+            from Xlib import X, display
 
             self._display = display.Display()
             self._ewmh = ewmh.EWMH(self._display)
@@ -198,8 +198,8 @@ class WindowDetector:
         try:
             from Quartz import (
                 CGWindowListCopyWindowInfo,
-                kCGWindowListOptionOnScreenOnly,
                 kCGNullWindowID,
+                kCGWindowListOptionOnScreenOnly,
             )
 
             options = kCGWindowListOptionOnScreenOnly

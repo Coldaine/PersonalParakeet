@@ -2,11 +2,12 @@
 """Test Parakeet STT with real speech audio"""
 
 import asyncio
+import logging
+import os
+from pathlib import Path
+
 import numpy as np
 import scipy.io.wavfile as wavfile
-import logging
-from pathlib import Path
-import os
 
 # Try to import TTS for generating test speech
 try:

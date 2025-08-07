@@ -4,11 +4,12 @@ Audio resampling module for PersonalParakeet
 Handles efficient CPU-based resampling from capture rate to model rate
 """
 
+import logging
+from dataclasses import dataclass
+from typing import Optional, Tuple
+
 import numpy as np
 from scipy import signal
-import logging
-from typing import Optional, Tuple
-from dataclasses import dataclass
 
 logger = logging.getLogger(__name__)
 

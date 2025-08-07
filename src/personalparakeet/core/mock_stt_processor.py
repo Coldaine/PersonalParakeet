@@ -3,11 +3,12 @@
 Mock STT Processor - For testing and development when NeMo is not available
 """
 
-import logging
 import asyncio
+import logging
 import time
-import numpy as np
 from typing import Optional
+
+import numpy as np
 
 from personalparakeet.config import V3Config
 

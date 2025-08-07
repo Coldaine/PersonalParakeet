@@ -3,15 +3,16 @@ Automated tests for Wayland text injection
 """
 
 import os
-import pytest
 import time
-from unittest.mock import patch, MagicMock
+from unittest.mock import MagicMock, patch
+
+import pytest
 
 from personalparakeet.core.text_injector import TextInjector
 from personalparakeet.core.wayland_injector import (
-    WaylandInjector,
-    WaylandCompositor,
     InjectionMethod,
+    WaylandCompositor,
+    WaylandInjector,
 )
 
 

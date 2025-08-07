@@ -4,16 +4,16 @@ Comprehensive tests for enhanced injection system
 Tests all strategies, performance tracking, and application-specific optimizations
 """
 
-import time
 import logging
 import sys
+import time
 from pathlib import Path
 
 # Add parent directory to path
 sys.path.append(str(Path(__file__).parent.parent))
 
-from personalparakeet.core.injection_manager_enhanced import EnhancedInjectionManager
 from personalparakeet.core.application_detector import ApplicationInfo, ApplicationType
+from personalparakeet.core.injection_manager_enhanced import EnhancedInjectionManager
 
 # Setup logging
 logging.basicConfig(

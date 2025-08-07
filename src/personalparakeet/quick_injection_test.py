@@ -5,6 +5,7 @@ Quick injection test without user input
 
 import sys
 import time
+
 from personalparakeet.core.injection_manager import InjectionManager
 
 

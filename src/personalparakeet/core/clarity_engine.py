@@ -6,12 +6,12 @@ Real-time text correction engine with rule-based corrections
 
 import asyncio
 import logging
-import time
-import re
-from typing import Optional, List, Tuple, Callable
-from dataclasses import dataclass
-import threading
 import queue
+import re
+import threading
+import time
+from dataclasses import dataclass
+from typing import Callable, List, Optional, Tuple
 
 
 @dataclass

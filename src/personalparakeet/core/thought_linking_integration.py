@@ -8,13 +8,13 @@ To activate: Set thought_linking.enabled = True in config
 Manages the interaction between thought linking decisions and text injection.
 """
 
-import logging
 import asyncio
-from typing import Optional, List, Dict, Any
+import logging
 from dataclasses import dataclass
 from enum import Enum
+from typing import Any, Dict, List, Optional
 
-from .thought_linker import ThoughtLinker, LinkingDecision, LinkingSignal
+from .thought_linker import LinkingDecision, LinkingSignal, ThoughtLinker
 
 logger = logging.getLogger(__name__)
 

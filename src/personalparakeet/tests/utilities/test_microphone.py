@@ -22,8 +22,9 @@ if SOUNDDDEVICE_AVAILABLE:
 else:
     sd = None
 
-import numpy as np
 import time
+
+import numpy as np
 
 
 def list_audio_devices():

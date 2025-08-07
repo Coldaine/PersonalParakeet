@@ -5,14 +5,14 @@ Ports the comprehensive application detection system from v2 to v3's single-proc
 Flet architecture with improved cross-platform support and injection optimization.
 """
 
+import logging
 import platform
 import subprocess
-import time
 import threading
-import logging
-from typing import Optional, Dict, Any, List, Tuple
+import time
 from dataclasses import dataclass, field
 from enum import Enum, auto
+from typing import Any, Dict, List, Optional, Tuple
 
 logger = logging.getLogger(__name__)
 

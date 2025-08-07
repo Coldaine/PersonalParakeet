@@ -4,11 +4,12 @@ Live Audio Monitor for GUI (Flet Dashboard)
 Outputs structured data that the dashboard can parse
 """
 
-import sounddevice as sd
-import numpy as np
-import time
-import sys
 import json
+import sys
+import time
+
+import numpy as np
+import sounddevice as sd
 from audio_meter import AudioMeter
 
 

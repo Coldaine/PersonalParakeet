@@ -3,12 +3,12 @@ Enhanced text injection strategies for PersonalParakeet v3
 Ported from v2 with improvements for single-process architecture
 """
 
-import time
-import threading
 import logging
-from typing import Optional, Dict, List, Any, Tuple
+import threading
+import time
 from dataclasses import dataclass
 from enum import Enum
+from typing import Any, Dict, List, Optional, Tuple
 
 from .application_detector import ApplicationInfo, ApplicationProfile
 
@@ -283,7 +283,7 @@ class EnhancedWin32SendInputStrategy(BaseInjectionStrategy):
         """Initialize Win32 API access"""
         try:
             import ctypes
-            from ctypes import wintypes, Structure, Union
+            from ctypes import Structure, Union, wintypes
 
             class KEYBDINPUT(Structure):
                 _fields_ = [

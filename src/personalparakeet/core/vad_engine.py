@@ -4,10 +4,11 @@ VAD Engine - Direct port from personalparakeet.vad_engine
 Voice Activity Detection with callback support
 """
 
-import numpy as np
-from typing import Callable, Optional
 import threading
 import time
+from typing import Callable, Optional
+
+import numpy as np
 
 
 class VoiceActivityDetector:

@@ -3,9 +3,9 @@
 Quick Test - Verify PersonalParakeet v3 can initialize without crashes
 """
 
+import logging
 import sys
 import time
-import logging
 from pathlib import Path
 
 # Setup simple logging
@@ -28,8 +28,8 @@ def test_imports():
         logger.info("- Config: OK")
 
         # Test core imports
-        from personalparakeet.core.stt_processor import STTProcessor
         from personalparakeet.core.clarity_engine import ClarityEngine
+        from personalparakeet.core.stt_processor import STTProcessor
 
         logger.info("- Core components: OK")
 
@@ -49,8 +49,9 @@ def test_basic_initialization():
 
     try:
         from config import V3Config
-        from personalparakeet.core.stt_processor import STTProcessor
+
         from personalparakeet.core.clarity_engine import ClarityEngine
+        from personalparakeet.core.stt_processor import STTProcessor
 
         # Test config creation
         config = V3Config()

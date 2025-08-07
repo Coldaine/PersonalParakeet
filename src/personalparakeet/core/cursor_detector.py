@@ -8,11 +8,11 @@ moved to a different input context.
 """
 
 import logging
-import platform
 import math
+import platform
 import time
-from typing import Optional, Tuple, Dict, Any
 from dataclasses import dataclass
+from typing import Any, Dict, Optional, Tuple
 
 logger = logging.getLogger(__name__)
 

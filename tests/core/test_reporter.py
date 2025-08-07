@@ -10,6 +10,8 @@ from typing import Any, Dict, List, Optional
 class TestReporter:
     """Collects and reports test results."""
 
+    __test__ = False  # Prevent pytest from collecting this utility class as a test
+
     def __init__(self, output_dir: Optional[Path] = None):
         self.output_dir = output_dir or Path("test_reports")
         self.output_dir.mkdir(exist_ok=True)
@@ -41,9 +43,9 @@ class TestReporter:
                 summary["hardware_tests"] += 1
 
         # Aggregate resource usage
-        cpu_max = []
-        memory_max = []
-        gpu_memory_max = []
+        cpu_max = []  # Max CPU usage across all runs
+        memory_max = []  # Max memory usage across all runs
+        gpu_memory_max = []  # Max GPU memory usage across all runs
 
         for result in self.test_results:
             if result.get("resource_usage"):
@@ -141,6 +143,7 @@ class TestReporter:
                     lines.append(
                         f"    Memory: {usage['memory_mb'].get('avg', 0):.1f}MB avg, {usage['memory_mb'].get('max', 0):.1f}MB max"
                     )
+
                 if "gpu_memory_mb" in usage:
                     lines.append(
                         f"    GPU Memory: {usage['gpu_memory_mb'].get('avg', 0):.1f}MB avg, {usage['gpu_memory_mb'].get('max', 0):.1f}MB max"

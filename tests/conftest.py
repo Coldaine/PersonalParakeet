@@ -14,7 +14,6 @@ sys.path.insert(0, str(project_root))
 
 from tests.core import HardwareValidator, TestReporter
 
-
 # Global test reporter
 _test_reporter = TestReporter()
 
@@ -28,6 +27,8 @@ def pytest_configure(config):
     config.addinivalue_line("markers", "stress: mark test as stress test")
     config.addinivalue_line("markers", "gpu_intensive: mark test as GPU-intensive")
     config.addinivalue_line("markers", "slow: mark test as slow-running")
+    # Ensure 'unit' is registered so CI selection -m "unit and not slow" works
+    config.addinivalue_line("markers", "unit: mark test as a fast unit test")
 
 
 def pytest_sessionstart(session):
@@ -60,7 +61,7 @@ def test_reporter() -> TestReporter:
 
 
 @pytest.fixture(scope="session")
-def event_loop():
+def event_loop() -> Generator:
     """Create event loop for async tests."""
     loop = asyncio.get_event_loop_policy().new_event_loop()
     yield loop
@@ -115,7 +116,7 @@ def skip_if_no_gpu(hardware_validator):
 
 @pytest.fixture
 def skip_if_windows_only():
-    """Skip test if not on Windows."""
+    """Skip test if not on Windows."""""
     import platform
 
     if platform.system() != "Windows":
