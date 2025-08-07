@@ -2,143 +2,121 @@
 
 This file provides guidance to Claude Code (claude.ai/code) when working with code in this repository.
 
-# PersonalParakeet - Claude Code Context
+## Project Overview
 
-PersonalParakeet v3: Real-time dictation system with transparent floating UI.
+PersonalParakeet is a real-time dictation system featuring the **Dictation View** - a transparent, floating UI that provides live transcription feedback with real-time AI text corrections. The system uses NVIDIA Parakeet-TDT 1.1B model with direct NeMo integration.
 
-## ⚠️ CRITICAL REQUIREMENT FOR ALL AGENTS ⚠️
-**ALWAYS run `conda activate personalparakeet` before ANY other command!**
-This project uses conda environment management and will fail without proper activation.
+### Current Status (July 2025)
+- **v2 (Tauri/WebSocket)**: Current but deprecated - has critical architectural issues
+- **v3 (Flet)**: In active development - single-process Python solution
 
-## Hardware Requirements
-- **Physical hardware ALWAYS present** - No mock tests allowed/required
-- Real microphone, GPU, and audio hardware available at all times
-- All STT testing uses actual speech recognition models
-- No mock/stub implementations needed for hardware components
+**IMPORTANT**: All new development should focus on the v3 Flet refactor. See:
+- [Implementation Plan](docs/Flet_Refactor_Implementation_Plan.md)
+- [Architecture Decision Record](docs/Architecture_Decision_Record_Flet.md)
+- [**Feature Migration Status**](@docs/V3_FEATURE_MIGRATION_STATUS.md) - Comprehensive v2→v3 feature porting tracker
 
-## Current Status
-- **Architecture**: Single-process Python using Flet (no WebSocket/IPC)
-- **Progress**: 20% complete (realistic assessment)
-- **Focus**: End-to-end integration testing
+## v3 Flet Architecture (NEW)
 
-## Key Commands
+### Key Decisions Made
+1. **UI Framework**: Flet (Python-native, Material Design)
+2. **Process Model**: Single Python process (no IPC/WebSocket)
+3. **Threading**: Producer-consumer pattern with queue.Queue
+4. **Deployment**: PyInstaller single executable
+5. **State Management**: Flet reactive components
+
+### Development Focus
 ```bash
-# CRITICAL: Environment setup - ALWAYS activate conda first!
-# ⚠️  ALL AGENTS MUST RUN THIS COMMAND BEFORE ANY OTHER COMMANDS ⚠️
-conda activate personalparakeet
-
-# Install dependencies
-poetry install
-
-# IMPORTANT: Install PyTorch nightly for RTX 5090
-poetry run pip install -r requirements-torch.txt
-
-# Run application (after conda activate!)
-poetry run personalparakeet
-# or
-python -m personalparakeet
-
-# Run tests (after conda activate!)
-poetry run pytest
-poetry run pytest tests/integration/test_full_pipeline.py  # Specific test
-
-# Code quality (after conda activate!)
-poetry run black . --line-length 100
-poetry run isort . --profile black
-poetry run ruff check .
-poetry run mypy .
+# New v3 structure
+personal-parakeet-flet/
+├── main.py                 # Flet app entry point
+├── audio_engine.py         # Producer-consumer audio
+├── ui/
+│   ├── dictation_view.py   # Main UI component
+│   └── components.py       # Reusable elements
+├── core/
+│   ├── stt_processor.py    # Parakeet integration
+│   ├── clarity_engine.py   # Port from v2
+│   └── vad_engine.py       # Port from v2
+└── requirements.txt        # Simplified deps
 ```
 
-## Dependency Resolution Process
+### Implementation Priorities
+1. **Week 1**: Core Flet app + audio pipeline
+2. **Week 2**: Port all v2 features to Flet
+3. **Week 3**: Polish and advanced features  
+4. **Week 4**: PyInstaller packaging
 
-### ⚠️ CRITICAL: PyTorch Version Compatibility Fix ⚠️
+## v2 Architecture (DEPRECATED)
 
-If you encounter the following dependency errors:
-- `RuntimeError: operator torchvision::nms does not exist`
-- Version conflicts between torch, torchvision, and torchaudio
-- fsspec version conflicts with NeMo
+The v2 system uses a problematic two-process architecture:
+- **Frontend**: Tauri (Rust) + React
+- **Backend**: Python WebSocket server
+- **Issues**: Race conditions, complex deployment, shell conflicts
 
-Use this exact sequence to fix:
+### Why v2 Failed
+1. **Process synchronization** - WebSocket race conditions
+2. **Deployment complexity** - Requires Node.js, Rust, Python
+3. **Path/shell issues** - npm using Git Bash causing failures
+4. **User feedback** - "Process management nightmare"
 
+## Essential Commands
+
+### For v3 Development (Flet)
 ```bash
-# PREREQUISITE: Always activate conda environment first
-conda activate personalparakeet
+# Setup
+python -m venv .venv
+.venv\Scripts\activate  # Windows
+pip install flet sounddevice numpy torch nemo_toolkit
 
-# Step 1: Fix TorchVision (downgrade from dev to stable)
-poetry run pip uninstall -y torchvision
-poetry run pip install torchvision==0.22.0 --index-url https://download.pytorch.org/whl/cu128
+# Run
+python main.py
 
-# Step 2: Fix fsspec for NeMo compatibility
-poetry run pip install fsspec==2024.12.0
-
-# Step 3: Fix TorchAudio (downgrade from dev to stable)
-poetry run pip uninstall -y torchaudio
-poetry run pip install torchaudio==2.7.0 --index-url https://download.pytorch.org/whl/cu128
-
-# Step 4: Verify all imports work
-poetry run python -c "import torch; import torchvision; import torchaudio; print('✅ All PyTorch packages imported successfully')"
-poetry run python -c "import nemo.collections.asr as nemo_asr; print('✅ NeMo imported successfully')"
-
-# Step 5: Test the application
-poetry run python -m personalparakeet
+# Package
+pyinstaller --onefile --windowed main.py
 ```
 
-### Why These Specific Versions?
-
-- **PyTorch 2.7.0**: Stable version with CUDA 12.8 support for RTX 5090
-- **TorchVision 0.22.0**: Matches PyTorch 2.7.0, avoids nms operator issues
-- **TorchAudio 2.7.0**: Matches PyTorch 2.7.0, maintains compatibility
-- **fsspec 2024.12.0**: Exact version required by NeMo 2.4.0
-
-### Alternative: Clean Install
-
-If issues persist, use the provided script:
+### For v2 Maintenance Only
 ```bash
-./fix_ml_dependencies.sh
+# DO NOT use for new development
+python start_dictation_view.py  # Broken due to npm issues
+python start_integrated.py      # Attempted fix
 ```
 
-## Architecture Constraints
+## Core Features to Preserve
 
-### ❌ FORBIDDEN
-- WebSocket servers/clients
-- subprocess for UI
-- Multi-process architecture
-- Cross-thread UI access
-- Tauri/React/Node.js
+All v2 features must be ported to v3:
 
-### ✅ REQUIRED
-- Producer-consumer with queue.Queue
-- asyncio.run_coroutine_threadsafe() for UI
-- Dataclass configuration
-- Direct function calls
+1. **Dictation View UI**
+   - Transparent, floating window
+   - Real-time transcription display
+   - Draggable positioning
+   - Status indicators
 
-## Project Structure
-```
-src/
-└── personalparakeet/
-    ├── __main__.py         # Entry point
-    ├── main.py            # Application bootstrap
-    ├── config.py          # Dataclass configuration
-    ├── core/              # Business logic (STT, VAD, etc)
-    │   ├── stt_processor.py
-    │   ├── stt_factory.py
-    │   ├── clarity_engine.py
-    │   └── text_injector.py
-    └── ui/                # Flet UI components
-        └── dictation_view.py
-tests/
-├── hardware/              # Hardware validation tests
-├── integration/           # End-to-end tests
-└── unit/                 # Unit tests
-```
+2. **Clarity Engine**
+   - Real-time text corrections
+   - Technical term recognition
+   - Homophone fixes
+   - Already working in v2
 
-## Threading Model
+3. **Voice Activity Detection**
+   - Pause detection (1.5s default)
+   - Auto-commit functionality
+   - Visual indicators
+
+4. **Advanced Features**
+   - Command Mode activation
+   - Intelligent Thought-Linking
+   - Session management
+
+## Technical Guidelines
+
+### Threading Pattern (v3)
 ```python
-# Audio Producer (sounddevice callback)
+# Producer (audio callback)
 def audio_callback(indata, frames, time, status):
     audio_queue.put(indata.copy())
 
-# STT Consumer (background thread)
+# Consumer (STT worker)
 def stt_worker(page):
     while True:
         chunk = audio_queue.get()
@@ -149,54 +127,51 @@ def stt_worker(page):
         )
 ```
 
-## Core Features
-- **Intelligent Text Buffering**: Prevents text rewrites using pause-based commitment and multi-second STT processing
-- **High-Performance STT**: GPU-accelerated using NVIDIA Parakeet (6.05% WER target)
-- **Floating UI**: Transparent, draggable window above other applications
-- **Clarity Engine**: Real-time homophone and technical jargon corrections
-- **Smart Text Injection**: Multi-strategy, platform-aware text input
-- **Advanced VAD**: Dual VAD system (Silero + WebRTC)
-- **Configuration Profiles**: Runtime-switchable presets (Fast/Balanced/Accurate)
-
-## Testing Strategy
-- All tests use real hardware (microphone, GPU, audio)
-- Integration tests verify end-to-end functionality
-- Hardware validation ensures environment readiness
-- Performance benchmarks track <150ms latency requirement
-
-### Wayland Testing
-```bash
-# Test Wayland support
-conda activate personalparakeet
-
-# 1. Check if on Wayland
-echo $XDG_SESSION_TYPE  # Should show "wayland"
-
-# 2. Setup Wayland injection (one-time)
-./scripts/setup_wayland_injection.sh
-# May need to logout/login for group changes
-
-# 3. Test injection methods
-python test_wayland_injection.py      # Full test
-python test_wayland_unsafe.py         # Unsafe mode test
-python test_clipboard_only.py         # Clipboard fallback
-
-# 4. Run main app on Wayland
-poetry run personalparakeet
-
-# 5. Debug injection issues
-# Check available methods:
-python -c "from personalparakeet.core.wayland_injector import WaylandInjector; w=WaylandInjector(); print(w.capabilities.available_methods)"
-
-# Common fixes:
-sudo systemctl start ydotoold  # Start ydotool daemon
-sudo usermod -a -G input $USER # Add to input group
+### Flet UI Pattern
+```python
+class DictationView:
+    def __init__(self, page):
+        self.page = page
+        self.transcript = ft.Text("")
+        
+    async def update_transcript(self, text):
+        self.transcript.value = text
+        await self.page.update_async()
 ```
 
-## Documentation
-- [QUICKSTART.md](docs/QUICKSTART.md) - Setup guide
-- [ARCHITECTURE.md](docs/ARCHITECTURE.md) - Design decisions
-- [DEVELOPMENT.md](docs/DEVELOPMENT.md) - Full reference
-- [STATUS.md](docs/STATUS.md) - Progress tracking
+## Migration Notes
 
-**Remember**: Simpler is better. One process, one language, one executable.
+When migrating v2 code to v3:
+1. **Remove all WebSocket code**
+2. **Replace React components with Flet widgets**
+3. **Use Flet's event system instead of WebSocket messages**
+4. **Preserve core logic from:
+   - clarity_engine.py
+   - vad_engine.py  
+   - dictation.py (Parakeet integration)
+
+## Testing Requirements
+
+1. **Audio capture** - Test with real microphone
+2. **GPU performance** - Monitor with nvidia-smi
+3. **UI responsiveness** - Ensure <100ms updates
+4. **Packaging** - Test PyInstaller output on clean system
+
+## Success Criteria
+
+v3 must achieve:
+- Single-click launch
+- No process errors
+- <2 second startup
+- All v2 features working
+- <100MB executable
+
+## Current Work
+
+Focus on Phase 1 of the implementation plan:
+1. Create basic Flet window
+2. Implement audio producer-consumer
+3. Display mock transcriptions
+4. Test threading patterns
+
+Remember: **Simpler is better**. One process, one language, one executable.
