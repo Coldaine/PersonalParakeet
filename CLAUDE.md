@@ -8,27 +8,27 @@ PersonalParakeet is a real-time dictation system featuring the **Dictation View*
 
 ### Current Status (July 2025)
 - **v2 (Tauri/WebSocket)**: Current but deprecated - has critical architectural issues
-- **v3 (Flet)**: In active development - single-process Python solution
+- **v3 (Rust+EGUI)**: In active development - single-process Python backend with Rust UI via PyO3
 
-**IMPORTANT**: All new development should focus on the v3 Flet refactor. See:
-- [Implementation Plan](docs/Flet_Refactor_Implementation_Plan.md)
-- [Architecture Decision Record](docs/Architecture_Decision_Record_Flet.md)
+**IMPORTANT**: All new development should focus on the v3 Rust+EGUI refactor. See:
+- [Implementation Plan](docs/Rust_EGUI_Implementation_Plan.md)
+- [Architecture Decision Record](docs/Architecture_Decision_Record_Rust_EGUI.md)
 - [**Feature Migration Status**](@docs/V3_FEATURE_MIGRATION_STATUS.md) - Comprehensive v2→v3 feature porting tracker
 
-## v3 Flet Architecture (NEW)
+## v3 Rust+EGUI Architecture (NEW)
 
 ### Key Decisions Made
-1. **UI Framework**: Flet (Python-native, Material Design)
-2. **Process Model**: Single Python process (no IPC/WebSocket)
-3. **Threading**: Producer-consumer pattern with queue.Queue
-4. **Deployment**: PyInstaller single executable
-5. **State Management**: Flet reactive components
+1. **UI Framework**: Rust EGUI with PyO3 bridge to Python backend
+2. **Process Model**: Single Python process with Rust UI (no IPC/WebSocket)
+3. **Threading**: Producer-consumer pattern with crossbeam channels
+4. **Deployment**: Maturin build system for Rust-Python integration
+5. **State Management**: EGUI reactive UI with Python backend state
 
 ### Development Focus
 ```bash
 # New v3 structure
-personal-parakeet-flet/
-├── main.py                 # Flet app entry point
+personal-parakeet-rust-egui/
+├── main.py                 # Python entry point with Rust UI integration
 ├── audio_engine.py         # Producer-consumer audio
 ├── ui/
 │   ├── dictation_view.py   # Main UI component
@@ -41,8 +41,8 @@ personal-parakeet-flet/
 ```
 
 ### Implementation Priorities
-1. **Week 1**: Core Flet app + audio pipeline
-2. **Week 2**: Port all v2 features to Flet
+1. **Week 1**: Core Rust EGUI app + audio pipeline
+2. **Week 2**: Port all v2 features to Rust+EGUI
 3. **Week 3**: Polish and advanced features  
 4. **Week 4**: PyInstaller packaging
 
@@ -61,18 +61,18 @@ The v2 system uses a problematic two-process architecture:
 
 ## Essential Commands
 
-### For v3 Development (Flet)
+### For v3 Development (Rust+EGUI)
 ```bash
 # Setup
 python -m venv .venv
 .venv\Scripts\activate  # Windows
-pip install flet sounddevice numpy torch nemo_toolkit
+pip install maturin sounddevice numpy torch nemo_toolkit
 
 # Run
 python main.py
 
-# Package
-pyinstaller --onefile --windowed main.py
+# Build Rust extension
+maturin develop
 ```
 
 ### For v2 Maintenance Only
@@ -127,24 +127,27 @@ def stt_worker(page):
         )
 ```
 
-### Flet UI Pattern
+### Rust+EGUI UI Pattern
 ```python
-class DictationView:
-    def __init__(self, page):
-        self.page = page
-        self.transcript = ft.Text("")
-        
-    async def update_transcript(self, text):
-        self.transcript.value = text
-        await self.page.update_async()
+# Python side
+gui_controller = personalparakeet_ui.GuiController()
+gui_controller.update_text(text, "APPEND_WITH_SPACE")
+gui_controller.run()
+
+# Rust side (src/gui.rs)
+impl eframe::App for GuiApp {
+    fn update(&mut self, ctx: &egui::Context, _frame: &mut eframe::Frame) {
+        // EGUI immediate mode UI updates
+    }
+}
 ```
 
 ## Migration Notes
 
 When migrating v2 code to v3:
 1. **Remove all WebSocket code**
-2. **Replace React components with Flet widgets**
-3. **Use Flet's event system instead of WebSocket messages**
+2. **Replace React components with EGUI widgets**
+3. **Use PyO3 bridge for Python-Rust communication**
 4. **Preserve core logic from:
    - clarity_engine.py
    - vad_engine.py  

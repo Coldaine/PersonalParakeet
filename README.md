@@ -2,7 +2,7 @@
 
 **Real-time dictation with a transparent floating UI, AI-powered corrections, and intelligent text processing for seamless speech-to-text experiences.**
 
-PersonalParakeet v3 is a complete rewrite with a single-process architecture using Flet, designed for high-performance real-time dictation with GPU acceleration.
+PersonalParakeet v3 is a complete rewrite with a single-process architecture using Rust+EGUI, designed for high-performance real-time dictation with GPU acceleration.
 
 ## Core Features & Requirements
 
@@ -41,7 +41,7 @@ See [**QUICKSTART.md**](docs/QUICKSTART.md) for detailed setup instructions.
 
 PersonalParakeet v3 uses a modern single-process architecture with:
 
-- **Flet Framework**: Native desktop UI with transparent floating window
+- **Rust+EGUI Framework**: High-performance native UI with transparent floating window via PyO3 bridge
 - **Audio Engine**: Real-time audio processing with VAD and STT integration
 - **GPU Acceleration**: NVIDIA Parakeet for high-performance speech recognition
 - **Text Processing**: Multi-stage pipeline with clarity corrections and intelligent injection

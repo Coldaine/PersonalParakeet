@@ -57,7 +57,7 @@ class TestMainApplication(BaseHardwareTest):
         
         app = PersonalParakeetV3()
         
-        # Create a mock page for testing (since we can't create a real Flet page in tests)
+        # Create a mock page for testing (since we can't create a real EGUI page in tests)
         class MockPage:
             def __init__(self):
                 self.window_always_on_top = None

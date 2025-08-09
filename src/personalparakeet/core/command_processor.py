@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 """
 Command Processor - Voice Command Engine for PersonalParakeet v3
-Implements the two-step activation pattern from v2 with Flet integration
+Implements the two-step activation pattern from v2 with Rust+EGUI integration via PyO3
 """
 
 import time
@@ -81,7 +81,7 @@ class CommandProcessor:
         self.commands: Dict[str, CommandDefinition] = {}
         self._register_default_commands()
         
-        # Callbacks for Flet integration
+        # Callbacks for Rust+EGUI integration
         self.on_activation_detected: Optional[Callable] = None
         self.on_command_executed: Optional[Callable] = None
         self.on_command_timeout: Optional[Callable] = None

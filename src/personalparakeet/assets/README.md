@@ -6,4 +6,4 @@ This directory contains static assets for PersonalParakeet v3.
 - `icon.ico` - Application icon (placeholder)
 
 ## Usage
-Assets are served by Flet automatically and can be referenced in the UI components.
+Assets are embedded in the Rust EGUI application and can be referenced in the UI components via the PyO3 bridge.

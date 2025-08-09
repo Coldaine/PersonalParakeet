@@ -2,7 +2,7 @@
 Enhanced Application Detection for PersonalParakeet v3
 
 Ports the comprehensive application detection system from v2 to v3's single-process
-Flet architecture with improved cross-platform support and injection optimization.
+Rust+EGUI architecture with improved cross-platform support and injection optimization.
 """
 
 import platform

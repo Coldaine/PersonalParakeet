@@ -6,12 +6,12 @@
 
 ## Executive Summary
 
-PersonalParakeet v3 is a real-time dictation system built with a single-process Flet architecture, replacing the problematic v2 WebSocket/Tauri design. The system aims to provide GPU-accelerated speech recognition with a transparent floating UI, AI-powered corrections, and intelligent text injection.
+PersonalParakeet v3 is a real-time dictation system built with a single-process Rust+EGUI architecture, replacing the problematic v2 WebSocket/Tauri design. The system aims to provide GPU-accelerated speech recognition with a transparent floating UI, AI-powered corrections, and intelligent text injection.
 
 ## Current System Status
 
 ### Overall Progress: 45% Complete
-- ✅ **Core Architecture**: Single-process Flet application implemented
+- ✅ **Core Architecture**: Single-process Rust+EGUI application implemented
 - ✅ **Audio Processing**: Microphone capture and VAD functional
 - ✅ **STT Integration**: NeMo/Parakeet integration with GPU acceleration
 - ✅ **Text Processing**: Clarity Engine for real-time corrections
@@ -127,7 +127,7 @@ graph TD
 - **Python 3.11+**: Strict version requirement
 
 ### Software Dependencies
-- **Flet**: UI framework (v0.28.3+)
+- **Rust+EGUI**: UI framework with PyO3 bridge for Python integration
 - **NeMo Toolkit**: NVIDIA speech recognition
 - **PyTorch**: Deep learning framework
 - **SoundDevice**: Audio capture and playback
@@ -267,6 +267,6 @@ graph TD
 
 ## Conclusion
 
-PersonalParakeet v3 shows strong architectural foundations with a well-designed single-process Flet implementation. The core audio processing and STT functionality is solid, but several critical blockers prevent full deployment. The most urgent issues are RTX 5090 compatibility, audio queue management, and activation of thought linking features.
+PersonalParakeet v3 shows strong architectural foundations with a well-designed single-process Rust+EGUI implementation. The core audio processing and STT functionality is solid, but several critical blockers prevent full deployment. The most urgent issues are RTX 5090 compatibility, audio queue management, and activation of thought linking features.
 
 With focused effort on the critical blockers and completion of medium-term goals, PersonalParakeet v3 has the potential to become a leading real-time dictation solution with its intelligent text buffering system and GPU-accelerated architecture.

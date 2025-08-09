@@ -2,7 +2,7 @@
 
 ## Executive Summary
 
-This document tracks the comprehensive migration of all PersonalParakeet v2 features to the v3 Flet architecture. It serves as both a development roadmap and progress tracker for the ongoing v2→v3 feature porting effort.
+This document tracks the comprehensive migration of all PersonalParakeet v2 features to the v3 Rust+EGUI architecture. It serves as both a development roadmap and progress tracker for the ongoing v2→v3 feature porting effort.
 
 **Last Updated**: July 23, 2025  
 **Migration Progress**: 35% Complete (Foundation + Core Components)
@@ -13,7 +13,7 @@ This document tracks the comprehensive migration of all PersonalParakeet v2 feat
 
 ### **Completed Foundation** ✅
 - ✅ **Single Process Architecture** - Eliminated WebSocket complexity
-- ✅ **Flet UI Framework** - Material Design with glass morphism
+- ✅ **Rust+EGUI UI Framework** - High-performance native UI with transparency via PyO3 bridge
 - ✅ **Producer-Consumer Audio** - Thread-safe audio processing
 - ✅ **Basic Configuration System** - Type-safe dataclass config
 - ✅ **Core Testing Framework** - Automated component validation
@@ -52,7 +52,7 @@ This document tracks the comprehensive migration of all PersonalParakeet v2 feat
 
 ### **1. Enhanced Application Detection** ⭐⭐⭐
 **v2 Source**: `personalparakeet/application_detection_enhanced.py`  
-**v3 Target**: `v3-flet/core/application_detector.py`
+**v3 Target**: `src/personalparakeet/core/application_detector.py`
 
 **Status**: 🚧 In Progress  
 **Completion**: 0%
@@ -80,7 +80,7 @@ strategy_order = injection_manager._get_optimized_strategy_order(app_info)
 
 ### **2. Enhanced Text Injection System** ⭐⭐⭐
 **v2 Source**: `personalparakeet/text_injection_enhanced.py`  
-**v3 Target**: Enhance existing `v3-flet/core/injection_manager.py`
+**v3 Target**: Enhance existing `src/personalparakeet/core/injection_manager_enhanced.py`
 
 **Status**: 🚧 In Progress  
 **Completion**: 25% (Basic injection only)
@@ -108,7 +108,7 @@ stats = manager.get_performance_stats()
 
 ### **3. Advanced Configuration Management** ⭐⭐⭐
 **v2 Source**: `personalparakeet/config_manager.py`, `personalparakeet/config.py`  
-**v3 Target**: Enhance existing `v3-flet/config.py`
+**v3 Target**: Enhance existing `src/personalparakeet/config.py`
 
 **Status**: 🚧 In Progress  
 **Completion**: 40% (Basic config only)
@@ -138,7 +138,7 @@ success = config_manager.update_config(updates)
 
 ### **4. Command Mode System** ⭐⭐
 **v2 Source**: `personalparakeet/command_mode.py`  
-**v3 Target**: `v3-flet/core/command_processor.py`
+**v3 Target**: `src/personalparakeet/core/command_processor.py`
 
 **Status**: ❌ Not Started  
 **Completion**: 0%
@@ -156,7 +156,7 @@ success = config_manager.update_config(updates)
 
 ### **5. Thought Linking System** ⭐⭐
 **v2 Source**: `personalparakeet/thought_linking.py`  
-**v3 Target**: `v3-flet/core/thought_linker.py` (placeholder exists)
+**v3 Target**: `src/personalparakeet/core/thought_linker.py` (placeholder exists)
 
 **Status**: ❌ Not Started  
 **Completion**: 0%
@@ -174,7 +174,7 @@ success = config_manager.update_config(updates)
 
 ### **6. Enhanced Audio Device Management** ⭐⭐
 **v2 Source**: `personalparakeet/audio_devices.py`  
-**v3 Target**: `v3-flet/core/audio_manager.py`
+**v3 Target**: `src/personalparakeet/core/audio_manager.py`
 
 **Status**: ❌ Not Started  
 **Completion**: 0%
@@ -192,7 +192,7 @@ success = config_manager.update_config(updates)
 
 ### **7. Enhanced Dictation System** ⭐
 **v2 Source**: `personalparakeet/dictation_enhanced.py`  
-**v3 Target**: `v3-flet/core/enhanced_dictation.py`
+**v3 Target**: `src/personalparakeet/core/enhanced_dictation.py`
 
 **Status**: ❌ Not Started  
 **Completion**: 0%
@@ -212,7 +212,7 @@ success = config_manager.update_config(updates)
 
 ### **8. Linux Platform Support** ⭐
 **v2 Sources**: `personalparakeet/linux_injection.py`, `personalparakeet/linux_clipboard_manager.py`, `personalparakeet/kde_injection.py`  
-**v3 Target**: `v3-flet/platforms/linux/`
+**v3 Target**: `src/personalparakeet/platforms/linux/`
 
 **Status**: ❌ Not Started  
 **Completion**: 0%
@@ -230,7 +230,7 @@ success = config_manager.update_config(updates)
 
 ### **9. GPU Management & Optimization** ⭐
 **v2 Source**: `personalparakeet/cuda_fix.py`  
-**v3 Target**: `v3-flet/core/gpu_manager.py`
+**v3 Target**: `src/personalparakeet/core/gpu_manager.py`
 
 **Status**: ❌ Not Started  
 **Completion**: 0%
@@ -248,7 +248,7 @@ success = config_manager.update_config(updates)
 
 ### **10. Enhanced Logging & Debugging** ⭐
 **v2 Sources**: `personalparakeet/logger.py`, `personalparakeet/constants.py`  
-**v3 Target**: `v3-flet/utils/`
+**v3 Target**: `src/personalparakeet/utils/`
 
 **Status**: ❌ Not Started  
 **Completion**: 0%
@@ -350,9 +350,9 @@ success = config_manager.update_config(updates)
 - **Original v2 Code**: @personalparakeet/ directory
 
 ### **For Testing**
-- **Basic Functionality**: `cd v3-flet && python main.py`
-- **Component Tests**: `cd v3-flet && python run_tests.py`
-- **Injection Testing**: `cd v3-flet && python test_injection.py`
+- **Basic Functionality**: `poetry run personalparakeet`
+- **Component Tests**: `pytest tests/`
+- **Injection Testing**: `pytest tests/integration/test_injection.py`
 
 ### **For Project Management**
 - **Weekly Reviews**: Update completion percentages

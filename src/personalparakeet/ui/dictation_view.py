@@ -1,8 +1,9 @@
 #!/usr/bin/env python3
 """
-DictationView - Floating UI for PersonalParakeet v3
-Provides transparent, always-on-top dictation interface with Flet
-Enhanced with debugging tools and widget visibility validation
+DictationView - Legacy Floating UI for PersonalParakeet v3
+NOTE: This file contains the legacy Flet implementation that has been replaced
+by the Rust+EGUI UI in src/gui.rs. This file is kept for reference but is no longer active.
+The current UI is implemented in Rust with EGUI and connected via PyO3 bridge.
 """
 
 import logging
@@ -332,4 +333,3 @@ class DictationView:
     async def show_error(self, error_message: str):
         """Displays an error message in the status area."""
         await self.update_status(f"Error: {error_message}", ft.Colors.ORANGE_ACCENT_400)
-        

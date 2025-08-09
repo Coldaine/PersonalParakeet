@@ -1,9 +1,11 @@
 #!/usr/bin/env python3
 """
-PersonalParakeet Test Dashboard
-A simple Flet dashboard for running manual tests
+PersonalParakeet Test Dashboard - Legacy Flet Implementation
+NOTE: This file contains legacy Flet-based test dashboard code.
+The main application now uses Rust+EGUI UI implemented in src/gui.rs.
+This test dashboard may need updating to match the current architecture.
 
-To run this dashboard:
+To run this legacy dashboard:
 1. First install flet: pip install flet
 2. Then run: python test_dashboard.py
 
@@ -147,7 +149,6 @@ class TestDashboard:
                         else:
                             self.output_text.value += clean_line
                         
-                        # Auto-scroll to bottom - thread-safe update
                         if self.page:
                             self.page.update()
                 
@@ -211,7 +212,6 @@ class TestDashboard:
             import threading
             import time
             
-            # Update UI
             self.injection_result_text.value = "Testing in 200ms..."
             self.injection_result_text.color = ft.Colors.YELLOW_400
             self.page.update()
@@ -219,7 +219,6 @@ class TestDashboard:
             def inject_after_delay():
                 time.sleep(0.2)  # 200ms delay
                 
-                # Import and test injection
                 import sys
                 sys.path.insert(0, str(self.root_dir / "src"))
                 
@@ -230,7 +229,6 @@ class TestDashboard:
                     test_text = f"Test {datetime.now().strftime('%H:%M:%S')} "
                     success = injector.inject_text(test_text)
                     
-                    # Update result
                     if success:
                         self.injection_result_text.value = f"✅ Injected: '{test_text}'"
                         self.injection_result_text.color = ft.Colors.GREEN_400
@@ -244,7 +242,6 @@ class TestDashboard:
                 
                 self.page.update()
             
-            # Run injection in thread
             threading.Thread(target=inject_after_delay, daemon=True).start()
         
         widget = ft.Container(
@@ -314,7 +311,6 @@ class TestDashboard:
             padding=20
         )
         
-        # Create injection test widget
         injection_widget = self.create_injection_test_widget()
         
         # Test cards

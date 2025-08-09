@@ -56,7 +56,7 @@ The project follows a modern `src-layout` structure:
 ```
 src/personalparakeet/
 ├── core/           # Business logic only
-├── ui/             # Flet components only
+├── ui/             # Rust+EGUI UI components via PyO3 bridge
 ├── main.py         # Single entry point
 └── config.py       # Dataclass configuration
 ```
@@ -65,7 +65,7 @@ src/personalparakeet/
 
 - Use **dataclasses** for all configuration
 - Type hints are required throughout
-- Use **async/await** only for UI updates (Flet)
+- Use **async/await** only for UI updates (Rust+EGUI via PyO3)
 - Follow proven patterns in `docs/archive/legacy/V3_PROVEN_CODE_LIBRARY.md`
 - Use `queue.Queue` for thread-safe communication (never direct cross-thread UI access)
 
@@ -173,19 +173,19 @@ A `ProfileManager` class in `config.py` will handle loading, saving, and switchi
 ### 5.1. Threading Architecture
 
 -   **Producer-Consumer**: The audio engine is a producer that puts audio chunks into a queue. The STT processor is a consumer that takes chunks from the queue.
--   **Thread-Safe UI Updates**: All UI updates from background threads **must** use `asyncio.run_coroutine_threadsafe(coro, page.loop)` to avoid race conditions.
+-   **Thread-Safe UI Updates**: All UI updates from background threads **must** use the Rust+EGUI event system via PyO3 bridge to avoid race conditions.
 
-### 5.2. Flet UI Patterns
+### 5.2. Rust+EGUI UI Patterns
 
--   UI components are defined in the `ui/` directory.
--   The main UI is built in the `DictationView` class.
--   UI updates should be done asynchronously via `await page.update_async()`.
+-   UI components are defined in Rust (`src/gui.rs`) with Python bindings in the `ui/` directory.
+-   The main UI is built in the `GuiApp` Rust struct with Python interface via `GuiController`.
+-   UI updates should be done via the PyO3 bridge using event channels.
 
 ### 5.3. Migration Guidelines (from v2)
 
 -   **Remove WebSocket Code**: Replace `websocket.send()` with direct function calls or async UI updates.
 -   **Replace `subprocess`**: Use `threading.Thread` for background tasks.
--   **Use Flet State**: Replace React-style state management with Flet's reactive components.
+-   **Use Rust+EGUI State**: Replace React-style state management with EGUI's immediate mode GUI and Rust state management.
 
 ---
 

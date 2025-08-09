@@ -55,7 +55,7 @@ packages = [
     ("torchaudio", "torchaudio", "Audio processing"),
     ("fsspec", "fsspec", "== 2024.12.0 for NeMo"),
     ("nemo", "nemo", "NVIDIA ASR toolkit"),
-    ("flet", "flet", "UI framework"),
+    ("personalparakeet_ui", "personalparakeet_ui", "Rust+EGUI UI framework via PyO3"),
 ]
 
 failed = []
