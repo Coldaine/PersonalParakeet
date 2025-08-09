@@ -316,7 +316,7 @@ python3 tests/run_tests.py --report --verbose
 - **Audio Processing**: sounddevice, soundfile, pyaudio
 - **GPU Support**: torch, CUDA toolkit
 - **System Integration**: pynput, pyperclip, keyboard
-- **UI Framework**: flet
+- **UI Framework**: Rust+EGUI (via PyO3 bridge)
 
 ## Test Development Guidelines
 

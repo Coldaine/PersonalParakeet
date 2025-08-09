@@ -1,7 +1,7 @@
 # PersonalParakeet Tech Stack
 
 ## Core Framework
-- **UI**: Flet (Flutter-based cross-platform UI)
+- **UI**: Rust+EGUI (high-performance native UI via PyO3 bridge)
 - **Architecture**: Single-process Python (no WebSocket/IPC)
 - **Threading**: Producer-consumer with queue.Queue + asyncio
 

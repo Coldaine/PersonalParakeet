@@ -107,7 +107,7 @@ def main():
     # Basic dependencies
     print("\nChecking basic dependencies:")
     basic_deps = [
-        'flet',
+        'personalparakeet_ui',  # Rust+EGUI UI via PyO3
         'sounddevice',
         'numpy',
         'scipy',

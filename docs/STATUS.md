@@ -6,12 +6,12 @@
 
 ## 1. Project Overview
 
-PersonalParakeet v3 is a pure Python, single-process, multi-threaded dictation system using Flet for the UI. The v3 rewrite eliminates all WebSocket/IPC complexity and focuses on stability, maintainability, and performance.
+PersonalParakeet v3 is a single-process, multi-threaded dictation system using Rust+EGUI for the UI connected to Python via PyO3 bridge. The v3 rewrite eliminates all WebSocket/IPC complexity and focuses on stability, maintainability, and performance.
 
 ## 2. ✅ Verified Working Features (August 4, 2025)
 
 ### Core Architecture ✅
-- **Flet UI Framework**: Floating transparent window working perfectly
+- **Rust+EGUI UI Framework**: Floating transparent window working perfectly via PyO3 bridge
 - **Single-Process Design**: No WebSocket, no IPC, no race conditions - VALIDATED
 - **Producer-Consumer Audio**: Thread-safe audio pipeline with `queue.Queue` - WORKING
 - **Package Structure**: Modern src-layout with Poetry entry points - COMPLETE

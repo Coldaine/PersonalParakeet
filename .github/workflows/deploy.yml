@@ -60,7 +60,7 @@ jobs:
         echo "Commit: ${{ github.sha }}" >> release-notes.md
         echo "" >> release-notes.md
         echo "## Features" >> release-notes.md
-        echo "- Single-process Flet architecture" >> release-notes.md
+        echo "- Single-process Rust+EGUI architecture" >> release-notes.md
         echo "- Real-time dictation with AI corrections" >> release-notes.md  
         echo "- Transparent floating UI" >> release-notes.md
         echo "- NVIDIA Parakeet-TDT integration" >> release-notes.md
@@ -196,7 +196,7 @@ jobs:
         
         nav:
           - Home: README.md
-          - Architecture: docs/Architecture_Decision_Record_Flet.md
+          - Architecture: docs/Architecture_Decision_Record_EGUI.md
           - Setup: docs/DICTATION_VIEW_SETUP_GUIDE.md
           - Testing: docs/testing/TESTING_CHECKLIST.md
           - API: docs/api/modules.md

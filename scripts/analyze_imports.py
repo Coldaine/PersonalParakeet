@@ -61,7 +61,7 @@ def categorize_import(import_name):
     
     # UI/Graphics
     ui = {
-        'flet', 'tkinter', 'PyQt5', 'PyQt6', 'PySide2', 'PySide6',
+        'tkinter', 'PyQt5', 'PyQt6', 'PySide2', 'PySide6',
         'kivy', 'pygame', 'pyglet'
     }
     
