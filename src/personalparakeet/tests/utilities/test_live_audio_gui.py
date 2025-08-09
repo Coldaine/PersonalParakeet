@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 """
-Live Audio Monitor for GUI (Flet Dashboard)
+Live Audio Monitor for GUI (Rust+EGUI Dashboard)
 Outputs structured data that the dashboard can parse
 """
 

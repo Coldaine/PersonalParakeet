@@ -1,6 +1,9 @@
 #!/usr/bin/env python3
 """
-Interactive Test Visualization Dashboard for PersonalParakeet
+Interactive Test Visualization Dashboard for PersonalParakeet - Legacy Implementation
+NOTE: This script contains legacy Flet-based visualization code.
+The main application now uses Rust+EGUI UI implemented in src/gui.rs.
+This visualization dashboard may need updating to match the current architecture.
 
 This script provides a comprehensive dashboard for visualizing test structure,
 coverage, and execution results with interactive charts and real-time monitoring.

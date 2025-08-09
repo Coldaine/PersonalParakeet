@@ -30,7 +30,7 @@ src/personalparakeet/
 │   ├── vad_engine.py           # Voice activity detection
 │   ├── thought_linker.py       # Thought linking logic
 │   └── injection_manager*.py   # Text injection management
-├── ui/                         # Flet UI components
+├── ui/                         # Rust+EGUI UI components (via PyO3 bridge)
 │   └── dictation_view.py       # Main dictation interface
 └── utils/                      # Utility modules
     └── dependency_validation.py
@@ -69,7 +69,7 @@ docs/
 - **UI**: `src/personalparakeet/ui/dictation_view.py:DictationView`
 
 ## Threading Architecture
-- **Main Thread**: Flet UI event loop
+- **Main Thread**: Rust EGUI event loop (via PyO3 bridge)
 - **Audio Thread**: sounddevice callback (producer)
 - **STT Thread**: Speech recognition processing (consumer)
 - **Communication**: queue.Queue + asyncio.run_coroutine_threadsafe()

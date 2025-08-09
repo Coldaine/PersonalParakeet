@@ -17,8 +17,8 @@ pip install pytest pytest-cov
 # Optional: For enhanced visualizations
 pip install matplotlib seaborn pandas
 
-# Optional: For interactive dashboard
-pip install flet
+# Optional: For interactive dashboard (legacy - now uses Rust+EGUI)
+# pip install flet
 ```
 
 ### Basic Usage
@@ -264,7 +264,8 @@ class CustomTestDashboard(TestVisualizationDashboard):
 #### Missing Dependencies
 ```bash
 # Install required packages
-pip install matplotlib seaborn pandas flet
+pip install matplotlib seaborn pandas
+# Note: flet no longer used - PersonalParakeet v3 uses Rust+EGUI
 
 # Or install minimal requirements
 pip install pytest pytest-cov
@@ -281,8 +282,9 @@ python3 tests/run_tests.py
 
 #### Dashboard Won't Launch
 ```bash
-# Check flet installation
-pip install flet
+# Note: flet no longer used in PersonalParakeet v3 (uses Rust+EGUI)
+# For legacy compatibility only:
+# pip install flet
 
 # Try basic HTML report instead
 python3 scripts/test_visualization_dashboard.py --html

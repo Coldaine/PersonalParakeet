@@ -223,7 +223,7 @@ def main():
     # Application dependencies
     print(f"\n{BOLD}Application Dependencies:{RESET}")
     
-    for package in ["flet", "numpy", "scipy", "hydra", "omegaconf"]:
+    for package in ["numpy", "scipy", "hydra", "omegaconf"]:
         status, message = check_package(package)
         print_status(package.capitalize(), status, message)
         all_passed &= status

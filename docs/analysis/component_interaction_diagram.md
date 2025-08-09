@@ -4,7 +4,7 @@
 
 | Component | Depends On | Communicates With | Data Flow | Event Flow |
 |-----------|------------|-------------------|-----------|------------|
-| **Main Application** | Flet, Config | All Components | Configuration, Events | Lifecycle Events |
+| **Main Application** | Rust+EGUI, Config | All Components | Configuration, Events | Lifecycle Events |
 | **Audio Engine** | Config, VAD Engine | STT Processor, UI | Audio Data, Status | Audio Events, Status Updates |
 | **STT Processor** | Audio Engine, NeMo | Clarity Engine, UI | Transcription Text | Processing Events |
 | **Clarity Engine** | STT Processor | Thought Linker, UI | Corrected Text | Correction Events |
@@ -36,7 +36,7 @@ graph TB
     end
     
     subgraph "Dependencies"
-        K[Flet Framework] --> A
+        K[Rust+EGUI Framework] --> A
         L[V3Config] --> A
         M[Logging System] --> A
     end
@@ -305,7 +305,7 @@ graph TD
     end
     
     subgraph "Dependencies"
-        G[Flet Framework] --> A
+        G[Rust+EGUI Framework] --> A
         H[Configuration] --> A
         I[Assets] --> A
     end

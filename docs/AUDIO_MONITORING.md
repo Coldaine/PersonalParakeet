@@ -84,7 +84,7 @@ If you see garbled output, your terminal may not support ANSI codes.
 
 ### Dashboard Display Issues
 The dashboard removes ANSI codes and handles carriage returns specially. If the meter doesn't update properly:
-1. Check Flet is up to date: `pip install -U flet`
+1. Check the Rust UI components are properly compiled: `maturin develop`
 2. Try the GUI-specific monitor: `test_live_audio_gui.py`
 
 ## Technical Details

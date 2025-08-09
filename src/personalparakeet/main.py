@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 """
-PersonalParakeet v3 - Flet Single-Process Architecture
-Main entry point for the dictation system with integrated UI
+PersonalParakeet v3 - Rust+EGUI Single-Process Architecture
+Main entry point for the dictation system with Rust+EGUI UI via PyO3 bridge
 """
 
 import asyncio

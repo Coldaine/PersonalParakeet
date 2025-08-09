@@ -71,7 +71,7 @@
       "window_detector"
     ],
     "ui": [
-      "flet"
+      "personalparakeet_ui"
     ],
     "system": [
       "ctypes",
@@ -127,7 +127,7 @@
     "difflib",
     "enum",
     "ewmh",
-    "flet",
+    "personalparakeet_ui",
     "gtts",
     "hardware_validator",
     "importlib",
@@ -203,7 +203,7 @@
     "src/personalparakeet/main.py": [
       "asyncio",
       "atexit",
-      "flet",
+      "personalparakeet_ui",
       "logging",
       "os",
       "pathlib",
@@ -228,7 +228,7 @@
     ],
     "src/personalparakeet/quick_test.py": [
       "config",
-      "flet",
+      "personalparakeet_ui",
       "logging",
       "pathlib",
       "personalparakeet",
@@ -423,7 +423,7 @@
     ],
     "src/personalparakeet/ui/dictation_view.py": [
       "asyncio",
-      "flet",
+      "personalparakeet_ui",
       "logging",
       "personalparakeet",
       "typing"

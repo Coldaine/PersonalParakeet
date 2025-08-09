@@ -10,7 +10,7 @@ applyTo: "**"
 PersonalParakeet is a real-time dictation system using NVIDIA Parakeet-TDT 1.1B. We are at 35% completion of a critical v2→v3 migration:
 
 - **v2 (DEPRECATED)**: Tauri + React frontend, Python WebSocket backend - DO NOT USE
-- **v3 (ACTIVE)**: Pure Python with Flet UI framework - ALL NEW WORK HERE
+- **v3 (ACTIVE)**: Python backend with Rust+EGUI UI via PyO3 bridge - ALL NEW WORK HERE
 
 ## Architecture Requirements
 
@@ -48,7 +48,7 @@ self.ui_element.value = text  # Race condition
 ```
 src/personalparakeet/
 ├── core/           # Business logic only
-├── ui/             # Flet components only
+├── ui/             # Python UI bridge to Rust+EGUI
 ├── main.py         # Single entry point
 └── config.py       # Dataclass configuration
 ```

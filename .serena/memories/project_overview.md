@@ -2,7 +2,7 @@
 
 ## Purpose
 PersonalParakeet v3 is a real-time dictation system with:
-- Transparent floating UI built with Flet
+- Transparent floating UI built with Rust+EGUI via PyO3 bridge
 - AI-powered corrections using "Clarity Engine"
 - Intelligent text buffering system to prevent text rewrites
 - GPU-accelerated speech recognition using NVIDIA Parakeet
@@ -14,7 +14,7 @@ PersonalParakeet v3 is a real-time dictation system with:
 
 ## Architecture
 - **Single-process Python architecture** (v3 rewrite)
-- **NO WebSocket/IPC/subprocess for UI** - uses Flet directly
+- **NO WebSocket/IPC/subprocess for UI** - uses Rust+EGUI via PyO3 bridge directly
 - Producer-consumer pattern with queue.Queue
 - asyncio.run_coroutine_threadsafe() for thread-safe UI updates
 - Dataclass-based configuration system
